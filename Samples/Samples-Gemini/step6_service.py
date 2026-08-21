@@ -1,0 +1,202 @@
+"""
+Step 6 Capstone (Gemini twin) -- serve the agent as a real service.
+
+Same five bullets as ../Samples/step6_service.py:
+  6.1 observability: a request id, a span-style trace line, tokens AND cost
+  6.2 cost control: a right-sized model (see config.py's free-tier-eligible default)
+  6.3 guardrails: input validation, output filtering
+  6.4 security: API-key auth, an injection heuristic, least-privilege framing
+  6.5 serving: async, a timeout, AND a streaming (SSE) endpoint
+
+Governance -- redaction, audit trail, approval gates -- is module 6.7 and
+lives in step6b_governance.py.
+
+Run:   uv run --with "fastapi,uvicorn,google-genai" uvicorn step6_service:app --reload
+Test:  $env:API_KEYS = "dev-key-123"        # then, in another terminal:
+       curl -s localhost:8000/ask -H "content-type: application/json" \
+            -H "x-api-key: dev-key-123" \
+            -d '{"question":"Total residents across Dorm A and B?"}'
+       curl -N localhost:8000/ask/stream -H "content-type: application/json" \
+            -H "x-api-key: dev-key-123" \
+            -d '{"question":"What are the quiet hours?"}'
+Deps:  fastapi uvicorn google-genai
+Env:   GEMINI_API_KEY, API_KEYS (comma-separated)
+"""
+import asyncio
+import json
+import os
+import time
+import uuid
+
+from fastapi import Depends, FastAPI, Header, HTTPException
+from fastapi.responses import StreamingResponse
+from google.genai import types
+from pydantic import BaseModel, Field
+from step3_agent import run as agent
+
+from config import MODEL, cost_usd, get_client
+
+app = FastAPI(title="Dorm Agent Service (Gemini)")
+client = get_client()
+
+# 6.4 the same crude injection heuristic as the Claude version -- real systems
+# need far more (see OWASP LLM Top 10). It still cannot catch injection that
+# arrives inside a RETRIEVED DOCUMENT rather than the user's message, which is
+# the attack that actually matters for agents. Treat tool output as untrusted,
+# on every vendor.
+BLOCKLIST = ("ignore previous", "ignore all previous", "system prompt",
+             "api key", "reveal your", "disregard the above")
+
+TIMEOUT_SECONDS = 60
+
+
+# --- 6.4  authentication -----------------------------------------------------
+def require_api_key(x_api_key: str = Header(default="")) -> str:
+    """Same idea as ../Samples/step6_service.py -- this auth layer protects
+    YOUR endpoint, and has nothing to do with which LLM vendor is behind it.
+    An agent endpoint with no auth is a bill anyone on the internet can run
+    up on your behalf.
+    """
+    allowed = {k.strip() for k in os.environ.get("API_KEYS", "").split(",") if k.strip()}
+    if not allowed:
+        raise HTTPException(503, "server misconfigured: API_KEYS is not set")
+    if x_api_key not in allowed:
+        raise HTTPException(401, "missing or invalid x-api-key header")
+    return x_api_key
+
+
+class Ask(BaseModel):                                   # 6.3 input validation
+    question: str = Field(min_length=3, max_length=500)
+
+
+class Answer(BaseModel):
+    answer: str
+    request_id: str
+    usd: float
+    ms: int
+
+
+# --- 6.1  the tracer ----------------------------------------------------------
+class Trace:
+    """One request's worth of observability -- same hand-rolled span idea as
+    the Claude version. NOTE THE FIELD NAMES: this is where the usage-object
+    diff called out in config.py's cost_usd() actually bites -- prompt_token_count
+    and candidates_token_count, not input_tokens and output_tokens.
+    """
+
+    def __init__(self, route: str):
+        self.request_id = str(uuid.uuid4())[:8]
+        self.route = route
+        self.started = time.perf_counter()
+        self.calls = 0
+        self.tokens_in = 0
+        self.tokens_out = 0
+        self.thoughts = 0
+        self.usd = 0.0
+
+    def record(self, usage_metadata) -> None:
+        """Called once per model call inside the agent loop."""
+        self.calls += 1
+        self.tokens_in += getattr(usage_metadata, "prompt_token_count", 0) or 0
+        self.tokens_out += getattr(usage_metadata, "candidates_token_count", 0) or 0
+        self.thoughts += getattr(usage_metadata, "thoughts_token_count", 0) or 0
+        self.usd += cost_usd(usage_metadata, MODEL)
+
+    @property
+    def ms(self) -> int:
+        return int((time.perf_counter() - self.started) * 1000)
+
+    def emit(self, outcome: str) -> None:
+        print(json.dumps({
+            "request_id": self.request_id,
+            "route": self.route,
+            "outcome": outcome,
+            "model": MODEL,
+            "model_calls": self.calls,          # note: >1 per question. That's the loop.
+            "tokens_in": self.tokens_in,
+            "tokens_out": self.tokens_out,
+            "tokens_thoughts": self.thoughts,   # Gemini bills thinking separately -- see config.py
+            "usd": round(self.usd, 6),
+            "ms": self.ms,
+        }), flush=True)
+
+
+def guard_input(question: str) -> None:
+    if any(bad in question.lower() for bad in BLOCKLIST):    # 6.4
+        raise HTTPException(400, "request rejected by guardrail")
+
+
+def guard_output(text: str) -> str:
+    if "GEMINI_API_KEY" in text or "AIza" in text:            # 6.3 output filter
+        return "[response redacted by output guardrail]"
+    return text
+
+
+@app.get("/health")
+async def health() -> dict:
+    return {"status": "ok", "model": MODEL}
+
+
+@app.post("/ask", response_model=Answer)
+async def ask(body: Ask, _key: str = Depends(require_api_key)) -> Answer:
+    trace = Trace("/ask")
+    guard_input(body.question)
+
+    try:
+        # 6.5 the agent is async, so no thread pool -- just await it with a
+        # wall-clock cap. An agent loop with no timeout can spin until
+        # MAX_STEPS while the caller's connection sits open.
+        text = await asyncio.wait_for(
+            agent(body.question, on_usage=trace.record), timeout=TIMEOUT_SECONDS,
+        )
+    except asyncio.TimeoutError:
+        trace.emit("timeout")
+        raise HTTPException(504, "agent timed out")
+    except Exception:
+        trace.emit("error")
+        raise HTTPException(500, "agent failed")
+
+    trace.emit("ok")
+    return Answer(answer=guard_output(text), request_id=trace.request_id,
+                  usd=round(trace.usd, 6), ms=trace.ms)
+
+
+@app.post("/ask/stream")
+async def ask_stream(body: Ask, _key: str = Depends(require_api_key)):
+    """6.5 Server-Sent Events -- same shape as the Claude version. Streams a
+    SINGLE model answer, not the whole tool loop; choosing tokens vs.
+    tool-by-tool progress is a product decision, not a technical one, on
+    either vendor.
+    """
+    trace = Trace("/ask/stream")
+    guard_input(body.question)
+
+    async def events():
+        try:
+            stream = await client.aio.models.generate_content_stream(
+                model=MODEL,
+                contents=body.question,
+                config=types.GenerateContentConfig(
+                    system_instruction="You are a dormitory operations assistant. Be concise.",
+                    max_output_tokens=2048,
+                ),
+            )
+            final_usage = None
+            async for chunk in stream:
+                if chunk.text:
+                    yield f"data: {json.dumps({'delta': chunk.text})}\n\n"
+                if chunk.usage_metadata:
+                    final_usage = chunk.usage_metadata
+            if final_usage is not None:
+                trace.record(final_usage)
+            trace.emit("ok")
+            yield f"data: {json.dumps({'done': True, 'usd': round(trace.usd, 6), 'request_id': trace.request_id})}\n\n"
+        except Exception as exc:
+            trace.emit("error")
+            # An error mid-stream cannot become a 500 -- the headers are long
+            # gone. You have to deliver failures IN the stream.
+            yield f"data: {json.dumps({'error': type(exc).__name__})}\n\n"
+
+    return StreamingResponse(events(), media_type="text/event-stream",
+                             headers={"cache-control": "no-cache",
+                                      "x-request-id": trace.request_id})
