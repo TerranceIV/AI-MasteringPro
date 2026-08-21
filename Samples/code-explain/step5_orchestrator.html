@@ -1,0 +1,267 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Explained · step5_orchestrator.py</title>
+<style>
+  :root {
+    --bg:#eef1ee; --surface:#ffffff; --surface-2:#f3f6f2; --ink:#182019; --muted:#586459; --faint:#8a968b; --line:#dbe2db;
+    --accent:#2f8f5b; --accent-2:#1f7d6b; --accent-soft:#dcefe2; --warn:#b8791a; --warn-soft:#f7ecd9;
+    --shadow:0 1px 2px rgba(24,32,25,.05),0 10px 30px rgba(24,32,25,.07);
+    --mono:ui-monospace,"Cascadia Code","SF Mono",Menlo,Consolas,monospace;
+    --sans:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+    --s1:#2f7cb0; --s2:#7a4fb0; --s3:#12897a; --s4:#c2610f; --s5:#a83a6a; --s6:#3f5bb0;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{ --bg:#0c110d; --surface:#141a15; --surface-2:#19211a; --ink:#e7eee8; --muted:#98a89b; --faint:#6c7a6e; --line:#232d25;
+      --accent:#4fb37e; --accent-2:#46c2ab; --accent-soft:#14301f; --warn:#e0a94e; --warn-soft:#2b230f;
+      --s1:#58a9dc; --s2:#b48fe0; --s3:#4ec6b1; --s4:#e8944a; --s5:#e07aa6; --s6:#8b9ff0;
+      --shadow:0 1px 2px rgba(0,0,0,.35),0 10px 30px rgba(0,0,0,.45); }
+  }
+  :root[data-theme="light"]{ --bg:#eef1ee; --surface:#ffffff; --surface-2:#f3f6f2; --ink:#182019; --muted:#586459; --faint:#8a968b; --line:#dbe2db; --accent:#2f8f5b; --accent-2:#1f7d6b; --accent-soft:#dcefe2; --warn:#b8791a; --warn-soft:#f7ecd9; --s1:#2f7cb0; --s2:#7a4fb0; --s3:#12897a; --s4:#c2610f; --s5:#a83a6a; --s6:#3f5bb0; --shadow:0 1px 2px rgba(24,32,25,.05),0 10px 30px rgba(24,32,25,.07); }
+  :root[data-theme="dark"]{ --bg:#0c110d; --surface:#141a15; --surface-2:#19211a; --ink:#e7eee8; --muted:#98a89b; --faint:#6c7a6e; --line:#232d25; --accent:#4fb37e; --accent-2:#46c2ab; --accent-soft:#14301f; --warn:#e0a94e; --warn-soft:#2b230f; --s1:#58a9dc; --s2:#b48fe0; --s3:#4ec6b1; --s4:#e8944a; --s5:#e07aa6; --s6:#8b9ff0; --shadow:0 1px 2px rgba(0,0,0,.35),0 10px 30px rgba(0,0,0,.45); }
+
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink); font-family:var(--sans); line-height:1.65; -webkit-font-smoothing:antialiased; }
+  .wrap { max-width:840px; margin:0 auto; padding:clamp(24px,5vw,56px) clamp(18px,4vw,36px); }
+
+  code { font-family:var(--mono); font-size:.85em; background:var(--surface-2); padding:2px 6px; border-radius:5px; word-break:break-word; }
+  a { color:var(--accent-2); }
+  a.file { text-decoration:none; font-family:var(--mono); font-size:.85em; font-weight:600; }
+  a.file:hover { text-decoration:underline; }
+
+  .kicker { font-family:var(--mono); font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--accent); font-weight:700; margin:0 0 12px; }
+  h1 { font-size:clamp(26px,5.5vw,38px); line-height:1.1; margin:0 0 16px; letter-spacing:-.02em; text-wrap:balance; font-weight:800; }
+  .intro { font-size:clamp(15.5px,2.2vw,17px); color:var(--muted); margin:0 0 6px; }
+  .intro b { color:var(--ink); }
+
+  .orient { background:var(--surface); border:1px solid var(--line); border-radius:14px; padding:18px 20px; margin:22px 0 8px; box-shadow:var(--shadow); }
+  .orient p { margin:0 0 10px; font-size:14.5px; }
+  .orient p:last-child { margin-bottom:0; }
+  .orient .label { font-family:var(--mono); font-size:11px; letter-spacing:.08em; text-transform:uppercase; color:var(--accent); font-weight:700; display:block; margin-bottom:3px; }
+
+  section.block { margin:42px 0; }
+  h2 { font-size:clamp(18px,3vw,21px); margin:0 0 4px; letter-spacing:-.01em; display:flex; align-items:center; gap:10px; }
+  h2 .badge { font-family:var(--mono); font-size:12px; font-weight:700; color:#fff; width:26px; height:26px; border-radius:8px; display:inline-flex; align-items:center; justify-content:center; flex:none; }
+  .loc { font-family:var(--mono); font-size:12.5px; margin:0 0 14px; }
+  .did { font-size:15px; margin:0 0 14px; }
+
+  pre { background:var(--surface-2); border:1px solid var(--line); border-radius:10px; padding:12px 14px; overflow-x:auto; margin:0 0 14px; }
+  pre code { background:none; padding:0; font-size:13px; }
+
+  .concept, .why, .trace, .trap, .predict {
+    border-radius:12px; padding:14px 16px; margin:0 0 12px; font-size:14px; border:1px solid var(--line);
+  }
+  .concept { background:var(--accent-soft); border-left:4px solid var(--accent); }
+  .why { background:var(--surface); box-shadow:var(--shadow); }
+  .concept b, .why b { color:var(--ink); font-family:var(--mono); font-size:11.5px; letter-spacing:.06em; text-transform:uppercase; display:block; margin-bottom:5px; color:var(--accent-2); }
+
+  .trace-card { background:var(--surface); border:1px solid var(--line); border-radius:14px; padding:18px 20px; box-shadow:var(--shadow); }
+  .trace-card ol { margin:0; padding-left:22px; }
+  .trace-card li { margin-bottom:10px; font-size:14.5px; }
+  .trace-card li:last-child { margin-bottom:0; }
+
+  .traps { background:var(--warn-soft); border:1px solid var(--line); border-left:4px solid var(--warn); border-radius:12px; padding:16px 20px; }
+  .traps ul { margin:0; padding-left:20px; }
+  .traps li { margin-bottom:9px; font-size:14.5px; }
+  .traps li:last-child { margin-bottom:0; }
+
+  .predict { background:var(--surface); box-shadow:var(--shadow); }
+  .predict b { display:block; color:var(--ink); font-size:14.5px; margin-bottom:6px; }
+
+  .watch-cmd { display:block; font-family:var(--mono); font-size:13.5px; background:var(--surface-2); border:1px solid var(--line); border-radius:8px; padding:10px 14px; margin:14px 0; color:var(--ink); }
+
+  .diagram { background:var(--surface); border:1px solid var(--line); border-radius:14px; padding:20px; margin:22px 0 36px; box-shadow:var(--shadow); overflow-x:auto; }
+  .diagram .dg-title { font-family:var(--mono); font-size:11px; letter-spacing:.08em; text-transform:uppercase; color:var(--accent); font-weight:700; margin:0 0 6px; }
+  .diagram .dg-note { margin:0 0 16px; font-size:12.5px; color:var(--muted); }
+  .diagram svg { width:100%; height:auto; display:block; min-width:560px; }
+  .dg-box { fill:var(--surface-2); stroke:var(--line); stroke-width:1.5; }
+  .dg-box-accent { fill:var(--accent-soft); stroke:var(--accent); stroke-width:1.5; }
+  .dg-box-warn { fill:var(--warn-soft); stroke:var(--warn); stroke-width:1.5; }
+  .dg-box-dashed { fill:none; stroke:var(--faint); stroke-width:1.5; stroke-dasharray:6 5; }
+  .dg-text { fill:var(--ink); font-family:var(--sans); font-size:12.5px; font-weight:600; }
+  .dg-sub { fill:var(--muted); font-family:var(--sans); font-size:10.8px; }
+  .dg-label { fill:var(--faint); font-family:var(--mono); font-size:10px; text-transform:uppercase; letter-spacing:.03em; }
+  .dg-lane { fill:var(--accent-2); font-family:var(--mono); font-size:11px; font-weight:700; }
+  .dg-arrow { stroke:var(--faint); stroke-width:1.6; fill:none; }
+  .dg-arrowhead { fill:var(--faint); }
+
+  .navrow { display:flex; justify-content:space-between; gap:12px; margin-top:8px; font-family:var(--mono); font-size:12.5px; }
+  .navrow a { text-decoration:none; font-weight:600; }
+  .navrow a:hover { text-decoration:underline; }
+
+  footer { margin-top:52px; padding-top:20px; border-top:1px solid var(--line); color:var(--faint); font-family:var(--mono); font-size:12px; text-align:center; }
+  footer a { color:var(--faint); }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <p class="kicker">/explain &middot; step 5</p>
+  <h1>step5_orchestrator.py</h1>
+  <p class="intro"><b>Orchestrator/worker fan-out.</b> Splits a question into subtasks, runs them as separate Step-3 agents concurrently, synthesizes their findings, and scores itself against the 12-case eval suite in <a class="file" href="../evals.py">evals.py</a>.</p>
+
+  <div class="orient">
+    <p><span class="label">What happens when you run it</span> Twelve <code>[PASS]</code>/<code>[FAIL]</code> lines with their answers, then a <code>pass rate: x/12</code> summary.</p>
+    <p><span class="label">The one idea it teaches</span> Fan a question out to several independent agent runs in parallel, have a separate model call synthesize their findings into one answer, and score the whole thing automatically instead of eyeballing it.</p>
+    <p><span class="label">What it deliberately leaves out</span> The subtask split is hand-written per case, not decided by a model. The "eval" is a crude substring check, not real grading. No retry if a worker fails.</p>
+  </div>
+
+  <div class="diagram">
+    <p class="dg-title">fan-out, then fan-in</p>
+    <p class="dg-note">Both workers are full Step-3 agents running concurrently &mdash; the wall-clock cost is the slower one, not the sum of both.</p>
+    <svg viewBox="0 0 760 570" role="img" aria-label="Flowchart: question and subtasks fan out to two concurrent Step 3 worker agents, whose findings merge in order, get synthesized into one answer by a further LLM call, then checked against an eval expectation.">
+      <defs>
+        <marker id="dgArrow5" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path class="dg-arrowhead" d="M0,0 L10,5 L0,10 z"/>
+        </marker>
+      </defs>
+
+      <path class="dg-arrow" marker-end="url(#dgArrow5)" d="M320,68 L210,140"/>
+      <path class="dg-arrow" marker-end="url(#dgArrow5)" d="M430,68 L540,140"/>
+      <path class="dg-arrow" marker-end="url(#dgArrow5)" d="M200,198 L320,260"/>
+      <path class="dg-arrow" marker-end="url(#dgArrow5)" d="M550,198 L430,260"/>
+      <path class="dg-arrow" marker-end="url(#dgArrow5)" d="M375,318 L375,370"/>
+      <path class="dg-arrow" marker-end="url(#dgArrow5)" d="M375,428 L375,480"/>
+      <path class="dg-arrow" marker-end="url(#dgArrow5)" d="M485,510 L543,510"/>
+
+      <text class="dg-label" x="300" y="108">asyncio.gather &mdash; concurrent</text>
+
+      <g>
+        <rect class="dg-box" x="265" y="12" width="220" height="56" rx="10"/>
+        <text class="dg-text" x="375" y="36" text-anchor="middle">question + subtasks</text>
+        <text class="dg-sub" x="375" y="52" text-anchor="middle">hand-written split, not model-decided</text>
+      </g>
+
+      <g>
+        <rect class="dg-box" x="70" y="142" width="220" height="56" rx="10"/>
+        <text class="dg-text" x="180" y="166" text-anchor="middle">run_worker(subtask 1)</text>
+        <text class="dg-sub" x="180" y="182" text-anchor="middle">own Step-3 agent loop</text>
+      </g>
+
+      <g>
+        <rect class="dg-box" x="460" y="142" width="220" height="56" rx="10"/>
+        <text class="dg-text" x="570" y="166" text-anchor="middle">run_worker(subtask 2)</text>
+        <text class="dg-sub" x="570" y="182" text-anchor="middle">own Step-3 agent loop</text>
+      </g>
+
+      <g>
+        <rect class="dg-box-accent" x="265" y="262" width="220" height="56" rx="10"/>
+        <text class="dg-text" x="375" y="286" text-anchor="middle">findings[]</text>
+        <text class="dg-sub" x="375" y="302" text-anchor="middle">order preserved</text>
+      </g>
+
+      <g>
+        <rect class="dg-box-accent" x="265" y="372" width="220" height="56" rx="10"/>
+        <text class="dg-text" x="375" y="396" text-anchor="middle">synthesize()</text>
+        <text class="dg-sub" x="375" y="412" text-anchor="middle">one more LLM call</text>
+      </g>
+
+      <g>
+        <rect class="dg-box-accent" x="265" y="482" width="220" height="56" rx="10"/>
+        <text class="dg-text" x="375" y="514" text-anchor="middle">final answer</text>
+      </g>
+
+      <g>
+        <rect class="dg-box-dashed" x="545" y="482" width="190" height="56" rx="10"/>
+        <text class="dg-text" x="640" y="506" text-anchor="middle">PASS / FAIL</text>
+        <text class="dg-sub" x="640" y="522" text-anchor="middle">expect substring in answer?</text>
+      </g>
+    </svg>
+  </div>
+
+  <section class="block">
+    <h2><span class="badge" style="background:var(--s1)">1</span>Reusing Step 3 as a worker</h2>
+    <p class="loc"><a class="file" href="../step5_orchestrator.py#L13">step5_orchestrator.py:13-22</a></p>
+    <p class="did"><code>from step3_agent import run as worker</code> &mdash; literally imports Step 3's agent loop and uses it as a black-box worker.</p>
+    <div class="concept"><b>Concept</b>Composition &mdash; an agent calling other agents.</div>
+    <div class="why"><b>Why this way</b>The naive alternative is copy-pasting Step 3's loop into this file. Importing it directly guarantees the worker behaves identically to the standalone Step 3 agent &mdash; same tools, same <code>MAX_STEPS</code>, same guardrails &mdash; and any future fix to Step 3 improves Step 5 for free.</div>
+  </section>
+
+  <section class="block">
+    <h2><span class="badge" style="background:var(--s2)">2</span><code>run_worker()</code> &mdash; bridging sync into async</h2>
+    <p class="loc"><a class="file" href="../step5_orchestrator.py#L25">step5_orchestrator.py:25-28</a></p>
+    <pre><code>findings = await asyncio.gather(*(worker(s) for s in subtasks))   # 5.2 fan-out</code></pre>
+    <div class="concept"><b>Concept</b><code>asyncio.gather</code> runs every worker concurrently. Three workers taking 3 seconds each finish in about 3 seconds, not 9.</div>
+    <div class="why" style="border-left-color:var(--s4)"><b>This used to read <code>await asyncio.to_thread(worker, subtask)</code>, and the reason is worth keeping in mind.</b> <code>step3_agent.run()</code> was synchronous, so it couldn't be awaited &mdash; calling it directly inside an <code>async def</code> would have frozen the event loop for the very workers you were trying to parallelise. <code>to_thread</code> is the correct fix for that situation: it pushes a blocking function onto an OS thread. Keep it in your toolkit for wrapping genuinely synchronous libraries.<br><br>But it was treating a symptom. Now that the Step 3 loop is async, the fan-out is a plain <code>gather</code> over coroutines &mdash; no threads, no pool to size, no hidden ceiling on concurrency. <b>The general lesson:</b> when you find yourself reaching for <code>to_thread</code> on code you own, the real fix is usually one layer down.</div>
+  </section>
+
+  <section class="block">
+    <h2><span class="badge" style="background:var(--s3)">3</span><code>synthesize()</code></h2>
+    <p class="loc"><a class="file" href="../step5_orchestrator.py#L31">step5_orchestrator.py:31-44</a></p>
+    <p class="did">Takes the question plus a list of plain-string worker findings and makes one more LLM call to combine them into a single answer.</p>
+    <div class="concept"><b>Concept</b>A synthesis/manager step, distinct from the worker steps &mdash; it aggregates, it doesn't retrieve.</div>
+    <div class="why"><b>Why this way</b>The naive alternative is just concatenating the raw findings. Fine for two short facts; doesn't scale to many subtasks or findings that overlap or conflict. A model reconciling several reports into one coherent answer is the same reason a human project lead writes a summary instead of forwarding five raw emails.</div>
+  </section>
+
+  <section class="block">
+    <h2><span class="badge" style="background:var(--s4)">4</span><code>orchestrate()</code> &mdash; fan-out/fan-in</h2>
+    <p class="loc"><a class="file" href="../step5_orchestrator.py#L47">step5_orchestrator.py:47-49</a></p>
+    <pre><code>findings = await asyncio.gather(*(run_worker(s) for s in subtasks))  # 5.2 fan-out
+return synthesize(question, list(findings))                          # 5.2 synthesize</code></pre>
+    <div class="concept"><b>Concept</b>All subtasks run concurrently, then one synthesis call combines them.</div>
+    <div class="why"><b>Why this way</b>Awaiting workers one at a time would take the sum of every worker's full multi-turn agent loop &mdash; potentially the slowest part of the whole system, since each worker can itself take several round-trips. Running them concurrently makes total wall-clock roughly equal to the single slowest worker &mdash; the same <code>asyncio.gather</code> idea as Step 1, now fanning out entire sub-agents instead of single tool calls.</div>
+  </section>
+
+  <section class="block">
+    <h2><span class="badge" style="background:var(--s5)">5</span>The eval suite &mdash; now in <code>evals.py</code></h2>
+    <p class="loc"><a class="file" href="../evals.py">evals.py</a> &nbsp;·&nbsp; run by <a class="file" href="../step5_orchestrator.py">step5_orchestrator.py</a> and by CI</p>
+    <p class="did">Twelve cases, each with hand-written subtasks and <i>either</i> an expected substring <i>or</i> a grading rubric. <code>run_suite()</code> runs them concurrently and reports a pass rate.</p>
+    <div class="concept"><b>Concept</b>An eval set &mdash; a small, repeatable regression test for agent <i>behavior</i>, not just code correctness.</div>
+    <div class="why"><b>Why this way</b>Eyeballing the answer after every prompt/tool/model tweak doesn't scale and doesn't catch regressions you weren't looking for. A pass rate gives you one number to watch. It lives in its own module now because <a class="file" href="../../.github/workflows/eval.yml">the CI workflow</a> imports it too &mdash; the same suite you run by hand is the one that blocks a merge, which is the whole point of module 6.6.</div>
+    <div class="why" style="border-left-color:var(--s4)"><b>This grew from 2 cases to 12, and gained a second grader &mdash; both for specific reasons.</b><br><br><b>Two graders.</b> Eight cases use a free substring check; four use an LLM judge with a rubric. Use the cheapest grader that can do the job: a mostly-deterministic suite runs in seconds and never flakes, which is the only property that makes it get run at all.<br><br><b>Why a judge is sometimes unavoidable.</b> Take <i>"Which block has more residents, Dorm A or Dorm B?"</i> &mdash; a check for <code>"Dorm A" in answer</code> also passes on <i>"Dorm B has more residents than Dorm A"</i>, the exactly-wrong answer. A substring test can verify a <b>fact</b>; it cannot verify a <b>relation</b>.<br><br><b>The two most valuable cases are refusals.</b> <code>grounding-unknown-block</code> asks about a Dorm Z that isn't in the knowledge base. The correct behaviour is to decline, and no assertion can express "must not invent a number" &mdash; you'd have to assert the absence of every fabricated value, phrased any number of ways. An agent's real reliability lives in what it refuses to say, and those cases are the first thing a careful interviewer probes.</div>
+    <div class="why">Worth noticing, still: the subtask split is written by a human, not decided by a model &mdash; a genuinely dynamic orchestrator would have an LLM do that decomposition itself.</div>
+  </section>
+
+  <section class="block">
+    <h2>Traced end to end</h2>
+    <p class="did">Eval case 2: <code>"What is the total number of residents across Dorm A and Dorm B?"</code></p>
+    <div class="trace-card">
+      <ol>
+        <li><code>subtasks = ["How many residents live in Dorm A?", "How many residents live in Dorm B?"]</code>.</li>
+        <li><code>orchestrate</code> calls <code>asyncio.gather(run_worker(s1), run_worker(s2))</code> &mdash; both start together, each on its own thread running a full Step-3 agent loop.</li>
+        <li>Worker 1's internal loop calls <code>search(...)</code> for Dorm A and returns its resident count; worker 2 does the same for Dorm B, in parallel.</li>
+        <li>Both findings return via <code>gather</code>, in submission order regardless of which finished first.</li>
+        <li><code>synthesize(question, findings)</code> sends one more message asking for "a single concise final answer" &mdash; the model replies with the combined total.</li>
+        <li><b>Output:</b> <code>"800" in answer</code> &rarr; <code>True</code> &rarr; <code>[PASS]</code>. Once all twelve cases finish: <code>pass rate: 12/12 (100%)</code> &mdash; on a good day. The refusal cases are the ones most likely to cost you a point.</li>
+      </ol>
+    </div>
+  </section>
+
+  <section class="block">
+    <h2>Traps</h2>
+    <div class="traps">
+      <ul>
+        <li><b>Two full agent runs per eval case, not two single calls.</b> Each "worker" is itself a multi-turn Step-3 loop &mdash; one eval case can trigger several LLM calls total.</li>
+        <li><b>The eval check is a crude substring match.</b> "Eight hundred residents" instead of "800" would fail even though it's right &mdash; not something to trust as real evaluation.</li>
+        <li><b>Subtasks are hand-written, not model-decided.</b> A human wrote the split for each eval case; the orchestrator itself doesn't decompose questions.</li>
+        <li>Needs <code>ANTHROPIC_API_KEY</code>, and must run from inside <code>samples/</code> since it imports <code>step3_agent</code>.</li>
+        <li>Inherits Step 3's non-determinism and its <code>eval()</code>-based calculator risk, since every worker <i>is</i> a Step 3 agent.</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="block">
+    <h2>What to watch when you run it</h2>
+    <p class="did">From inside <code>samples/</code>, with your key set:</p>
+    <span class="watch-cmd">uv run step5_orchestrator.py</span>
+    <p class="did">Watch the <code>[PASS]</code>/<code>[FAIL]</code> lines, then the final <code>pass rate: x/12</code>.</p>
+    <div class="predict">
+      <b>Predict before you run it</b>
+      Case 2 spins up two concurrent multi-step agent runs plus one synthesis call. Will it look noticeably slower than a single Step 3 run from the command line? Guess, then time both.
+    </div>
+  </section>
+
+  <div class="navrow">
+    <a href="step4_langgraph_agent.html">&larr; step 4: the same agent on a framework</a>
+    <a href="step5b_mcp_client.html">step 5b: speaking MCP &rarr;</a>
+  </div>
+
+  <footer>
+    generated by <code>/explain</code> &middot; source: <a href="../step5_orchestrator.py">step5_orchestrator.py</a> &middot; see also <a href="../README.md">README.md</a>
+  </footer>
+
+</div>
+</body>
+</html>

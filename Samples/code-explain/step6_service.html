@@ -1,0 +1,313 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Explained · step6_service.py</title>
+<style>
+  :root {
+    --bg:#eef1ee; --surface:#ffffff; --surface-2:#f3f6f2; --ink:#182019; --muted:#586459; --faint:#8a968b; --line:#dbe2db;
+    --accent:#2f8f5b; --accent-2:#1f7d6b; --accent-soft:#dcefe2; --warn:#b8791a; --warn-soft:#f7ecd9;
+    --shadow:0 1px 2px rgba(24,32,25,.05),0 10px 30px rgba(24,32,25,.07);
+    --mono:ui-monospace,"Cascadia Code","SF Mono",Menlo,Consolas,monospace;
+    --sans:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+    --s1:#2f7cb0; --s2:#7a4fb0; --s3:#12897a; --s4:#c2610f; --s5:#a83a6a; --s6:#3f5bb0;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{ --bg:#0c110d; --surface:#141a15; --surface-2:#19211a; --ink:#e7eee8; --muted:#98a89b; --faint:#6c7a6e; --line:#232d25;
+      --accent:#4fb37e; --accent-2:#46c2ab; --accent-soft:#14301f; --warn:#e0a94e; --warn-soft:#2b230f;
+      --s1:#58a9dc; --s2:#b48fe0; --s3:#4ec6b1; --s4:#e8944a; --s5:#e07aa6; --s6:#8b9ff0;
+      --shadow:0 1px 2px rgba(0,0,0,.35),0 10px 30px rgba(0,0,0,.45); }
+  }
+  :root[data-theme="light"]{ --bg:#eef1ee; --surface:#ffffff; --surface-2:#f3f6f2; --ink:#182019; --muted:#586459; --faint:#8a968b; --line:#dbe2db; --accent:#2f8f5b; --accent-2:#1f7d6b; --accent-soft:#dcefe2; --warn:#b8791a; --warn-soft:#f7ecd9; --s1:#2f7cb0; --s2:#7a4fb0; --s3:#12897a; --s4:#c2610f; --s5:#a83a6a; --s6:#3f5bb0; --shadow:0 1px 2px rgba(24,32,25,.05),0 10px 30px rgba(24,32,25,.07); }
+  :root[data-theme="dark"]{ --bg:#0c110d; --surface:#141a15; --surface-2:#19211a; --ink:#e7eee8; --muted:#98a89b; --faint:#6c7a6e; --line:#232d25; --accent:#4fb37e; --accent-2:#46c2ab; --accent-soft:#14301f; --warn:#e0a94e; --warn-soft:#2b230f; --s1:#58a9dc; --s2:#b48fe0; --s3:#4ec6b1; --s4:#e8944a; --s5:#e07aa6; --s6:#8b9ff0; --shadow:0 1px 2px rgba(0,0,0,.35),0 10px 30px rgba(0,0,0,.45); }
+
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink); font-family:var(--sans); line-height:1.65; -webkit-font-smoothing:antialiased; }
+  .wrap { max-width:840px; margin:0 auto; padding:clamp(24px,5vw,56px) clamp(18px,4vw,36px); }
+
+  code { font-family:var(--mono); font-size:.85em; background:var(--surface-2); padding:2px 6px; border-radius:5px; word-break:break-word; }
+  a { color:var(--accent-2); }
+  a.file { text-decoration:none; font-family:var(--mono); font-size:.85em; font-weight:600; }
+  a.file:hover { text-decoration:underline; }
+
+  .kicker { font-family:var(--mono); font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--accent); font-weight:700; margin:0 0 12px; }
+  h1 { font-size:clamp(26px,5.5vw,38px); line-height:1.1; margin:0 0 16px; letter-spacing:-.02em; text-wrap:balance; font-weight:800; }
+  .intro { font-size:clamp(15.5px,2.2vw,17px); color:var(--muted); margin:0 0 6px; }
+  .intro b { color:var(--ink); }
+
+  .orient { background:var(--surface); border:1px solid var(--line); border-radius:14px; padding:18px 20px; margin:22px 0 8px; box-shadow:var(--shadow); }
+  .orient p { margin:0 0 10px; font-size:14.5px; }
+  .orient p:last-child { margin-bottom:0; }
+  .orient .label { font-family:var(--mono); font-size:11px; letter-spacing:.08em; text-transform:uppercase; color:var(--accent); font-weight:700; display:block; margin-bottom:3px; }
+
+  section.block { margin:42px 0; }
+  h2 { font-size:clamp(18px,3vw,21px); margin:0 0 4px; letter-spacing:-.01em; display:flex; align-items:center; gap:10px; }
+  h2 .badge { font-family:var(--mono); font-size:12px; font-weight:700; color:#fff; width:26px; height:26px; border-radius:8px; display:inline-flex; align-items:center; justify-content:center; flex:none; }
+  .loc { font-family:var(--mono); font-size:12.5px; margin:0 0 14px; }
+  .did { font-size:15px; margin:0 0 14px; }
+
+  pre { background:var(--surface-2); border:1px solid var(--line); border-radius:10px; padding:12px 14px; overflow-x:auto; margin:0 0 14px; }
+  pre code { background:none; padding:0; font-size:13px; }
+
+  .concept, .why, .trace, .trap, .predict {
+    border-radius:12px; padding:14px 16px; margin:0 0 12px; font-size:14px; border:1px solid var(--line);
+  }
+  .concept { background:var(--accent-soft); border-left:4px solid var(--accent); }
+  .why { background:var(--surface); box-shadow:var(--shadow); }
+  .concept b, .why b { color:var(--ink); font-family:var(--mono); font-size:11.5px; letter-spacing:.06em; text-transform:uppercase; display:block; margin-bottom:5px; color:var(--accent-2); }
+
+  .trace-card { background:var(--surface); border:1px solid var(--line); border-radius:14px; padding:18px 20px; box-shadow:var(--shadow); }
+  .trace-card ol { margin:0; padding-left:22px; }
+  .trace-card li { margin-bottom:10px; font-size:14.5px; }
+  .trace-card li:last-child { margin-bottom:0; }
+
+  .traps { background:var(--warn-soft); border:1px solid var(--line); border-left:4px solid var(--warn); border-radius:12px; padding:16px 20px; }
+  .traps ul { margin:0; padding-left:20px; }
+  .traps li { margin-bottom:9px; font-size:14.5px; }
+  .traps li:last-child { margin-bottom:0; }
+
+  .predict { background:var(--surface); box-shadow:var(--shadow); }
+  .predict b { display:block; color:var(--ink); font-size:14.5px; margin-bottom:6px; }
+
+  .watch-cmd { display:block; font-family:var(--mono); font-size:13.5px; background:var(--surface-2); border:1px solid var(--line); border-radius:8px; padding:10px 14px; margin:14px 0; color:var(--ink); }
+
+  .diagram { background:var(--surface); border:1px solid var(--line); border-radius:14px; padding:20px; margin:22px 0 36px; box-shadow:var(--shadow); overflow-x:auto; }
+  .diagram .dg-title { font-family:var(--mono); font-size:11px; letter-spacing:.08em; text-transform:uppercase; color:var(--accent); font-weight:700; margin:0 0 6px; }
+  .diagram .dg-note { margin:0 0 16px; font-size:12.5px; color:var(--muted); }
+  .diagram svg { width:100%; height:auto; display:block; min-width:560px; }
+  .dg-box { fill:var(--surface-2); stroke:var(--line); stroke-width:1.5; }
+  .dg-box-accent { fill:var(--accent-soft); stroke:var(--accent); stroke-width:1.5; }
+  .dg-box-warn { fill:var(--warn-soft); stroke:var(--warn); stroke-width:1.5; }
+  .dg-box-dashed { fill:none; stroke:var(--faint); stroke-width:1.5; stroke-dasharray:6 5; }
+  .dg-text { fill:var(--ink); font-family:var(--sans); font-size:12.5px; font-weight:600; }
+  .dg-sub { fill:var(--muted); font-family:var(--sans); font-size:10.8px; }
+  .dg-label { fill:var(--faint); font-family:var(--mono); font-size:10px; text-transform:uppercase; letter-spacing:.03em; }
+  .dg-lane { fill:var(--accent-2); font-family:var(--mono); font-size:11px; font-weight:700; }
+  .dg-arrow { stroke:var(--faint); stroke-width:1.6; fill:none; }
+  .dg-arrowhead { fill:var(--faint); }
+
+  .navrow { display:flex; justify-content:space-between; gap:12px; margin-top:8px; font-family:var(--mono); font-size:12.5px; }
+  .navrow a { text-decoration:none; font-weight:600; }
+  .navrow a:hover { text-decoration:underline; }
+
+  footer { margin-top:52px; padding-top:20px; border-top:1px solid var(--line); color:var(--faint); font-family:var(--mono); font-size:12px; text-align:center; }
+  footer a { color:var(--faint); }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <p class="kicker">/explain &middot; step 6</p>
+  <h1>step6_service.py</h1>
+  <p class="intro"><b>The agent behind a real web service.</b> Instead of a one-shot script, this starts a FastAPI server that runs the Step 3 agent per HTTP request &mdash; authenticated, traced, costed, guarded, and streamable.</p>
+
+  <div class="orient">
+    <p><span class="label">What happens when you run it</span> Nothing prints at startup &mdash; it stays running, waiting for requests. Then <b>one JSON line per request</b>: request id, model-call count, tokens, dollars, milliseconds.</p>
+    <p><span class="label">The one idea it teaches</span> Putting the same agent behind a service adds concerns a CLI script never has: validating untrusted input, authenticating the caller, knowing what each request <i>cost</i>, guarding against injection, bounding how long one request can run, and streaming so the user isn't watching a spinner.</p>
+    <p><span class="label">Set this first, or you'll get a 503</span> <code>$env:API_KEYS = "dev-key-123"</code> before launching uvicorn, then send <code>-H "x-api-key: dev-key-123"</code>. Anonymous calls are refused on purpose.</p>
+    <p><span class="label">What it deliberately leaves out</span> The guardrails are explicitly crude &mdash; a substring blocklist and a check for an API-key-shaped string. And note what a blocklist structurally <i>cannot</i> catch: injection arriving inside a <b>retrieved document</b> rather than the user's message, which is the attack that actually matters for agents. Treat tool output as untrusted (OWASP LLM Top 10).</p>
+    <p><span class="label">Governance lives next door</span> Redaction, audit trails and approval gates are module 6.7, in <a class="file" href="../step6b_governance.py">step6b_governance.py</a>.</p>
+  </div>
+
+  <div class="diagram">
+    <p class="dg-title">one request, three exit ramps</p>
+    <p class="dg-note">Every guard sits before the expensive step &mdash; the agent only runs once a request has already passed length, content, and (implicitly) rate checks.</p>
+    <svg viewBox="0 0 760 680" role="img" aria-label="Flowchart of a request to /ask: length validation, blocklist check, timeout-bounded agent call, output filter, each guard able to exit early with 422, 400, or 504, otherwise reaching 200 OK.">
+      <defs>
+        <marker id="dgArrow6" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path class="dg-arrowhead" d="M0,0 L10,5 L0,10 z"/>
+        </marker>
+      </defs>
+
+      <path class="dg-arrow" marker-end="url(#dgArrow6)" d="M250,68 L250,120"/>
+      <path class="dg-arrow" marker-end="url(#dgArrow6)" d="M250,178 L250,240"/>
+      <path class="dg-arrow" marker-end="url(#dgArrow6)" d="M250,298 L250,360"/>
+      <path class="dg-arrow" marker-end="url(#dgArrow6)" d="M250,418 L250,480"/>
+      <path class="dg-arrow" marker-end="url(#dgArrow6)" d="M250,538 L250,590"/>
+      <path class="dg-arrow" marker-end="url(#dgArrow6)" d="M360,150 L458,150"/>
+      <path class="dg-arrow" marker-end="url(#dgArrow6)" d="M360,270 L458,270"/>
+      <path class="dg-arrow" marker-end="url(#dgArrow6)" d="M360,390 L458,390"/>
+
+      <text class="dg-label" x="262" y="215">valid length</text>
+      <text class="dg-label" x="262" y="335">clean</text>
+      <text class="dg-label" x="262" y="455">finished &lt; 30s</text>
+      <text class="dg-label" x="400" y="140">invalid length</text>
+      <text class="dg-label" x="410" y="260">blocklisted</text>
+      <text class="dg-label" x="420" y="380">timeout</text>
+
+      <g>
+        <rect class="dg-box" x="140" y="12" width="220" height="56" rx="10"/>
+        <text class="dg-text" x="250" y="44" text-anchor="middle">POST /ask {question}</text>
+      </g>
+
+      <g>
+        <rect class="dg-box" x="140" y="122" width="220" height="56" rx="10"/>
+        <text class="dg-text" x="250" y="146" text-anchor="middle">Ask(BaseModel) validation</text>
+        <text class="dg-sub" x="250" y="162" text-anchor="middle">3&ndash;500 chars</text>
+      </g>
+      <g>
+        <rect class="dg-box-warn" x="460" y="125" width="200" height="50" rx="10"/>
+        <text class="dg-text" x="560" y="147" text-anchor="middle">422</text>
+        <text class="dg-sub" x="560" y="163" text-anchor="middle">validation failed</text>
+      </g>
+
+      <g>
+        <rect class="dg-box" x="140" y="242" width="220" height="56" rx="10"/>
+        <text class="dg-text" x="250" y="266" text-anchor="middle">BLOCKLIST check</text>
+        <text class="dg-sub" x="250" y="282" text-anchor="middle">substring match</text>
+      </g>
+      <g>
+        <rect class="dg-box-warn" x="460" y="245" width="200" height="50" rx="10"/>
+        <text class="dg-text" x="560" y="267" text-anchor="middle">400</text>
+        <text class="dg-sub" x="560" y="283" text-anchor="middle">rejected by guardrail</text>
+      </g>
+
+      <g>
+        <rect class="dg-box" x="140" y="362" width="220" height="56" rx="10"/>
+        <text class="dg-text" x="250" y="386" text-anchor="middle">await agent + wait_for</text>
+        <text class="dg-sub" x="250" y="402" text-anchor="middle">30s cap, runs Step 3 agent</text>
+      </g>
+      <g>
+        <rect class="dg-box-warn" x="460" y="365" width="200" height="50" rx="10"/>
+        <text class="dg-text" x="560" y="387" text-anchor="middle">504</text>
+        <text class="dg-sub" x="560" y="403" text-anchor="middle">timed out</text>
+      </g>
+
+      <g>
+        <rect class="dg-box" x="140" y="482" width="220" height="56" rx="10"/>
+        <text class="dg-text" x="250" y="506" text-anchor="middle">output filter</text>
+        <text class="dg-sub" x="250" y="522" text-anchor="middle">redact if key leaked</text>
+      </g>
+
+      <g>
+        <rect class="dg-box-accent" x="140" y="592" width="220" height="56" rx="10"/>
+        <text class="dg-text" x="250" y="616" text-anchor="middle">200 OK</text>
+        <text class="dg-sub" x="250" y="632" text-anchor="middle">{"answer": "..."}</text>
+      </g>
+    </svg>
+  </div>
+
+  <section class="block">
+    <h2><span class="badge" style="background:var(--s1)">1</span><code>Ask</code> / <code>Answer</code> models</h2>
+    <p class="loc"><a class="file" href="../step6_service.py#L28">step6_service.py:28-34</a></p>
+    <pre><code>class Ask(BaseModel):
+    question: str = Field(min_length=3, max_length=500)</code></pre>
+    <div class="concept"><b>Concept</b>Input validation at a system boundary &mdash; the same <code>BaseModel</code>/<code>Field</code> tool from Steps 1 and 2, now validating an HTTP request body instead of a tool call or a model's output.</div>
+    <div class="why"><b>Why this way</b>Without a length bound, nothing stops an empty question or a 50,000-character essay that blows your token budget on one request. FastAPI returns an automatic <code>422</code> if the body fails validation &mdash; no handler code needed, the check happens before your function even runs.</div>
+  </section>
+
+  <section class="block">
+    <h2><span class="badge" style="background:var(--s2)">2</span><code>BLOCKLIST</code> + input guardrail</h2>
+    <p class="loc"><a class="file" href="../step6_service.py#L25">step6_service.py:25, 43-45</a></p>
+    <p class="did">A tuple of literal phrases checked as substrings of the lowercased question.</p>
+    <div class="concept"><b>Concept</b>An injection/deny-list guardrail &mdash; a crude first line of defense against prompt injection attempts.</div>
+    <div class="why"><b>Why this way &mdash; and its honest limit</b>The comment on line 24 says it directly: real systems need "far more." A substring blocklist is trivially bypassed by rephrasing, typos, or a different language &mdash; it only stops the most literal attempts. It's here to show <i>where</i> a guardrail goes in the request flow, not to demonstrate an actually robust defense.</div>
+  </section>
+
+  <section class="block">
+    <h2><span class="badge" style="background:var(--s3)">3</span>Async serving + timeout</h2>
+    <p class="loc"><a class="file" href="../step6_service.py">step6_service.py</a> &mdash; the <code>/ask</code> handler</p>
+    <pre><code>text = await asyncio.wait_for(
+    agent(body.question, on_usage=trace.record), timeout=TIMEOUT_SECONDS,
+)</code></pre>
+    <div class="concept"><b>Concept</b>Don't block the shared event loop, and bound the worst-case latency.</div>
+    <div class="why"><b>Why this way</b>FastAPI's handlers share one async event loop across every concurrent request. A blocking call inside a handler freezes that loop for every other in-flight request. And without a cap, one stuck agent run holds a connection open indefinitely &mdash; <code>wait_for</code> gives you a clear <code>504</code> instead of a silent hang.</div>
+    <div class="why" style="border-left-color:var(--s4)"><b>This used to be <code>asyncio.to_thread(agent, ...)</code>.</b> The Step 3 agent was synchronous, so it had to be pushed onto an OS thread to keep the loop free. That worked, but it capped concurrency at the thread pool and papered over the real problem one layer down. Now the agent is async, so you just <code>await</code> it &mdash; the same simplification Step 5 got. <b>Rule of thumb:</b> <code>to_thread</code> is the right tool for a blocking library you don't own; on code you <i>do</i> own, it's a sign the fix belongs deeper.</div>
+  </section>
+
+  <section class="block">
+    <h2><span class="badge" style="background:var(--s5)">3b</span>Auth, tracing, and cost <span style="font-size:.65em;color:var(--accent);font-family:var(--mono)">· new</span></h2>
+    <p class="loc"><a class="file" href="../step6_service.py">step6_service.py</a> &mdash; <code>require_api_key()</code> and <code>class Trace</code></p>
+    <p class="did">A header check that rejects unauthenticated calls, and a small span object that accumulates tokens across the loop and emits one structured line per request.</p>
+    <pre><code>class Trace:
+    def record(self, usage):          # called once per model call
+        self.calls += 1
+        self.usd += cost_usd(usage, MODEL)</code></pre>
+    <div class="concept"><b>Concept</b>A span is not a mystery: an id, a timer, counters, and one JSON line. Langfuse and LangSmith log these same fields with a UI on top.</div>
+    <div class="why"><b>Why auth first</b>An unauthenticated agent endpoint is a bill anyone who finds the URL can run up on your behalf &mdash; and each request runs a multi-call loop, so abuse is expensive fast. Worse, they also get whatever your tools can reach: an open endpoint over a retrieval store is an anonymous read API for your documents. One header check is the cheapest security control in the whole track.</div>
+    <div class="why"><b>The number that surprises people</b>Run one question and look at <code>model_calls</code> in the log line &mdash; it will be greater than 1. That's the loop, and each iteration re-sends the whole history, so cost grows super-linearly with conversation length. This is why the meaningful unit is <b>cost per question</b>, not cost per call, and why prompt caching on the stable prefix (now in <a class="file" href="../step3_agent.py">step3_agent.py</a>) is the highest-leverage optimisation in an agent.</div>
+  </section>
+
+  <section class="block">
+    <h2><span class="badge" style="background:var(--s6)">3c</span>The streaming endpoint <span style="font-size:.65em;color:var(--accent);font-family:var(--mono)">· new</span></h2>
+    <p class="loc"><a class="file" href="../step6_service.py">step6_service.py</a> &mdash; <code>/ask/stream</code></p>
+    <p class="did">Returns a <code>StreamingResponse</code> of Server-Sent Events, yielding <code>data: {...}</code> lines as tokens arrive.</p>
+    <div class="concept"><b>Concept</b>SSE is a plain HTTP response that never closes, carrying <code>data:</code> lines. For one-way output you need no WebSocket machinery at all.</div>
+    <div class="why"><b>Why it matters</b>An agent takes seconds, so your p95 latency <i>is</i> your user experience. Streaming converts an eight-second wait into immediate feedback without making anything faster.</div>
+    <div class="why" style="border-left-color:var(--s4)"><b>The trap that makes this genuinely different from a normal handler.</b> If the upstream call fails after 200 tokens have been sent, <b>you cannot return a 500</b> &mdash; the status line and headers left long ago, and the response is already a 200. Failures have to be delivered <i>inside</i> the stream as an error event. Get this wrong and the client sees a stream that simply stops, then waits forever for a completion signal that never comes. Notice too that this endpoint streams a single model answer, not the whole tool loop: streaming an agent means choosing whether the user sees tokens or tool-by-tool progress, and that's a product decision, not a technical one.</div>
+  </section>
+
+  <section class="block">
+    <h2><span class="badge" style="background:var(--s4)">4</span>Output filter</h2>
+    <p class="loc"><a class="file" href="../step6_service.py#L53">step6_service.py:53-54</a></p>
+    <p class="did">Checks whether the agent's answer text contains <code>"ANTHROPIC_API_KEY"</code> or <code>"sk-ant"</code>, and redacts the whole response if so.</p>
+    <div class="concept"><b>Concept</b>Output filtering &mdash; a guardrail on what leaves the system, symmetric to the input guardrail on what enters.</div>
+    <div class="why"><b>Why this way</b>A last-resort net in case a secret somehow gets echoed back through the agent or a tool result &mdash; not a substitute for keeping secrets away from the model in the first place. Same honesty as the input filter: a pattern match, not an exhaustive defense.</div>
+  </section>
+
+  <section class="block">
+    <h2>Traced end to end</h2>
+    <p class="did"><code>POST /ask {"question": "Total residents across Dorm A and B?"}</code></p>
+    <div class="trace-card">
+      <ol>
+        <li><code>require_api_key</code> compares the <code>x-api-key</code> header against <code>API_KEYS</code> &mdash; matches, so the request proceeds. (No header &rarr; <code>401</code>. No <code>API_KEYS</code> set on the server &rarr; <code>503</code>, because failing closed beats serving anonymously.)</li>
+        <li>A <code>Trace</code> is created: an 8-character request id and a start timestamp.</li>
+        <li>FastAPI parses the body against <code>Ask</code> &mdash; <code>3 &le; len(question) &le; 500</code> passes.</li>
+        <li>Lowercased question checked against <code>BLOCKLIST</code> &mdash; no match, guardrail passes.</li>
+        <li><code>await asyncio.wait_for(agent(question, on_usage=trace.record), timeout=60)</code> runs the Step 3 loop &mdash; internally <code>search</code> &rarr; <code>calculator</code> &rarr; final text &mdash; while the event loop stays free for other requests. <b>Each</b> model call inside that loop fires <code>trace.record()</code>.</li>
+        <li>Finishes in a few seconds, well under the cap.</li>
+        <li>Output filter checks for API-key substrings &mdash; absent, text passes through unchanged.</li>
+        <li><b>One log line:</b> <code>{"request_id":"a3f1…","route":"/ask","outcome":"ok","model_calls":3,"tokens_in":2841,"tokens_out":190,"usd":0.011,"ms":4820}</code> &mdash; note <code>model_calls: 3</code> for one question.</li>
+        <li><b>Response:</b> <code>{"answer":"800 residents live across Dorm A and Dorm B combined.","request_id":"a3f1…","usd":0.011,"ms":4820}</code> &mdash; the id and cost are returned to the caller too, so a support ticket can be tied to a log line.</li>
+      </ol>
+    </div>
+  </section>
+
+  <section class="block">
+    <h2>Traps</h2>
+    <div class="traps">
+      <ul>
+        <li><b>This is a persistent server, not a one-shot script.</b> Run <code>uvicorn</code> in one terminal and <code>curl</code> from a second &mdash; unlike every previous step.</li>
+        <li>A question under 3 or over 500 characters gets an automatic <code>422</code> &mdash; that error handling was never written by hand; it's what <code>Field(min_length=..., max_length=...)</code> buys for free.</li>
+        <li>A request past the timeout returns <code>504</code> &mdash; the timeout working as intended, not a crash.</li>
+        <li>Both guardrails are "crude" by the file's own admission &mdash; don't copy them into a real project as-is.</li>
+        <li>Needs <b>both</b> <code>ANTHROPIC_API_KEY</code> and <code>API_KEYS</code> set in the environment the <code>uvicorn</code> process is launched from. Missing the second gives you a <code>503</code>, not a silent open door.</li>
+        <li>A <code>401</code> means you forgot <code>-H "x-api-key: ..."</code>. That's the guardrail, not a bug.</li>
+        <li><b>Streaming errors never arrive as HTTP errors.</b> If <code>/ask/stream</code> fails mid-response you get a <code>200</code> with an error <i>event</i> in the body &mdash; check the stream contents, not the status code.</li>
+        <li>Use <code>curl -N</code> on the streaming endpoint. Without it curl buffers and you'll see the whole thing arrive at once, which looks exactly like streaming being broken.</li>
+        <li>Like Steps 3 and 5, imports <code>step3_agent</code> &mdash; must run from inside <code>samples/</code>.</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="block">
+    <h2>What to watch when you run it</h2>
+    <p class="did">Two terminals, from inside <code>samples/</code>:</p>
+    <span class="watch-cmd">$env:API_KEYS = "dev-key-123"
+uv run uvicorn step6_service:app --reload</span>
+    <span class="watch-cmd">curl -s localhost:8000/ask -H "content-type: application/json" -H "x-api-key: dev-key-123" -d "{\"question\":\"Total residents across Dorm A and B?\"}"</span>
+    <span class="watch-cmd">curl -N localhost:8000/ask/stream -H "content-type: application/json" -H "x-api-key: dev-key-123" -d "{\"question\":\"What are the quiet hours?\"}"</span>
+    <p class="did">Watch the JSON response body, and &mdash; more interestingly &mdash; the <b>structured trace line</b> in the uvicorn terminal.</p>
+    <div class="predict">
+      <b>Predict before you curl</b>
+      <b>1.</b> Drop the <code>x-api-key</code> header &mdash; which status code? <b>2.</b> Send a question containing "ignore previous instructions" &mdash; normal answer, or <code>400</code>? <b>3.</b> Send <code>"hi"</code> &mdash; what does <code>Field(min_length=3)</code> return? <b>4.</b> Hardest: in the trace line for one question, what will <code>model_calls</code> be &mdash; and can you say <i>why</i> before you look?
+    </div>
+    <div class="predict">
+      <b>Then make the cost visible</b>
+      Ask a one-hop question (<i>"What are the quiet hours?"</i>) and note the <code>usd</code> figure. Now ask a two-tool question (<i>"Total residents across Dorm A and B?"</i>) and compare. The gap is the loop re-sending its history &mdash; and that gap is what prompt caching and right-sized models exist to close.
+    </div>
+  </section>
+
+  <div class="navrow">
+    <a href="step5b_mcp_client.html">&larr; step 5b: speaking MCP</a>
+    <a href="step6b_governance.html">step 6b: governance &amp; auditability &rarr;</a>
+  </div>
+
+  <footer>
+    generated by <code>/explain</code> &middot; source: <a href="../step6_service.py">step6_service.py</a> &middot; see also <a href="../README.md">README.md</a>
+  </footer>
+
+</div>
+</body>
+</html>

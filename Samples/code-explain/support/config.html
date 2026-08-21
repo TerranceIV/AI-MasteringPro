@@ -1,0 +1,286 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Explained · config.py</title>
+<style>
+  :root {
+    --bg:#eef1ee; --surface:#ffffff; --surface-2:#f3f6f2; --ink:#182019; --muted:#586459; --faint:#8a968b; --line:#dbe2db;
+    --accent:#2f8f5b; --accent-2:#1f7d6b; --accent-soft:#dcefe2; --warn:#b8791a; --warn-soft:#f7ecd9;
+    --shadow:0 1px 2px rgba(24,32,25,.05),0 10px 30px rgba(24,32,25,.07);
+    --mono:ui-monospace,"Cascadia Code","SF Mono",Menlo,Consolas,monospace;
+    --sans:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+    --s1:#2f7cb0; --s2:#7a4fb0; --s3:#12897a; --s4:#c2610f; --s5:#a83a6a; --s6:#3f5bb0;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{ --bg:#0c110d; --surface:#141a15; --surface-2:#19211a; --ink:#e7eee8; --muted:#98a89b; --faint:#6c7a6e; --line:#232d25;
+      --accent:#4fb37e; --accent-2:#46c2ab; --accent-soft:#14301f; --warn:#e0a94e; --warn-soft:#2b230f;
+      --s1:#58a9dc; --s2:#b48fe0; --s3:#4ec6b1; --s4:#e8944a; --s5:#e07aa6; --s6:#8b9ff0;
+      --shadow:0 1px 2px rgba(0,0,0,.35),0 10px 30px rgba(0,0,0,.45); }
+  }
+  :root[data-theme="light"]{ --bg:#eef1ee; --surface:#ffffff; --surface-2:#f3f6f2; --ink:#182019; --muted:#586459; --faint:#8a968b; --line:#dbe2db; --accent:#2f8f5b; --accent-2:#1f7d6b; --accent-soft:#dcefe2; --warn:#b8791a; --warn-soft:#f7ecd9; --s1:#2f7cb0; --s2:#7a4fb0; --s3:#12897a; --s4:#c2610f; --s5:#a83a6a; --s6:#3f5bb0; --shadow:0 1px 2px rgba(24,32,25,.05),0 10px 30px rgba(24,32,25,.07); }
+  :root[data-theme="dark"]{ --bg:#0c110d; --surface:#141a15; --surface-2:#19211a; --ink:#e7eee8; --muted:#98a89b; --faint:#6c7a6e; --line:#232d25; --accent:#4fb37e; --accent-2:#46c2ab; --accent-soft:#14301f; --warn:#e0a94e; --warn-soft:#2b230f; --s1:#58a9dc; --s2:#b48fe0; --s3:#4ec6b1; --s4:#e8944a; --s5:#e07aa6; --s6:#8b9ff0; --shadow:0 1px 2px rgba(0,0,0,.35),0 10px 30px rgba(0,0,0,.45); }
+
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink); font-family:var(--sans); line-height:1.65; -webkit-font-smoothing:antialiased; }
+  .wrap { max-width:840px; margin:0 auto; padding:clamp(24px,5vw,56px) clamp(18px,4vw,36px); }
+
+  code { font-family:var(--mono); font-size:.85em; background:var(--surface-2); padding:2px 6px; border-radius:5px; word-break:break-word; }
+  a { color:var(--accent-2); }
+  a.file { text-decoration:none; font-family:var(--mono); font-size:.85em; font-weight:600; }
+  a.file:hover { text-decoration:underline; }
+
+  .kicker { font-family:var(--mono); font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--accent); font-weight:700; margin:0 0 12px; }
+  h1 { font-size:clamp(26px,5.5vw,38px); line-height:1.1; margin:0 0 16px; letter-spacing:-.02em; text-wrap:balance; font-weight:800; }
+  .intro { font-size:clamp(15.5px,2.2vw,17px); color:var(--muted); margin:0 0 6px; }
+  .intro b { color:var(--ink); }
+
+  .orient { background:var(--surface); border:1px solid var(--line); border-radius:14px; padding:18px 20px; margin:22px 0 8px; box-shadow:var(--shadow); }
+  .orient p { margin:0 0 10px; font-size:14.5px; }
+  .orient p:last-child { margin-bottom:0; }
+  .orient .label { font-family:var(--mono); font-size:11px; letter-spacing:.08em; text-transform:uppercase; color:var(--accent); font-weight:700; display:block; margin-bottom:3px; }
+
+  section.block { margin:42px 0; }
+  h2 { font-size:clamp(18px,3vw,21px); margin:0 0 4px; letter-spacing:-.01em; display:flex; align-items:center; gap:10px; }
+  h2 .badge { font-family:var(--mono); font-size:12px; font-weight:700; color:#fff; width:26px; height:26px; border-radius:8px; display:inline-flex; align-items:center; justify-content:center; flex:none; }
+  .loc { font-family:var(--mono); font-size:12.5px; margin:0 0 14px; }
+  .did { font-size:15px; margin:0 0 14px; }
+
+  pre { background:var(--surface-2); border:1px solid var(--line); border-radius:10px; padding:12px 14px; overflow-x:auto; margin:0 0 14px; }
+  pre code { background:none; padding:0; font-size:13px; }
+
+  .concept, .why, .trace, .trap, .predict {
+    border-radius:12px; padding:14px 16px; margin:0 0 12px; font-size:14px; border:1px solid var(--line);
+  }
+  .concept { background:var(--accent-soft); border-left:4px solid var(--accent); }
+  .why { background:var(--surface); box-shadow:var(--shadow); }
+  .concept b, .why b { color:var(--ink); font-family:var(--mono); font-size:11.5px; letter-spacing:.06em; text-transform:uppercase; display:block; margin-bottom:5px; color:var(--accent-2); }
+
+  .trace-card { background:var(--surface); border:1px solid var(--line); border-radius:14px; padding:18px 20px; box-shadow:var(--shadow); }
+  .trace-card ol { margin:0; padding-left:22px; }
+  .trace-card li { margin-bottom:10px; font-size:14.5px; }
+  .trace-card li:last-child { margin-bottom:0; }
+
+  .traps { background:var(--warn-soft); border:1px solid var(--line); border-left:4px solid var(--warn); border-radius:12px; padding:16px 20px; }
+  .traps ul { margin:0; padding-left:20px; }
+  .traps li { margin-bottom:9px; font-size:14.5px; }
+  .traps li:last-child { margin-bottom:0; }
+
+  .predict { background:var(--surface); box-shadow:var(--shadow); }
+  .predict b { display:block; color:var(--ink); font-size:14.5px; margin-bottom:6px; }
+
+  .watch-cmd { display:block; font-family:var(--mono); font-size:13.5px; background:var(--surface-2); border:1px solid var(--line); border-radius:8px; padding:10px 14px; margin:14px 0; color:var(--ink); }
+
+  .diagram { background:var(--surface); border:1px solid var(--line); border-radius:14px; padding:20px; margin:22px 0 36px; box-shadow:var(--shadow); overflow-x:auto; }
+  .diagram .dg-title { font-family:var(--mono); font-size:11px; letter-spacing:.08em; text-transform:uppercase; color:var(--accent); font-weight:700; margin:0 0 6px; }
+  .diagram .dg-note { margin:0 0 16px; font-size:12.5px; color:var(--muted); }
+  .diagram svg { width:100%; height:auto; display:block; min-width:560px; }
+  .dg-box { fill:var(--surface-2); stroke:var(--line); stroke-width:1.5; }
+  .dg-box-accent { fill:var(--accent-soft); stroke:var(--accent); stroke-width:1.5; }
+  .dg-box-warn { fill:var(--warn-soft); stroke:var(--warn); stroke-width:1.5; }
+  .dg-box-dashed { fill:none; stroke:var(--faint); stroke-width:1.5; stroke-dasharray:6 5; }
+  .dg-text { fill:var(--ink); font-family:var(--sans); font-size:12.5px; font-weight:600; }
+  .dg-sub { fill:var(--muted); font-family:var(--sans); font-size:10.8px; }
+  .dg-label { fill:var(--faint); font-family:var(--mono); font-size:10px; text-transform:uppercase; letter-spacing:.03em; }
+  .dg-lane { fill:var(--accent-2); font-family:var(--mono); font-size:11px; font-weight:700; }
+  .dg-arrow { stroke:var(--faint); stroke-width:1.6; fill:none; }
+  .dg-arrowhead { fill:var(--faint); }
+
+  .navrow { display:flex; justify-content:space-between; gap:12px; margin-top:8px; font-family:var(--mono); font-size:12.5px; }
+  .navrow a { text-decoration:none; font-weight:600; }
+  .navrow a:hover { text-decoration:underline; }
+
+  footer { margin-top:52px; padding-top:20px; border-top:1px solid var(--line); color:var(--faint); font-family:var(--mono); font-size:12px; text-align:center; }
+  footer a { color:var(--faint); }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <p class="kicker">/explain &middot; support file</p>
+  <h1>config.py</h1>
+  <p class="intro"><b>The file every other sample imports.</b> Three things live here because all three change constantly and none of them should be scattered across a dozen files: <i>which model</i>, <i>which provider</i>, and <i>what it costs</i>.</p>
+
+  <div class="orient">
+    <p><span class="label">What happens when you run it</span> Nothing &mdash; it has no <code>main</code>. It's a module. But everything you run touches it, so a mistake here shows up as a puzzling failure somewhere else.</p>
+    <p><span class="label">The one idea it teaches</span> <b>The model is a dependency, not a fact of nature.</b> Treat it exactly like a database connection string: one place, environment-overridable, never hardcoded at the call site.</p>
+    <p><span class="label">What it deliberately leaves out</span> Retry policy, timeouts, and connection pooling &mdash; the SDK handles those. And the prices are a hardcoded snapshot that <b>will</b> go stale; the habit to build is "look it up", not "remember it".</p>
+  </div>
+
+  <div class="diagram">
+    <p class="dg-title">one seam, three moving parts</p>
+    <p class="dg-note">Every sample calls <code>get_client()</code>. None of them knows which platform answers.</p>
+    <svg viewBox="0 0 760 260" role="img" aria-label="Environment variables AI_MODEL, AI_PROVIDER and AI_EFFORT feed config.py, which exposes MODEL, get_client and cost_usd to every sample; get_client can return an Anthropic, Bedrock, Vertex or Foundry client, all with the same messages interface.">
+      <defs>
+        <marker id="dgArrowCfg" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path class="dg-arrowhead" d="M0,0 L10,5 L0,10 z"/>
+        </marker>
+      </defs>
+
+      <path class="dg-arrow" marker-end="url(#dgArrowCfg)" d="M176,86 L226,86"/>
+      <path class="dg-arrow" marker-end="url(#dgArrowCfg)" d="M420,86 L470,86"/>
+      <path class="dg-arrow" marker-end="url(#dgArrowCfg)" d="M323,124 L323,176"/>
+
+      <text class="dg-label" x="20" y="42">set in your shell</text>
+      <g>
+        <rect class="dg-box" x="20" y="56" width="156" height="62" rx="10"/>
+        <text class="dg-sub" x="98" y="76" text-anchor="middle">$env:AI_MODEL</text>
+        <text class="dg-sub" x="98" y="92" text-anchor="middle">$env:AI_PROVIDER</text>
+        <text class="dg-sub" x="98" y="108" text-anchor="middle">$env:AI_EFFORT</text>
+      </g>
+
+      <text class="dg-label" x="226" y="42">one place</text>
+      <g>
+        <rect class="dg-box-accent" x="226" y="56" width="194" height="62" rx="10"/>
+        <text class="dg-text" x="323" y="82" text-anchor="middle">config.py</text>
+        <text class="dg-sub" x="323" y="102" text-anchor="middle">MODEL &middot; get_client &middot; cost_usd</text>
+      </g>
+
+      <text class="dg-label" x="470" y="42">every sample</text>
+      <g>
+        <rect class="dg-box" x="470" y="56" width="250" height="62" rx="10"/>
+        <text class="dg-text" x="595" y="82" text-anchor="middle">step2 &hellip; step6b</text>
+        <text class="dg-sub" x="595" y="102" text-anchor="middle">none of them names a model</text>
+      </g>
+
+      <g>
+        <rect class="dg-box-dashed" x="150" y="176" width="460" height="66" rx="10"/>
+        <text class="dg-text" x="380" y="202" text-anchor="middle">Anthropic &middot; Bedrock &middot; Vertex &middot; Foundry</text>
+        <text class="dg-sub" x="380" y="224" text-anchor="middle">different constructor, different credentials, identical .messages.create()</text>
+      </g>
+    </svg>
+  </div>
+
+  <section class="block">
+    <h2><span class="badge" style="background:var(--s1)">1</span><code>MODEL</code> &mdash; one line, one habit</h2>
+    <p class="loc"><a class="file" href="../../config.py#L24">config.py:24</a></p>
+    <pre><code>MODEL = os.environ.get("AI_MODEL", "claude-sonnet-5")</code></pre>
+    <div class="concept"><b>Concept</b>Configuration with a sensible default. Overridable without editing a file.</div>
+    <div class="why"><b>Why the env var and not just a constant</b>Because you will want to compare models, and editing a file to do that means you'll compare once and never again. <code>$env:AI_MODEL = "claude-opus-5"</code> then re-run the eval suite is a two-second experiment; editing, saving and reverting is a chore you'll skip.</div>
+    <div class="why"><b>Why Sonnet is the teaching default</b>Near-Opus quality on agentic work at roughly a third of the price, and you are going to run these samples dozens of times while learning. That's a deliberate cost decision for a <i>learning</i> repo &mdash; production choices are made per workload, which is what module 2.8 is about.</div>
+    <div class="why"><b>The failure this prevents</b>Model ids get renamed. With the string in one place, a rename is a one-line edit; scattered across a dozen files it's a grep under pressure while nothing works. That's the entire argument for this file, and it's why the docstring leads with it.</div>
+  </section>
+
+  <section class="block">
+    <h2><span class="badge" style="background:var(--s2)">2</span><code>PRICES</code> + <code>cost_usd()</code> &mdash; observability is just arithmetic</h2>
+    <p class="loc"><a class="file" href="../../config.py#L29">config.py:29-59</a></p>
+    <p class="did">A price table per million tokens, and a function that turns a response's <code>usage</code> object into dollars.</p>
+    <pre><code>CACHE_WRITE_MULTIPLIER = 1.25   # first call pays a premium to populate the cache
+CACHE_READ_MULTIPLIER  = 0.10   # every later call reads it back at ~90% off
+
+dollars = (fresh * price_in
+           + cache_write * price_in * CACHE_WRITE_MULTIPLIER
+           + cache_read  * price_in * CACHE_READ_MULTIPLIER
+           + out * price_out)</code></pre>
+    <div class="concept"><b>Concept</b>Cost attribution (module 6.2). There is no magic in it &mdash; four token counters and a multiplication.</div>
+    <div class="why"><b>Why input and output are priced separately</b>Output costs roughly five times input. That single fact reshapes design decisions: a verbose system prompt is cheap, a verbose <i>answer</i> is not, and "be concise" is a cost control as much as a style one.</div>
+    <div class="why"><b>Why cached input needs its own term</b>This is the part people get wrong. Cached tokens aren't free &mdash; they're about 10% of the input rate, and the <i>first</i> call pays 125% to populate the cache. So caching is a bet that you'll read the prefix back more than once or twice. Fold cached tokens into the normal input count and your dashboard will overstate cost by 10&times; on a cache-heavy workload.</div>
+    <div class="why"><b>Why <code>getattr(usage, ..., 0) or 0</code></b>Not every response carries every field &mdash; a call with no caching has no <code>cache_read_input_tokens</code>. The <code>or 0</code> also catches an explicit <code>None</code>, which <code>getattr</code>'s default would not. Defensive, and the alternative is an <code>AttributeError</code> inside your cost logger, which is a maddening place to have one.</div>
+    <div class="why"><b>Where it's actually used</b><a class="file" href="../step6_service.html">step6_service.py</a>'s <code>Trace</code> class calls this once per model call in the loop and sums it. That's how you discover one question is several billable calls.</div>
+  </section>
+
+  <section class="block">
+    <h2><span class="badge" style="background:var(--s3)">3</span><code>get_client()</code> &mdash; the portability seam</h2>
+    <p class="loc"><a class="file" href="../../config.py#L75">config.py:75-110</a></p>
+    <p class="did">Returns a client for whichever platform <code>AI_PROVIDER</code> names &mdash; first-party, Bedrock, Vertex, or Foundry.</p>
+    <pre><code>if PROVIDER == "anthropic":
+    return anthropic.AsyncAnthropic() if async_ else anthropic.Anthropic()
+
+if PROVIDER == "bedrock":
+    cls = _resolve("AnthropicBedrockMantle", async_)
+    return cls(aws_region=os.environ.get("AWS_REGION", "us-east-1"))</code></pre>
+    <div class="concept"><b>Concept</b>A factory behind a stable interface. Every client returned exposes the same <code>.messages.create()</code> and <code>.messages.stream()</code>.</div>
+    <div class="why"><b>Why this matters more than it looks</b><b>Enterprise and government work almost never calls <code>api.anthropic.com</code> directly.</b> It consumes AI through a procured platform, in a chosen region, under an existing contract. If your only skill is one vendor's SDK you're not portable to the jobs that exist &mdash; and the honest news is that the <i>request body</i> is essentially identical everywhere. Only the constructor and the credential source change. This function is that whole insight, made executable.</div>
+    <div class="why"><b>The gotcha the comments flag</b>Model ids are <b>not</b> portable. Bedrock prefixes them (<code>anthropic.claude-sonnet-5</code>); Vertex uses bare or <code>@</code>-versioned ids. So swapping <code>AI_PROVIDER</code> alone isn't always enough &mdash; which is exactly the kind of thing you want to discover from a comment rather than a 404.</div>
+    <div class="why"><b>Why credentials aren't parameters</b>Each branch pulls from that platform's normal chain: <code>ANTHROPIC_API_KEY</code>, the AWS chain, GCP application-default credentials. Passing secrets as function arguments invites them into a log line or a traceback. Let each platform's own mechanism own them.</div>
+  </section>
+
+  <section class="block">
+    <h2><span class="badge" style="background:var(--s4)">4</span><code>_resolve()</code> &mdash; look it up, don't assume it</h2>
+    <p class="loc"><a class="file" href="../../config.py#L112">config.py:112-136</a></p>
+    <p class="did">Finds a client class on the <code>anthropic</code> module by name, preferring the <code>Async</code>-prefixed variant, and raises a clear message if it isn't there.</p>
+    <pre><code>if async_:
+    async_cls = getattr(anthropic, f"Async{name}", None)
+    if async_cls is not None:
+        return async_cls
+    raise SystemExit(f"This SDK version has no Async{name}. ...")</code></pre>
+    <div class="concept"><b>Concept</b>Runtime capability detection instead of a hardcoded assumption.</div>
+    <div class="why"><b>Why not just write the class name</b>The async classes follow an <code>Async</code>-prefix convention, but SDK support varies by platform and version. <b>Inventing a class name that doesn't exist is a worse failure than a clear message</b> &mdash; you'd get an <code>ImportError</code> at the top of the file with no hint about which platform lacks support. This way the error names the missing class and suggests the workaround.</div>
+    <div class="why"><b>Why the error message tells you to run <code>dir(anthropic)</code></b>Because that's genuinely what you'd do next, and a good error message shortens the loop between failure and fix. The general habit worth taking: <b>when a library's surface is uncertain, check it rather than guess</b> &mdash; and let your code do the checking so the answer arrives at the moment it's needed.</div>
+    <div class="why"><b>Honest note on this block</b>This is defensive plumbing, not a lesson about AI. Skim it. The one transferable idea is the error message quality.</div>
+  </section>
+
+  <section class="block">
+    <h2><span class="badge" style="background:var(--s5)">5</span><code>EFFORT</code> and <code>MAX_TOKENS_DEFAULT</code> &mdash; the comment block that saves an afternoon</h2>
+    <p class="loc"><a class="file" href="../../config.py#L138">config.py:138-157</a></p>
+    <p class="did">Two settings, and twelve lines of comment explaining why three familiar parameters are gone.</p>
+    <pre><code># temperature / top_p / top_k  -> 400 error if set to a non-default value
+# thinking.budget_tokens       -> 400 error (replaced by adaptive thinking)
+# assistant-turn prefill       -> 400 error
+
+EFFORT = os.environ.get("AI_EFFORT", "high")
+MAX_TOKENS_DEFAULT = 4096</code></pre>
+    <div class="concept"><b>Concept</b><code>effort</code> is the modern dial &mdash; <code>low</code> through <code>max</code> &mdash; and it controls how much the model <i>reasons</i>, not how randomly it samples.</div>
+    <div class="why"><b>Why this comment lives in a config file</b>Because it's the first thing you'll break. Every pre-2026 tutorial writes <code>temperature=0</code>, and on current models that request <b>fails outright</b>. Putting the warning next to the setting that replaced it means you meet it before you write the bug rather than after.</div>
+    <div class="why"><b>Why <code>MAX_TOKENS_DEFAULT</code> is 4096 and not 1024</b>Adaptive thinking is on by default, and <code>max_tokens</code> caps thinking <b>plus</b> the answer together. A budget copied from an older tutorial now silently truncates mid-sentence &mdash; you get a <code>stop_reason</code> of <code>max_tokens</code> and an answer that just stops. Giving it room is cheaper than debugging it.</div>
+    <div class="why"><b>Choosing an effort level</b><code>high</code> is the default and usually the sweet spot. <code>low</code> is right for narrow judgements &mdash; <a class="file" href="../step3b_retrieval.html">step3b</a>'s reranker and <a class="file" href="evals.html">evals.py</a>'s judge both use it. Reserve the top settings for work where correctness genuinely outweighs cost, not as a reflex.</div>
+  </section>
+
+  <section class="block">
+    <h2>Traced end to end</h2>
+    <p class="did">What happens when <a class="file" href="../step3_agent.html">step3_agent.py</a> starts, with nothing set in your shell.</p>
+    <div class="trace-card">
+      <ol>
+        <li><code>from config import EFFORT, MODEL, get_client</code> executes this module top to bottom.</li>
+        <li><code>AI_MODEL</code> is unset &rarr; <code>MODEL = "claude-sonnet-5"</code>.</li>
+        <li><code>AI_PROVIDER</code> is unset &rarr; <code>PROVIDER = "anthropic"</code>.</li>
+        <li><code>AI_EFFORT</code> is unset &rarr; <code>EFFORT = "high"</code>.</li>
+        <li>step3 calls <code>get_client(async_=True)</code> &rarr; first branch &rarr; <code>anthropic.AsyncAnthropic()</code>, which finds <code>ANTHROPIC_API_KEY</code> itself.</li>
+        <li>Every model call in the loop passes <code>model=MODEL</code> and <code>output_config={"effort": EFFORT}</code>. Nothing in step3 names a model or a provider.</li>
+        <li>Now set <code>$env:AI_MODEL = "claude-haiku-4-5"</code> and re-run. Every sample switches. That's the payoff.</li>
+      </ol>
+    </div>
+  </section>
+
+  <section class="block">
+    <h2>Traps</h2>
+    <div class="traps">
+      <ul>
+        <li><b>The prices are a snapshot and they go stale.</b> Treat <code>cost_usd()</code> as an order-of-magnitude tool, and check current pricing before you quote a figure to anyone.</li>
+        <li><b>A model missing from <code>PRICES</code> costs $0.00.</b> <code>PRICES.get(model, (0.0, 0.0))</code> fails <i>quietly</i> &mdash; override <code>AI_MODEL</code> to something not in the table and your traces cheerfully report free. This is the one genuine sharp edge in the file.</li>
+        <li><b>Token counts aren't comparable across model generations.</b> Tokenizers change; the same text can be ~30% more tokens on a newer model. Re-count against the model you're shipping.</li>
+        <li><b>Bedrock and Vertex need their own model-id formats</b> and their own credentials. Switching <code>AI_PROVIDER</code> is necessary but not always sufficient.</li>
+        <li><b>Env vars are read at import time.</b> Setting one after the module loads does nothing &mdash; set it before launching, which matters most for <code>uvicorn</code>.</li>
+        <li><b>Nothing here validates <code>AI_EFFORT</code>.</b> A typo like <code>"higj"</code> reaches the API and comes back as a 400.</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="block">
+    <h2>What to watch when you run it</h2>
+    <p class="did">It has no <code>main</code>, so exercise it through another sample:</p>
+    <span class="watch-cmd">uv run --with anthropic step3_agent.py "What are the quiet hours?"</span>
+    <span class="watch-cmd">$env:AI_MODEL = "claude-haiku-4-5"
+uv run --with anthropic step3_agent.py "What are the quiet hours?"</span>
+    <div class="predict">
+      <b>Predict before you run</b>
+      Switching to the cheapest model: will the agent still get the answer right? Will it use the same number of tool calls? One of those two is much more likely to change than the other &mdash; guess which, then check.
+    </div>
+    <div class="predict">
+      <b>Then do the arithmetic that is most of cost engineering</b>
+      Open <code>PRICES</code>. A 20-turn conversation where history reaches ~8,000 input tokens by the end averages roughly 4,000 input and 300 output tokens per turn. Work out the total at each of the three tiers, then decide which tier each sample in this repo should actually use. That calculation &mdash; not a framework &mdash; is what "right-sizing the model" means in practice.
+    </div>
+  </section>
+
+  <div class="navrow">
+    <a href="../step6b_governance.html">&larr; step 6b: governance &amp; auditability</a>
+    <a href="evals.html">support: evals.py &rarr;</a>
+  </div>
+
+  <footer>
+    generated by <code>/explain</code> &middot; source: <a href="../../config.py">config.py</a> &middot; see also <a href="../../README.md">README.md</a>
+  </footer>
+</div>
+</body>
+</html>

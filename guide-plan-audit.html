@@ -1,0 +1,422 @@
+<title>Plan Audit</title>
+<style>
+  :root {
+    --bg:#eceff3; --surface:#ffffff; --surface-2:#f3f6fa; --ink:#161c26; --muted:#55606f; --faint:#8592a3; --line:#d7dde6;
+    --accent:#3f5bb0; --accent-soft:#e6ebfa;
+    --ok:#2f8f5b; --ok-soft:#e2f1e8; --warn:#b8791a; --warn-soft:#f8efdc; --gap:#b03a3a; --gap-soft:#f8e6e6;
+    --s1:#2f7cb0; --s2:#7a4fb0; --s3:#12897a; --s4:#c2610f; --s5:#a83a6a; --s6:#3f5bb0;
+    --shadow:0 1px 2px rgba(22,28,38,.06),0 10px 30px rgba(22,28,38,.08);
+    --mono:ui-monospace,"Cascadia Code","SF Mono",Menlo,Consolas,monospace;
+    --sans:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{ --bg:#0b0f16; --surface:#131925; --surface-2:#19202e; --ink:#e7ecf3; --muted:#98a3b4; --faint:#6d7a8c; --line:#242c3a;
+      --accent:#8b9ff0; --accent-soft:#1a2140;
+      --ok:#4fb37e; --ok-soft:#14301f; --warn:#e0a94e; --warn-soft:#332714; --gap:#e07a7a; --gap-soft:#331a1a;
+      --s1:#58a9dc; --s2:#b48fe0; --s3:#4ec6b1; --s4:#e8944a; --s5:#e07aa6; --s6:#8b9ff0;
+      --shadow:0 1px 2px rgba(0,0,0,.35),0 10px 30px rgba(0,0,0,.45); }
+  }
+  :root[data-theme="light"]{ --bg:#eceff3; --surface:#ffffff; --surface-2:#f3f6fa; --ink:#161c26; --muted:#55606f; --faint:#8592a3; --line:#d7dde6; --accent:#3f5bb0; --accent-soft:#e6ebfa; --ok:#2f8f5b; --ok-soft:#e2f1e8; --warn:#b8791a; --warn-soft:#f8efdc; --gap:#b03a3a; --gap-soft:#f8e6e6; --s1:#2f7cb0; --s2:#7a4fb0; --s3:#12897a; --s4:#c2610f; --s5:#a83a6a; --s6:#3f5bb0; --shadow:0 1px 2px rgba(22,28,38,.06),0 10px 30px rgba(22,28,38,.08); }
+  :root[data-theme="dark"]{ --bg:#0b0f16; --surface:#131925; --surface-2:#19202e; --ink:#e7ecf3; --muted:#98a3b4; --faint:#6d7a8c; --line:#242c3a; --accent:#8b9ff0; --accent-soft:#1a2140; --ok:#4fb37e; --ok-soft:#14301f; --warn:#e0a94e; --warn-soft:#332714; --gap:#e07a7a; --gap-soft:#331a1a; --s1:#58a9dc; --s2:#b48fe0; --s3:#4ec6b1; --s4:#e8944a; --s5:#e07aa6; --s6:#8b9ff0; --shadow:0 1px 2px rgba(0,0,0,.35),0 10px 30px rgba(0,0,0,.45); }
+
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink); font-family:var(--sans); line-height:1.62; -webkit-font-smoothing:antialiased; }
+  .wrap { max-width:1080px; margin:0 auto; padding:clamp(24px,5vw,60px) clamp(18px,4vw,36px); }
+  code { font-family:var(--mono); font-size:.85em; background:var(--surface-2); padding:2px 6px; border-radius:5px; word-break:break-word; }
+  a { color:var(--accent); }
+
+  .backlink { font-family:var(--mono); font-size:12px; color:var(--faint); text-decoration:none; display:inline-block; margin-bottom:22px; }
+  .backlink:hover { color:var(--ink); }
+  .eyebrow { font-family:var(--mono); font-size:12px; letter-spacing:.13em; text-transform:uppercase; color:var(--accent); font-weight:700; margin:0 0 12px; }
+  h1 { font-size:clamp(32px,6.5vw,52px); line-height:1.04; margin:0 0 14px; letter-spacing:-.025em; text-wrap:balance; font-weight:800; }
+  .lede { font-size:clamp(15.5px,2.2vw,18.5px); color:var(--muted); max-width:68ch; margin:0 0 4px; }
+  .lede b { color:var(--ink); }
+
+  h2 { font-size:clamp(20px,3.2vw,26px); margin:54px 0 6px; letter-spacing:-.015em; }
+  h2 .n { font-family:var(--mono); font-size:.55em; color:var(--faint); font-weight:700; margin-right:10px; vertical-align:2px; }
+  .sub { color:var(--muted); margin:0 0 18px; font-size:14.5px; max-width:74ch; }
+
+  /* verdict */
+  .verdict { display:grid; grid-template-columns:1fr 1fr; gap:14px; margin:26px 0 0; }
+  @media (max-width:720px){ .verdict{grid-template-columns:1fr} }
+  .vcard { background:var(--surface); border:1px solid var(--line); border-top:3px solid var(--c); border-radius:14px; padding:18px 20px; box-shadow:var(--shadow); }
+  .vcard .role { font-family:var(--mono); font-size:11px; text-transform:uppercase; letter-spacing:.08em; color:var(--faint); font-weight:700; }
+  .vcard .grade { font-size:26px; font-weight:800; letter-spacing:-.02em; color:var(--c); margin:4px 0 6px; }
+  .vcard p { margin:0; font-size:13.8px; color:var(--muted); }
+  .vcard p b { color:var(--ink); }
+
+  .bottom-line { margin-top:16px; background:var(--accent-soft); border:1px solid var(--line); border-left:4px solid var(--accent); border-radius:12px; padding:16px 18px; font-size:14.8px; }
+  .bottom-line b { color:var(--ink); }
+
+  /* inventory strip */
+  .inv { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; }
+  @media (max-width:760px){ .inv{grid-template-columns:repeat(2,1fr)} }
+  .ic { background:var(--surface); border:1px solid var(--line); border-radius:12px; padding:14px 16px; box-shadow:var(--shadow); }
+  .ic .big { font-family:var(--mono); font-size:24px; font-weight:800; letter-spacing:-.03em; }
+  .ic .lbl { font-size:12.5px; color:var(--muted); }
+
+  /* generic cards */
+  .cards { display:grid; gap:13px; }
+  .two { grid-template-columns:1fr 1fr; }
+  @media (max-width:760px){ .two{grid-template-columns:1fr} }
+  .card { background:var(--surface); border:1px solid var(--line); border-radius:13px; padding:17px 19px; box-shadow:var(--shadow); }
+  .card h3 { margin:0 0 6px; font-size:16px; letter-spacing:-.01em; }
+  .card p { margin:0 0 9px; font-size:14px; color:var(--muted); }
+  .card p:last-child { margin-bottom:0; }
+  .card b { color:var(--ink); }
+
+  /* scorecard */
+  .score { background:var(--surface); border:1px solid var(--line); border-radius:13px; box-shadow:var(--shadow); overflow:hidden; }
+  .srow { display:grid; grid-template-columns:74px 1fr 1.35fr; gap:14px; align-items:start; padding:11px 17px; border-top:1px solid var(--line); font-size:13.6px; }
+  .srow:first-child { border-top:none; background:var(--surface-2); font-family:var(--mono); font-size:10.5px; text-transform:uppercase; letter-spacing:.08em; color:var(--faint); font-weight:700; }
+  .srow .what { font-weight:600; }
+  .srow .note { color:var(--muted); }
+  @media (max-width:660px){ .srow{grid-template-columns:74px 1fr} .srow .note{grid-column:2} .srow:first-child span:last-child{display:none} }
+  .tag { font-family:var(--mono); font-size:10.5px; font-weight:700; text-transform:uppercase; letter-spacing:.05em; padding:3px 7px; border-radius:5px; display:inline-block; white-space:nowrap; }
+  .t-ok { background:var(--ok-soft); color:var(--ok); }
+  .t-thin { background:var(--warn-soft); color:var(--warn); }
+  .t-gap { background:var(--gap-soft); color:var(--gap); }
+  .t-out { background:var(--surface-2); color:var(--faint); }
+
+  /* gap blocks */
+  .gapblock { background:var(--surface); border:1px solid var(--line); border-left:4px solid var(--c); border-radius:13px; padding:18px 20px; box-shadow:var(--shadow); }
+  .gh { display:flex; align-items:baseline; gap:11px; flex-wrap:wrap; margin-bottom:8px; }
+  .gh .gn { font-family:var(--mono); font-size:12px; font-weight:800; color:#fff; background:var(--c); padding:3px 8px; border-radius:6px; flex:none; }
+  .gh h3 { margin:0; font-size:17px; letter-spacing:-.015em; }
+  .gh .sev { font-family:var(--mono); font-size:10.5px; text-transform:uppercase; letter-spacing:.07em; color:var(--faint); font-weight:700; margin-left:auto; }
+  .gapblock p { margin:0 0 10px; font-size:14.2px; color:var(--muted); }
+  .gapblock p b { color:var(--ink); }
+  .fix { background:var(--surface-2); border:1px solid var(--line); border-radius:10px; padding:12px 14px; font-size:13.6px; color:var(--ink); margin-top:2px; }
+  .fix .fl { font-family:var(--mono); font-size:10.5px; text-transform:uppercase; letter-spacing:.08em; color:var(--ok); font-weight:700; display:block; margin-bottom:4px; }
+  .yours { border-left:3px solid var(--warn); padding-left:12px; margin:0 0 10px; font-size:13.8px; color:var(--muted); }
+  .yours b { color:var(--ink); }
+
+  ul.tight { margin:0; padding-left:19px; font-size:14px; color:var(--muted); display:flex; flex-direction:column; gap:7px; }
+  ul.tight b, ul.tight code { color:var(--ink); }
+  ol.tight { margin:0; padding-left:21px; font-size:14.2px; color:var(--muted); display:flex; flex-direction:column; gap:10px; }
+  ol.tight b { color:var(--ink); }
+
+  /* math box */
+  .math { background:var(--surface); border:1px solid var(--line); border-radius:13px; padding:18px 20px; box-shadow:var(--shadow); }
+  .math pre { margin:0; font-family:var(--mono); font-size:12.5px; line-height:1.85; color:var(--ink); overflow-x:auto; background:var(--surface-2); border:1px solid var(--line); border-radius:10px; padding:14px 16px; }
+  .math p { margin:13px 0 0; font-size:14px; color:var(--muted); }
+  .math p b { color:var(--ink); }
+
+  /* patch list */
+  .patch { display:grid; gap:11px; }
+  .prow { display:grid; grid-template-columns:34px 1fr auto; gap:14px; align-items:center; background:var(--surface); border:1px solid var(--line); border-radius:12px; padding:13px 16px; box-shadow:var(--shadow); }
+  .prow .pn { font-family:var(--mono); font-size:12px; font-weight:800; color:#fff; background:var(--accent); width:28px; height:28px; border-radius:8px; display:flex; align-items:center; justify-content:center; }
+  .prow .pt { font-size:14.2px; }
+  .prow .pt b { font-weight:700; }
+  .prow .pc { font-family:var(--mono); font-size:11.5px; color:var(--faint); white-space:nowrap; }
+  @media (max-width:660px){ .prow{grid-template-columns:34px 1fr} .prow .pc{grid-column:2} }
+
+  footer { margin-top:56px; padding-top:20px; border-top:1px solid var(--line); display:flex; justify-content:space-between; gap:14px; flex-wrap:wrap; color:var(--faint); font-family:var(--mono); font-size:12px; }
+  footer a { color:var(--accent); text-decoration:none; font-weight:700; }
+</style>
+
+<div class="wrap">
+
+  <a class="backlink" href="00-START-HERE.html">← Back to Start Here</a>
+
+  <p class="eyebrow">Plan audit · 20 Aug 2026</p>
+  <h1>Is this plan comprehensive enough to train as an AI engineer?</h1>
+  <p class="lede">An honest read of the six-step track as it stands today — 9 pages, 38 modules, 6 runnable capstones. <b>The short answer: the spine is unusually good, and the perimeter is thin.</b> You have built an excellent <i>agent engineering</i> curriculum and labelled it an <i>AI engineering</i> one. Those are not the same scope, and the difference is where the remaining work is.</p>
+
+  <div class="verdict">
+    <div class="vcard" style="--c:var(--ok)">
+      <span class="role">As a path to “AI agent engineer”</span>
+      <div class="grade">Strong · ~85% → ~95%</div>
+      <p>The agent loop, tool use, context engineering and eval spine was <b>better sequenced than most paid courses</b> to begin with. What was missing was depth at the edges, not a rethink.</p>
+    </div>
+    <div class="vcard" style="--c:var(--ok)">
+      <span class="role">As a path to “AI engineer”</span>
+      <div class="grade">Partial · ~60% → ~85%</div>
+      <p>Was one provider, one modality, one deployment shape, retrieval optional. All four are now covered. What's still deliberately out of scope is listed in §5.</p>
+    </div>
+  </div>
+
+  <div class="bottom-line" style="border-left-color:var(--ok);background:var(--ok-soft)">
+    <b>✔ All eight patches have been applied.</b> The analysis below is preserved as the <i>record of why</i> — every gap, inconsistency and grade is the state of the plan <b>before</b> the fix, so the reasoning stays auditable. What changed is summarised immediately below; each gap in §4 and each inconsistency in §6 is now marked with its resolution.
+    <span style="display:block;margin-top:10px">The original recommendation still stands, and is the most important line here: <b>the plan didn't need restructuring.</b> The six steps, the critical-path prioritisation and the build-raw-before-frameworks order were the hard parts, and they were already right. Everything below was perimeter work.</span>
+  </div>
+
+  <!-- ============ 0 · WHAT CHANGED ============ -->
+  <h2><span class="n">00</span>What changed</h2>
+  <p class="sub">Three new modules, two split, five re-rated, six contradictions removed — plus seven new runnable files and two live bugs fixed.</p>
+
+  <div class="cards two">
+    <div class="card" style="border-left:3px solid var(--ok)">
+      <h3>New curriculum · 38 → 42 modules</h3>
+      <ul class="tight">
+        <li><b>2.8 Providers &amp; model choice</b> — Bedrock / Vertex / Foundry, model tiers, cost per 1M, residency.</li>
+        <li><b>2.9 Documents &amp; images</b> — PDFs and scans as content blocks, straight into a validated object.</li>
+        <li><b>6.7 Governance &amp; auditability ★★★</b> — redaction, hash-chained audit trail, approval gates, retention.</li>
+        <li><b>3.3 split into 3.3a + 3.3b</b>, both promoted to ★★ — finding documents, and measuring whether you did.</li>
+        <li><b>2.4 rewritten</b> from “Sampling Controls” to “Effort &amp; Thinking” — the old version taught an API that now 400s.</li>
+      </ul>
+    </div>
+    <div class="card" style="border-left:3px solid var(--ok)">
+      <h3>New code · 6 → 13 runnable files</h3>
+      <ul class="tight">
+        <li><code>step2b_document_extract.py</code> — generates a real PDF, extracts a validated record, gates on confidence.</li>
+        <li><code>step3b_retrieval.py</code> — naive vs BM25 vs BM25+rerank over 12 labelled queries.</li>
+        <li><code>step5b_mcp_client.py</code> + <code>mcp_dorm_server.py</code> — runtime tool discovery over stdio.</li>
+        <li><code>step6b_governance.py</code> — runs free with <code>--offline</code>.</li>
+        <li><code>evals.py</code> — 12 cases, substring + judge, including two refusal tests.</li>
+        <li><code>Dockerfile</code>, <code>.github/workflows/eval.yml</code>, <code>.gitignore</code>.</li>
+        <li><a href="guide-exit-checks.html">guide-exit-checks.html</a> — 30 questions + 2 rebuild drills.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:13px;border-left:3px solid var(--gap)">
+    <h3>Two live bugs found while patching — the samples did not run as written</h3>
+    <ul class="tight">
+      <li><b><code>step2_first_call.py</code> returned a 400.</b> It passed <code>temperature=0</code> against <code>claude-sonnet-5</code>, which rejects non-default sampling parameters. The Step 2 capstone — the first real API call in the whole track — could not have worked. Fixed, and module 2.4 was rewritten around exactly this failure.</li>
+      <li><b><code>max_tokens=1024</code> risked silent truncation everywhere.</b> Adaptive thinking is on by default and <code>max_tokens</code> caps thinking <i>plus</i> answer, so the budget inherited from older tutorials can cut answers off mid-sentence. Raised to 4096 across the samples.</li>
+    </ul>
+    <p style="margin-top:9px">Neither was in the original audit — both surfaced only from checking the code against current API behaviour rather than reading it. Worth noting as a method point: <b>an audit that only reads is an audit that misses whatever has rotted underneath.</b></p>
+  </div>
+
+  <!-- ============ 1 · INVENTORY ============ -->
+  <h2><span class="n">01</span>What the plan currently contains</h2>
+  <p class="sub">Baseline, so the gaps below are measured against something concrete.</p>
+  <div class="inv">
+    <div class="ic"><div class="big">38</div><div class="lbl">modules across 6 steps</div></div>
+    <div class="ic"><div class="big">6</div><div class="lbl">runnable capstones, each building on the last</div></div>
+    <div class="ic"><div class="big">6</div><div class="lbl">line-by-line code walkthroughs</div></div>
+    <div class="ic"><div class="big">1</div><div class="lbl">priority overlay (<a href="guide-critical-path.html">critical path</a>)</div></div>
+  </div>
+  <p class="sub" style="margin-top:14px">Plus: a beginner on-ramp with saved progress (<a href="00-START-HERE.html">START-HERE</a>), a visual hub (<a href="index.html">index</a>), a <code>⇄ Coming from .NET?</code> bridge on all six maps, per-module gotchas and drills, and curated external links throughout.</p>
+
+  <!-- ============ 2 · WHAT'S RIGHT ============ -->
+  <h2><span class="n">02</span>What this plan already gets right</h2>
+  <p class="sub">Worth stating plainly, because the rest of this page is criticism and these six things are the reason the plan is worth patching rather than replacing.</p>
+  <div class="cards two">
+    <div class="card">
+      <h3>The central insight is correct</h3>
+      <p>“An agent <i>is</i> a while-loop plus tool dispatch” is the single most useful thing to understand about this field, and the whole track is organised around it. Most curricula bury this under a framework tutorial and the learner never sees the loop.</p>
+    </div>
+    <div class="card">
+      <h3>Raw first, framework second</h3>
+      <p>Step 3 by hand → Step 4 in LangGraph is the right order and it is <b>rare</b>. It means a framework upgrade or a framework death never resets your skills. <code>step4_langgraph_agent.py</code> even lists what the framework hides.</p>
+    </div>
+    <div class="card">
+      <h3>One artifact, six steps</h3>
+      <p>Step 5 and Step 6 literally <code>import</code> the Step 3 agent. Continuity like this is the highest-retention structure there is — nothing is a throwaway exercise.</p>
+    </div>
+    <div class="card">
+      <h3>Anti-hype calibration</h3>
+      <p>Naming multi-agent orchestration and framework depth as over-hyped, and flagging context engineering as the under-rated craft, is a genuinely sharp read. Most plans do the opposite.</p>
+    </div>
+    <div class="card">
+      <h3>Deliberate failures as lessons</h3>
+      <p><code>step1_mock_agent.py</code> sends <code>units:"x"</code> so Pydantic rejects it; <code>mock_call</code> fails ~30% of the time to exercise backoff. Teaching through engineered failure is what separates a course from a tutorial.</p>
+    </div>
+    <div class="card">
+      <h3>It respects the expertise you have</h3>
+      <p>The .NET bridges mean you are mapping new concepts onto Task-based async, Polly, DI and middleware rather than starting from zero. That is a real accelerant and most learners don't get it.</p>
+    </div>
+  </div>
+
+  <!-- ============ 3 · SCORECARD ============ -->
+  <h2><span class="n">03</span>Competency scorecard</h2>
+  <p class="sub">The plan measured against what an AI-engineer role actually asks for in 2026. <span class="tag t-ok">solid</span> = you'd interview well. <span class="tag t-thin">thin</span> = named but not deep enough to defend. <span class="tag t-gap">absent</span> = not in the plan. <span class="tag t-out">by design</span> = correctly excluded.</p>
+  <p class="sub" style="color:var(--ok)"><b>This table is the “before” state, kept as the record.</b> Every row marked <span class="tag t-thin">thin</span> or <span class="tag t-gap">absent</span> is now covered except the four listed under “Still deliberately open” at the end of §8 — voice, local hosting, ingestion pipelines, and the C# delivery path.</p>
+  <div class="score">
+    <div class="srow"><span>status</span><span>competency</span><span>note</span></div>
+
+    <div class="srow"><span class="tag t-ok">solid</span><span class="what">Async &amp; typed Python</span><span class="note">1.2 + 1.3 correctly identified as the only load-bearing parts of Step 1. See the caveat in §6 — the samples don't practise it.</span></div>
+    <div class="srow"><span class="tag t-ok">solid</span><span class="what">LLM mental model &amp; tokens</span><span class="note">2.1–2.2 cover statelessness, context window, cost per token. Sufficient.</span></div>
+    <div class="srow"><span class="tag t-ok">solid</span><span class="what">Prompting</span><span class="note">2.5 rated ★★★. Correct — it is the highest-frequency daily skill.</span></div>
+    <div class="srow"><span class="tag t-ok">solid</span><span class="what">Structured output / tool calling</span><span class="note">2.6 + 3.2, tied back to Pydantic. The strongest thread in the plan.</span></div>
+    <div class="srow"><span class="tag t-ok">solid</span><span class="what">The agent loop</span><span class="note">3.1 with runnable code. This is the part that would make you hireable on its own.</span></div>
+    <div class="srow"><span class="tag t-ok">solid</span><span class="what">Context engineering</span><span class="note">3.5, and calling it the under-rated module is the right call.</span></div>
+    <div class="srow"><span class="tag t-ok">solid</span><span class="what">Framework literacy</span><span class="note">4.x, correctly time-boxed. “Learn one well enough to ship” is the right posture.</span></div>
+    <div class="srow"><span class="tag t-ok">solid</span><span class="what">Orchestration patterns</span><span class="note">5.1–5.2, with the right warning attached (most working systems are one good agent).</span></div>
+
+    <div class="srow"><span class="tag t-thin">thin</span><span class="what">Evaluation</span><span class="note">5.4 lists LLM-as-judge and trace-based grading; the sample implements a 2-case substring match. The concept is present, the craft isn't. → <b>Gap 7</b></span></div>
+    <div class="srow"><span class="tag t-thin">thin</span><span class="what">Retrieval / RAG</span><span class="note">3.3 marked skim, no hybrid search, no re-ranking, no retrieval-specific eval. → <b>Gap 3</b></span></div>
+    <div class="srow"><span class="tag t-thin">thin</span><span class="what">Observability &amp; cost control</span><span class="note">6.1–6.2 name the right tools; no capstone code emits a trace or logs a cost. → <b>Gap 5</b></span></div>
+    <div class="srow"><span class="tag t-thin">thin</span><span class="what">Security / prompt injection</span><span class="note">6.4 called “the #1 agent threat” and rated ★★, but the only artifact is a 5-string blocklist. → <b>Gap 5</b></span></div>
+    <div class="srow"><span class="tag t-thin">thin</span><span class="what">Serving &amp; deployment</span><span class="note">Stops at <code>uvicorn --reload</code>. No container, no auth, no streaming endpoint, no queue. → <b>Gap 5</b></span></div>
+    <div class="srow"><span class="tag t-thin">thin</span><span class="what">MCP</span><span class="note">5.3 marked “consume, don't build” and skim — yet the closing page says learn it deeply. No sample. → <b>Gap 6</b></span></div>
+    <div class="srow"><span class="tag t-thin">thin</span><span class="what">Reasoning-model era controls</span><span class="note">Extended thinking, effort/budget tuning, when a reasoning model beats a bigger prompt — barely touched.</span></div>
+
+    <div class="srow"><span class="tag t-gap">absent</span><span class="what">Multi-provider &amp; model portability</span><span class="note">Zero mention of Azure OpenAI, Bedrock, Vertex, or a gateway layer. One hardcoded model id. → <b>Gap 1</b></span></div>
+    <div class="srow"><span class="tag t-gap">absent</span><span class="what">Multimodal (documents, images)</span><span class="note">Zero hits across all 25 files. The single highest-volume enterprise AI workload. → <b>Gap 2</b></span></div>
+    <div class="srow"><span class="tag t-gap">absent</span><span class="what">Governance, PII &amp; auditability</span><span class="note">Named as <i>your differentiator</i> on the critical-path page, then never taught. → <b>Gap 4</b></span></div>
+    <div class="srow"><span class="tag t-gap">absent</span><span class="what">Local / open-weight / sovereign hosting</span><span class="note">No Ollama, vLLM, or self-hosted option. Matters when data can't leave the country. → <b>Gap 1</b></span></div>
+    <div class="srow"><span class="tag t-gap">absent</span><span class="what">Data pipeline for AI</span><span class="note">Where the corpus comes from, how it's kept in sync, how permissions follow the data into the index. → <b>Gap 3</b></span></div>
+    <div class="srow"><span class="tag t-gap">absent</span><span class="what">Assessment &amp; retrieval practice</span><span class="note">11 checkboxes for 38 modules; the only test is self-reported. → <b>Gap 7</b></span></div>
+    <div class="srow"><span class="tag t-gap">absent</span><span class="what">Voice / realtime audio</span><span class="note">Legitimately niche. Note as excluded rather than adding it.</span></div>
+
+    <div class="srow"><span class="tag t-out">by design</span><span class="what">Fine-tuning / LoRA</span><span class="note">Correctly dismissed. Prompting + tools + retrieval covers almost everything.</span></div>
+    <div class="srow"><span class="tag t-out">by design</span><span class="what">Transformer internals, training, GPUs</span><span class="note">That's an ML-engineer / researcher track. Right to leave out.</span></div>
+    <div class="srow"><span class="tag t-out">by design</span><span class="what">Classical ML, pandas/numpy, statistics</span><span class="note">Right to leave out — but say so explicitly (see §5).</span></div>
+  </div>
+
+  <!-- ============ 4 · GAPS ============ -->
+  <h2><span class="n">04</span>The seven gaps that matter</h2>
+  <p class="sub">Ranked by career impact × cost of learning it later. Each one carries the smallest fix that closes it — none of these require restructuring the six steps.</p>
+
+  <div class="cards">
+
+    <div class="gapblock" style="--c:var(--gap)">
+      <div class="gh"><span class="gn">01</span><h3>One provider, one model, one deployment target</h3><span class="sev">highest impact</span></div>
+      <p>Every sample calls <code>claude-sonnet-5</code> through the Anthropic SDK. <code>config.py</code> centralising the model id is good hygiene, but it centralises <i>one vendor</i>. There is nothing on Azure OpenAI, Bedrock, Vertex, a gateway like LiteLLM, or self-hosted open-weight models — and nothing on <b>how to choose</b> a model for a task, which is a question you will be asked in every interview and every architecture review.</p>
+      <p class="yours"><b>Why this one is specifically yours:</b> a Singapore government project will almost certainly not be calling <code>api.anthropic.com</code> directly. It will procure through a cloud provider's managed AI service, or require the model to stay inside a controlled boundary. Right now the plan teaches the one deployment shape you are least likely to be allowed to use at work.</p>
+      <div class="fix"><span class="fl">Minimum fix</span>Add module <b>2.8 · Providers &amp; model choice</b>: the request shape is near-identical everywhere, so this is mostly a mapping exercise. Then refactor <code>config.py</code> from a model constant into a small client factory, and run <code>step2_first_call.py</code> once against a second provider. One evening of authoring; permanently removes vendor lock-in from your skill set.<span style="display:block;margin-top:9px;color:var(--ok);font-weight:600">✔ Applied — module <a href="02-llm-fundamentals-map.html" style="color:var(--ok)">2.8</a> added; <code>config.py</code> is now a provider factory (<code>anthropic</code> / <code>bedrock</code> / <code>vertex</code> / <code>foundry</code>) with a price table and a <code>cost_usd()</code> helper. Switch with <code>$env:AI_PROVIDER</code>.</span></div>
+    </div>
+
+    <div class="gapblock" style="--c:var(--gap)">
+      <div class="gh"><span class="gn">02</span><h3>No multimodal — text in, text out, only</h3><span class="sev">highest impact</span></div>
+      <p>Searching all 25 files for image, vision, PDF, OCR or document returns <b>nothing</b>. Meanwhile the most common real-world AI request in an enterprise is some version of “read these thousands of documents and give me structured data.” Passing an image or a PDF page to a model and getting a validated Pydantic object back is a ~20-line skill that the plan currently never mentions.</p>
+      <p class="yours"><b>Why this one is specifically yours:</b> government work is document work — forms, scanned submissions, certificates, floor plans. This is likely the first genuinely useful AI thing you could ship at your job, and it is the cheapest gap on this list to close because it reuses 2.6 structured output verbatim.</p>
+      <div class="fix"><span class="fl">Minimum fix</span>Add module <b>2.9 · Documents &amp; images</b> and one sample — <code>step2b_document_extract.py</code> — that sends a PDF page or screenshot and returns a validated model. Add a second sample step to the portfolio list: “a document-extraction agent.” Half a day.<span style="display:block;margin-top:9px;color:var(--ok);font-weight:600">✔ Applied — module <a href="02-llm-fundamentals-map.html" style="color:var(--ok)">2.9</a> added, plus <code>step2b_document_extract.py</code>, which generates a valid PDF from scratch so it runs with zero setup and gates on a confidence score. Now portfolio project #2.</span></div>
+    </div>
+
+    <div class="gapblock" style="--c:var(--warn)">
+      <div class="gh"><span class="gn">03</span><h3>Retrieval is under-weighted for the jobs that exist</h3><span class="sev">high impact</span></div>
+      <p>3.3 RAG is marked <code>○ skim</code> with “hype ≠ value,” and the critical path says one card is genuinely enough. <b>The long-context argument behind that call is real</b> — retrieval matters less than it did in 2023, and vector-DB obsession was a phase. But the conclusion overshoots. Long context changes <i>what</i> you retrieve and how much; it does not remove the need to find the right 20 pages out of 200,000, and it does nothing about permissions, freshness, or citation.</p>
+      <p>Specifically missing: hybrid search (keyword + vector — the single biggest quality win in practice), re-ranking, chunking strategy as a decision rather than a default, <b>evaluating retrieval separately from generation</b> (most “the agent hallucinated” bugs are actually retrieval misses), and where the corpus comes from and how it stays in sync.</p>
+      <div class="fix"><span class="fl">Minimum fix</span>Promote 3.3 from <code>○</code> to <code>★★</code> and split it into <b>3.3a retrieval quality</b> (hybrid, re-rank, chunking) and <b>3.3b grounding &amp; citation</b>. Keep the anti-hype framing — the point isn't “vector DBs are back,” it's “retrieval quality is measurable and most people never measure it.” The <code>step3_agent.py</code> keyword store is a fine teaching stub; add a second version with hybrid scoring so the comparison is visible.<span style="display:block;margin-top:9px;color:var(--ok);font-weight:600">✔ Applied — split into <a href="03-agent-building-blocks-map.html" style="color:var(--ok)">3.3a</a> (retrieval) and <a href="03-agent-building-blocks-map.html" style="color:var(--ok)">3.3b</a> (retrieval quality), both ★★. <code>step3b_retrieval.py</code> scores three retrievers over 12 labelled queries. The measured result is honest rather than flattering: naive@1 <b>0.46</b> → BM25@1 <b>0.71</b> → rerank ceiling <b>0.83</b>, with 2 of 12 queries unreachable without embeddings. The anti-hype framing survived — the biggest win is the free one.</span></div>
+    </div>
+
+    <div class="gapblock" style="--c:var(--warn)">
+      <div class="gh"><span class="gn">04</span><h3>Your stated differentiator has no curriculum behind it</h3><span class="sev">high impact</span></div>
+      <p>The critical-path page argues — correctly — that in a government/PII context, <i>“I can build an agent” is common; “I can build one that won't leak data or get hijacked” is rare</i>. That is the sharpest strategic insight in the whole plan. Then a search across all 25 files for governance, compliance, PDPA or GDPR returns <b>one incidental hit</b>. The differentiator is asserted and never taught.</p>
+      <p>What a governance module would actually contain: PII detection and redaction <i>before</i> the model call; an audit trail of prompts, completions, tool invocations and who triggered them, with a retention policy; data-residency and “can this text leave the boundary” decisions; least-privilege tool credentials scoped per user rather than per service; human-approval gates on write actions; and what you tell an auditor when they ask why the model said what it said.</p>
+      <div class="fix"><span class="fl">Minimum fix</span>Add <b>6.7 · Governance &amp; auditability</b> as a full backbone module rated ★★★ — not a footnote. Extend <code>step6_service.py</code> with a redaction pass on input, a structured audit-log line per request (request id, user, tools called, tokens, cost, verdict), and one write-action approval gate. This is the highest-leverage single addition on this page <i>for you specifically</i>, because it converts an existing professional instinct into a demonstrable AI skill.<span style="display:block;margin-top:9px;color:var(--ok);font-weight:600">✔ Applied — module <a href="06-production-map.html" style="color:var(--ok)">6.7</a> added as a ★★★ backbone module and rung 7 of the critical-path spine, plus <code>step6b_governance.py</code>: PII redaction before the call, a hash-chained tamper-evident audit log, single-use approval tokens on write tools, and a written retention/residency policy. Runs free with <code>--offline</code>. Tamper detection is verified — editing a line reports “line 3: entry was modified”, deleting one reports “line 2: chain break”.</span></div>
+    </div>
+
+    <div class="gapblock" style="--c:var(--warn)">
+      <div class="gh"><span class="gn">05</span><h3>“Production” stops short of production</h3><span class="sev">medium-high impact</span></div>
+      <p>Step 6 is titled “the employable layer,” and its capstone promises five things: async endpoint, full tracing with per-run cost logging, prompt caching and right-sized models, input/output guardrails with least-privilege tools, and a CI eval gate. <code>step6_service.py</code> delivers <b>two of the five</b> — a guardrail pair and a timeout. There is no trace, no cost log, no caching, no CI config in the repo.</p>
+      <p>Also absent from the module list entirely: containerisation (zero mentions of Docker), authentication on the endpoint, streaming responses to a client over SSE or WebSocket (zero mentions), a job queue for runs longer than an HTTP timeout, per-tenant concurrency limits, and load testing. For a step whose whole claim is “I ship agents,” this is the thinnest part of the plan relative to its promise.</p>
+      <div class="fix"><span class="fl">Minimum fix</span>Bring the sample up to its own capstone spec — add a tracing decorator that logs tokens and computed cost per run, prompt caching on the system prompt, an API-key dependency, and an SSE streaming endpoint. Add a <code>Dockerfile</code> and a GitHub Actions workflow that runs the Step 5 eval set and fails the build under a threshold. That single workflow file is the artifact that makes the “eval-gated CI” claim real.<span style="display:block;margin-top:9px;color:var(--ok);font-weight:600">✔ Applied — <code>step6_service.py</code> now has API-key auth, a per-request trace line with tokens <i>and</i> dollars, an SSE streaming endpoint that delivers mid-stream failures inside the stream, and a timeout. Prompt caching moved into <code>step3_agent.py</code>. Added a <code>Dockerfile</code> (non-root user) and <code>.github/workflows/eval.yml</code>, which gates on a 0.75 pass rate and uploads the report on failure. Modules 6.1 and 6.5 rewritten to match.</span></div>
+    </div>
+
+    <div class="gapblock" style="--c:var(--s5)">
+      <div class="gh"><span class="gn">06</span><h3>MCP and the Agent SDK are taught but never run</h3><span class="sev">medium impact</span></div>
+      <p>Two backbone modules have no runnable code anywhere in <code>samples/</code>: <b>4.3 Claude Agent SDK</b> and <b>5.3 MCP</b>. The Step 5 capstone is described as “orchestrator-worker system + MCP + eval set,” but <code>step5_orchestrator.py</code> contains no MCP at all. And the plan sends contradictory signals about how much MCP matters — the critical path marks it <code>○</code> skim, while the closing section of the production page says to “learn MCP deeply — it's the interoperability signal that stands out right now.”</p>
+      <div class="fix"><span class="fl">Minimum fix</span>Pick one position on MCP and state it once. The defensible one: <b>consuming MCP servers is ★★ and worth an hour; authoring one is ○ until you need to.</b> Then add ~30 lines to <code>step5_orchestrator.py</code> that attach one existing MCP server as a tool source. That single change resolves both the missing sample and the contradiction, and it is the cheapest fix on this page.<span style="display:block;margin-top:9px;color:var(--ok);font-weight:600">✔ Applied — the position is now stated once, in module <a href="05-multi-agent-mcp-map.html" style="color:var(--ok)">5.3</a>: <b>consuming is ★★, authoring is ○</b>. Added <code>step5b_mcp_client.py</code> (discovers tools at runtime, hardcodes no schema) and <code>mcp_dorm_server.py</code> as the server to talk to. The finish-band line that said “learn MCP deeply” was rewritten to say what the actual signal is.</span></div>
+    </div>
+
+    <div class="gapblock" style="--c:var(--s3)">
+      <div class="gh"><span class="gn">07</span><h3>Nothing checks whether you actually learned it</h3><span class="sev">structural</span></div>
+      <p>This is the gap that isn't about AI content at all, and it may be the one that decides whether the plan works. The track has 38 modules and <b>11 checkboxes</b>. The only completion criterion anywhere is “if you can write this without googling every line, you're fluent enough to move on” — entirely self-assessed, at the exact moment when your judgement is least reliable. There is no recall test a week later, nothing that surfaces what you got wrong, and no external review of your code by anyone.</p>
+      <p>Evaluation as a topic has the same shape. 5.4 lists LLM-as-judge, trace-based grading and regression suites; the code is a two-case substring check. The plan correctly identifies eval as “what separates hobbyist from professional” and then models the hobbyist version.</p>
+      <div class="fix"><span class="fl">Minimum fix</span>Three cheap mechanisms. <b>(a)</b> A 5-question exit check per step with answers collapsed — write them as “predict what this code prints,” not recall questions. <b>(b)</b> A <i>blank-file rebuild</i> drill at Steps 3 and 6: delete the sample and rewrite it from memory, timed. That is the only test that reliably distinguishes recognition from ability. <b>(c)</b> One external checkpoint — publish the Step 3 agent and ask a real engineer to review it. Also grow the Step 5 eval set to ~10 cases with one LLM-as-judge grader, so the eval module practises what it preaches.<span style="display:block;margin-top:9px;color:var(--ok);font-weight:600">✔ Applied — <a href="guide-exit-checks.html" style="color:var(--ok)">guide-exit-checks.html</a> adds 30 “predict what this does” questions and the two blank-file rebuild drills, and START-HERE now asks for one external human review. <code>evals.py</code> grew to 12 cases with a rubric-driven judge, including two <b>refusal</b> cases a substring check cannot express. Module 5.4 promoted ○→★★★.</span></div>
+    </div>
+
+  </div>
+
+  <!-- ============ 5 · CORRECT EXCLUSIONS ============ -->
+  <h2><span class="n">05</span>What the plan is right to leave out</h2>
+  <p class="sub">Comprehensive does not mean exhaustive. These omissions are correct — but say so on the page, so that “I skipped this deliberately” is available to you in an interview instead of a silent blank.</p>
+  <div class="cards two">
+    <div class="card">
+      <h3>Fine-tuning and LoRA</h3>
+      <p>Correctly dismissed in one line. Prompting, tools and retrieval cover nearly everything, and fine-tuning is a specialist move you make <i>after</i> evals prove you need it. <b>Keep the dismissal, add the trigger:</b> “revisit only when your eval set shows a consistent style or format failure that prompting can't fix.”</p>
+    </div>
+    <div class="card">
+      <h3>Transformers, attention, training, GPUs</h3>
+      <p>Right to exclude — that is an ML-engineer or researcher path, not this one. The 2.1 black-box model is the correct level of abstraction. One paragraph of “what's inside the box and why you don't need it” would inoculate you against feeling under-qualified.</p>
+    </div>
+    <div class="card">
+      <h3>Classical ML, pandas, statistics</h3>
+      <p>Right to exclude for an <i>AI engineer</i> title, and the plan already skips them explicitly in Step 1. Worth one honest sentence though: some job ads bundle both titles, so know the boundary you have drawn and be able to name it.</p>
+    </div>
+    <div class="card">
+      <h3>Deep multi-agent orchestration</h3>
+      <p>The “most production systems that work are one good agent with good tools” framing is correct and unusually honest. Keep resisting it. The one thing to add is the counter-case: when the task genuinely has independent parallel subtasks, fan-out earns its cost — which the Step 5 sample already demonstrates.</p>
+    </div>
+  </div>
+
+  <!-- ============ 6 · INCONSISTENCIES ============ -->
+  <h2><span class="n">06</span>Six internal inconsistencies worth fixing</h2>
+  <p class="sub">All verified against the files. These were cheap to fix and each one sent a mixed signal about what to prioritise. <b style="color:var(--ok)">All six are now resolved</b> — the resolution follows each item.</p>
+  <div class="card">
+    <ul class="tight">
+      <li><b>Async is rung 1 — and no real LLM call in the plan is async.</b> The critical path says async is “where all agent performance comes from,” and <code>step1_mock_agent.py</code> is fully async. Then <code>AsyncAnthropic</code> never appears anywhere: <a href="samples/step2_first_call.py">step2</a> and <a href="samples/step3_agent.py">step3</a> both use the sync client, and steps 5 and 6 work around it with <code>asyncio.to_thread</code>. <code>step2_first_call.py</code> even tags its streaming function as “(2.7 / 1.2)” — a cross-reference to the async module — on a plain <code>def</code>. The moment a real model appears, the plan's own keystone skill stops being practised. <b>Fix:</b> make step3's agent loop genuinely async and drop the <code>to_thread</code> workarounds downstream.</li>
+      <li><b>RAG is “skim” but it's portfolio project #1.</b> <a href="guide-critical-path.html">critical-path</a> marks 3.3 <code>○</code> with “hype ≠ value”; <a href="06-production-map.html">production-map</a> makes a RAG chatbot the first of three portfolio pieces. Pick one — see Gap 3.</li>
+      <li><b>MCP is “skim” and also “learn it deeply.”</b> Same two pages, directly opposed. See Gap 6.</li>
+      <li><b>The Step 6 capstone spec exceeds its own sample.</b> Five bullets promised, two delivered. Either implement the other three or mark them as stretch items — right now the page implies the code exists.</li>
+      <li><b>Two timelines that differ by roughly 2×.</b> See the arithmetic below.</li>
+      <li><b>Eval taught as rigour, demonstrated as a substring match.</b> 2 cases, no judge, no regression file — while 5.4 lists LLM-as-judge and trace-based grading as its content.</li>
+    </ul>
+    <p style="margin-top:14px;font-size:14px;color:var(--ok);font-weight:600">✔ All six resolved:</p>
+    <ul class="tight" style="margin-top:6px">
+      <li><b>Async</b> — <code>step3_agent.py</code> is now genuinely async (<code>AsyncAnthropic</code>, concurrent tool dispatch via <code>gather</code>), <code>step2</code>'s streaming uses <code>async with</code> / <code>async for</code>, and the <code>to_thread</code> workarounds in steps 5 and 6 are gone. Step 3's capstone spec and Step 5's exit check now both make the point explicitly.</li>
+      <li><b>RAG</b> — promoted to ★★ and split; the critical path carries a short section admitting the original call overshot and explaining exactly which part of the anti-hype framing survives (reaching for a vector DB first).</li>
+      <li><b>MCP</b> — one position, stated in 5.3: consume ★★, author ○.</li>
+      <li><b>Step 6 capstone</b> — the sample now meets the spec, and the spec grew rather than shrank. A line was added noting that a spec your own repo doesn't meet is the most quietly corrosive thing in a learning project.</li>
+      <li><b>Timeline</b> — see §7.</li>
+      <li><b>Eval</b> — 12 cases, two graders, refusal tests, CI gate.</li>
+    </ul>
+  </div>
+
+  <!-- ============ 7 · TIMELINE ============ -->
+  <h2><span class="n">07</span>Timeline reality check</h2>
+  <p class="sub">The maps carry their own per-step estimates. Summing them contradicts the weekly rhythm on the start page.</p>
+  <div class="math">
+    <pre>Per-map "evenings" estimates:
+  Step 1  Python Fluency        2–3 weeks
+  Step 2  LLM Fundamentals      1–2 weeks
+  Step 3  Building Blocks       3–4 weeks
+  Step 4  Frameworks            2 weeks
+  Step 5  Multi-Agent & MCP     3 weeks
+  Step 6  Production            "ongoing"
+                                ─────────────
+  Steps 1–5 only               11–14 weeks
+  + Step 6 + 3 portfolio projects        ≈ 5–8 months total
+
+START-HERE weekly rhythm:
+  Week 1     setup + Steps 1 & 2
+  Week 2–3   Step 3
+  Week 4+    Steps 4–6, then portfolio       ← implies ~6–8 weeks
+  at 30–60 min/day</pre>
+    <p><b>These can't both be true.</b> The maps' own numbers are the credible ones; the START-HERE rhythm is roughly 2× optimistic, and Step 6 plus three portfolio projects is where most of the hidden time lives. This matters more than it looks — a plan that silently runs 3× its advertised length is the single most common reason self-directed tracks get abandoned around week 5, right at Step 3, which is the step you most need to finish.</p>
+    <p><b>Fix:</b> state one honest number on START-HERE — <i>“~4–6 months of evenings to the end of Step 6; the first portfolio project is where it starts paying”</i> — and add a fourth rhythm card for months 2–4 so the road doesn't visibly end at “Week 4+”.</p>
+    <p style="color:var(--ok);font-weight:600">✔ Applied — START-HERE now leads with “about 4–6 months of evenings”, says plainly that an earlier version implied half that, and adds <b>“You are not behind”</b> next to the note that Step 3 alone is 3–4 weeks. The rhythm is four cards ending at <i>Months 3–5</i>, and there's a pointer to the 20% path for anyone who genuinely has weeks rather than months — because half-finishing every step is worse than fully finishing the five that matter. Step 2's own estimate also rose (3–4 days → 5–6) to account for the two new modules.</p>
+  </div>
+
+  <!-- ============ 8 · PATCH LIST ============ -->
+  <h2><span class="n">08</span>The eight patches — all applied</h2>
+  <p class="sub">Ordered by value per hour of authoring. The first four are the ones that change what you'd be able to claim in an interview.</p>
+  <div class="patch">
+    <div class="prow"><span class="pn" style="background:var(--ok)">✔</span><span class="pt"><b>6.7 · Governance &amp; auditability</b> — redaction, audit trail, residency, approval gates. Turns the asserted differentiator into taught content. <span style="color:var(--ok)">→ module + <code>step6b_governance.py</code></span></span><span class="pc">done</span></div>
+    <div class="prow"><span class="pn" style="background:var(--ok)">✔</span><span class="pt"><b>2.9 · Documents &amp; images</b> + one extraction sample. Closes the biggest content hole for the least effort. <span style="color:var(--ok)">→ module + <code>step2b_document_extract.py</code></span></span><span class="pc">done</span></div>
+    <div class="prow"><span class="pn" style="background:var(--ok)">✔</span><span class="pt"><b>2.8 · Providers &amp; model choice</b>, and <code>config.py</code> as a client factory. Removes single-vendor lock-in. <span style="color:var(--ok)">→ 4 providers, price table, <code>cost_usd()</code></span></span><span class="pc">done</span></div>
+    <div class="prow"><span class="pn" style="background:var(--ok)">✔</span><span class="pt"><b>The agent loop is actually async</b> and the <code>to_thread</code> workarounds are gone. The rung-1 skill now appears in rung-3 code. <span style="color:var(--ok)">→ concurrent tool dispatch too</span></span><span class="pc">done</span></div>
+    <div class="prow"><span class="pn" style="background:var(--ok)">✔</span><span class="pt"><b>Retrieval promoted to ★★</b>, split 3.3a/3.3b, measured separately from generation. <span style="color:var(--ok)">→ <code>step3b_retrieval.py</code>, 12 labelled queries</span></span><span class="pc">done</span></div>
+    <div class="prow"><span class="pn" style="background:var(--ok)">✔</span><span class="pt"><b><code>step6_service.py</code> meets its own capstone spec</b> — trace, cost, caching, auth, SSE, Dockerfile, CI eval gate. <span style="color:var(--ok)">→ and the spec grew</span></span><span class="pc">done</span></div>
+    <div class="prow"><span class="pn" style="background:var(--ok)">✔</span><span class="pt"><b>Exit checks and the two rebuild drills.</b> The only mechanism here that tests ability rather than recognition. <span style="color:var(--ok)">→ <a href="guide-exit-checks.html">guide-exit-checks.html</a>, 30 questions</span></span><span class="pc">done</span></div>
+    <div class="prow"><span class="pn" style="background:var(--ok)">✔</span><span class="pt"><b>Timeline and MCP position reconciled</b>, eval set grown to 12 cases with a judge. <span style="color:var(--ok)">→ plus two refusal cases</span></span><span class="pc">done</span></div>
+  </div>
+
+  <div class="card" style="margin-top:16px;border-left:3px solid var(--warn)">
+    <h3>Still deliberately open</h3>
+    <p>Named here so they're decisions rather than oversights. None blocks anything:</p>
+    <ul class="tight">
+      <li><b>Voice / realtime audio</b> — genuinely niche for this career target. Excluded on purpose.</li>
+      <li><b>Local / open-weight hosting</b> (Ollama, vLLM) — 2.8 covers the <i>portability</i> question and names residency as a config concern, but there's no self-hosted sample. Worth adding only if your work actually requires the model inside your own boundary.</li>
+      <li><b>Data pipelines for retrieval at scale</b> — where the corpus comes from, incremental sync, permissions following documents into the index. 3.3a flags the permission trap; the ingestion side is still a stub.</li>
+      <li><b>Job queues for long agent runs</b> — 6.5 names it and the gotcha list covers it, but the sample returns synchronously rather than handing back a job id.</li>
+      <li><b>The C# delivery path</b> — every map has a .NET bridge, but there's no runnable Semantic Kernel / Microsoft.Extensions.AI sample. Given that C# is the likely delivery vehicle, this is the most defensible next addition after finishing the track.</li>
+    </ul>
+  </div>
+
+  <div class="bottom-line" style="margin-top:26px">
+    <b>One last thing, and it's still the most important line on this page.</b> The patching is done — so the reason this page existed is gone, and the only thing left to do is the thing it was always pointing at. <b>Start Step 1.</b>
+    <span style="display:block;margin-top:9px">The plan was already good enough to carry you through Step 3 <i>before</i> any of this work, and Step 3 is where the actual transformation happens — everything else is perimeter. A plan that gets rewritten instead of executed is the most common failure mode in self-directed learning, and it looks exactly like productive work. This page is now a record, not a to-do list. Don't come back and improve it; go build the agent.</span>
+  </div>
+
+  <footer>
+    <span>Plan audit · companion to the 6-step track · all 8 patches applied</span>
+    <span><a href="00-START-HERE.html">← Start Here</a> &nbsp;·&nbsp; <a href="guide-critical-path.html">Critical Path</a> &nbsp;·&nbsp; <a href="guide-exit-checks.html">Exit Checks</a> &nbsp;·&nbsp; <a href="index.html">Visual hub →</a></span>
+  </footer>
+
+</div>

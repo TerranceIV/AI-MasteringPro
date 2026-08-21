@@ -1,0 +1,273 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Explained · step2_first_call.py</title>
+<style>
+  :root {
+    --bg:#eef1ee; --surface:#ffffff; --surface-2:#f3f6f2; --ink:#182019; --muted:#586459; --faint:#8a968b; --line:#dbe2db;
+    --accent:#2f8f5b; --accent-2:#1f7d6b; --accent-soft:#dcefe2; --warn:#b8791a; --warn-soft:#f7ecd9;
+    --shadow:0 1px 2px rgba(24,32,25,.05),0 10px 30px rgba(24,32,25,.07);
+    --mono:ui-monospace,"Cascadia Code","SF Mono",Menlo,Consolas,monospace;
+    --sans:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+    --s1:#2f7cb0; --s2:#7a4fb0; --s3:#12897a; --s4:#c2610f; --s5:#a83a6a; --s6:#3f5bb0;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{ --bg:#0c110d; --surface:#141a15; --surface-2:#19211a; --ink:#e7eee8; --muted:#98a89b; --faint:#6c7a6e; --line:#232d25;
+      --accent:#4fb37e; --accent-2:#46c2ab; --accent-soft:#14301f; --warn:#e0a94e; --warn-soft:#2b230f;
+      --s1:#58a9dc; --s2:#b48fe0; --s3:#4ec6b1; --s4:#e8944a; --s5:#e07aa6; --s6:#8b9ff0;
+      --shadow:0 1px 2px rgba(0,0,0,.35),0 10px 30px rgba(0,0,0,.45); }
+  }
+  :root[data-theme="light"]{ --bg:#eef1ee; --surface:#ffffff; --surface-2:#f3f6f2; --ink:#182019; --muted:#586459; --faint:#8a968b; --line:#dbe2db; --accent:#2f8f5b; --accent-2:#1f7d6b; --accent-soft:#dcefe2; --warn:#b8791a; --warn-soft:#f7ecd9; --s1:#2f7cb0; --s2:#7a4fb0; --s3:#12897a; --s4:#c2610f; --s5:#a83a6a; --s6:#3f5bb0; --shadow:0 1px 2px rgba(24,32,25,.05),0 10px 30px rgba(24,32,25,.07); }
+  :root[data-theme="dark"]{ --bg:#0c110d; --surface:#141a15; --surface-2:#19211a; --ink:#e7eee8; --muted:#98a89b; --faint:#6c7a6e; --line:#232d25; --accent:#4fb37e; --accent-2:#46c2ab; --accent-soft:#14301f; --warn:#e0a94e; --warn-soft:#2b230f; --s1:#58a9dc; --s2:#b48fe0; --s3:#4ec6b1; --s4:#e8944a; --s5:#e07aa6; --s6:#8b9ff0; --shadow:0 1px 2px rgba(0,0,0,.35),0 10px 30px rgba(0,0,0,.45); }
+
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink); font-family:var(--sans); line-height:1.65; -webkit-font-smoothing:antialiased; }
+  .wrap { max-width:840px; margin:0 auto; padding:clamp(24px,5vw,56px) clamp(18px,4vw,36px); }
+
+  code { font-family:var(--mono); font-size:.85em; background:var(--surface-2); padding:2px 6px; border-radius:5px; word-break:break-word; }
+  a { color:var(--accent-2); }
+  a.file { text-decoration:none; font-family:var(--mono); font-size:.85em; font-weight:600; }
+  a.file:hover { text-decoration:underline; }
+
+  .kicker { font-family:var(--mono); font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--accent); font-weight:700; margin:0 0 12px; }
+  h1 { font-size:clamp(26px,5.5vw,38px); line-height:1.1; margin:0 0 16px; letter-spacing:-.02em; text-wrap:balance; font-weight:800; }
+  .intro { font-size:clamp(15.5px,2.2vw,17px); color:var(--muted); margin:0 0 6px; }
+  .intro b { color:var(--ink); }
+
+  .orient { background:var(--surface); border:1px solid var(--line); border-radius:14px; padding:18px 20px; margin:22px 0 8px; box-shadow:var(--shadow); }
+  .orient p { margin:0 0 10px; font-size:14.5px; }
+  .orient p:last-child { margin-bottom:0; }
+  .orient .label { font-family:var(--mono); font-size:11px; letter-spacing:.08em; text-transform:uppercase; color:var(--accent); font-weight:700; display:block; margin-bottom:3px; }
+
+  section.block { margin:42px 0; }
+  h2 { font-size:clamp(18px,3vw,21px); margin:0 0 4px; letter-spacing:-.01em; display:flex; align-items:center; gap:10px; }
+  h2 .badge { font-family:var(--mono); font-size:12px; font-weight:700; color:#fff; width:26px; height:26px; border-radius:8px; display:inline-flex; align-items:center; justify-content:center; flex:none; }
+  .loc { font-family:var(--mono); font-size:12.5px; margin:0 0 14px; }
+  .did { font-size:15px; margin:0 0 14px; }
+
+  pre { background:var(--surface-2); border:1px solid var(--line); border-radius:10px; padding:12px 14px; overflow-x:auto; margin:0 0 14px; }
+  pre code { background:none; padding:0; font-size:13px; }
+
+  .concept, .why, .trace, .trap, .predict {
+    border-radius:12px; padding:14px 16px; margin:0 0 12px; font-size:14px; border:1px solid var(--line);
+  }
+  .concept { background:var(--accent-soft); border-left:4px solid var(--accent); }
+  .why { background:var(--surface); box-shadow:var(--shadow); }
+  .concept b, .why b { color:var(--ink); font-family:var(--mono); font-size:11.5px; letter-spacing:.06em; text-transform:uppercase; display:block; margin-bottom:5px; color:var(--accent-2); }
+
+  .trace-card { background:var(--surface); border:1px solid var(--line); border-radius:14px; padding:18px 20px; box-shadow:var(--shadow); }
+  .trace-card ol { margin:0; padding-left:22px; }
+  .trace-card li { margin-bottom:10px; font-size:14.5px; }
+  .trace-card li:last-child { margin-bottom:0; }
+
+  .traps { background:var(--warn-soft); border:1px solid var(--line); border-left:4px solid var(--warn); border-radius:12px; padding:16px 20px; }
+  .traps ul { margin:0; padding-left:20px; }
+  .traps li { margin-bottom:9px; font-size:14.5px; }
+  .traps li:last-child { margin-bottom:0; }
+
+  .predict { background:var(--surface); box-shadow:var(--shadow); }
+  .predict b { display:block; color:var(--ink); font-size:14.5px; margin-bottom:6px; }
+
+  .watch-cmd { display:block; font-family:var(--mono); font-size:13.5px; background:var(--surface-2); border:1px solid var(--line); border-radius:8px; padding:10px 14px; margin:14px 0; color:var(--ink); }
+
+  .diagram { background:var(--surface); border:1px solid var(--line); border-radius:14px; padding:20px; margin:22px 0 36px; box-shadow:var(--shadow); overflow-x:auto; }
+  .diagram .dg-title { font-family:var(--mono); font-size:11px; letter-spacing:.08em; text-transform:uppercase; color:var(--accent); font-weight:700; margin:0 0 6px; }
+  .diagram .dg-note { margin:0 0 16px; font-size:12.5px; color:var(--muted); }
+  .diagram svg { width:100%; height:auto; display:block; min-width:560px; }
+  .dg-box { fill:var(--surface-2); stroke:var(--line); stroke-width:1.5; }
+  .dg-box-accent { fill:var(--accent-soft); stroke:var(--accent); stroke-width:1.5; }
+  .dg-box-warn { fill:var(--warn-soft); stroke:var(--warn); stroke-width:1.5; }
+  .dg-box-dashed { fill:none; stroke:var(--faint); stroke-width:1.5; stroke-dasharray:6 5; }
+  .dg-text { fill:var(--ink); font-family:var(--sans); font-size:12.5px; font-weight:600; }
+  .dg-sub { fill:var(--muted); font-family:var(--sans); font-size:10.8px; }
+  .dg-label { fill:var(--faint); font-family:var(--mono); font-size:10px; text-transform:uppercase; letter-spacing:.03em; }
+  .dg-lane { fill:var(--accent-2); font-family:var(--mono); font-size:11px; font-weight:700; }
+  .dg-arrow { stroke:var(--faint); stroke-width:1.6; fill:none; }
+  .dg-arrowhead { fill:var(--faint); }
+
+  .navrow { display:flex; justify-content:space-between; gap:12px; margin-top:8px; font-family:var(--mono); font-size:12.5px; }
+  .navrow a { text-decoration:none; font-weight:600; }
+  .navrow a:hover { text-decoration:underline; }
+
+  footer { margin-top:52px; padding-top:20px; border-top:1px solid var(--line); color:var(--faint); font-family:var(--mono); font-size:12px; text-align:center; }
+  footer a { color:var(--faint); }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <p class="kicker">/explain &middot; step 2</p>
+  <h1>step2_first_call.py</h1>
+  <p class="intro"><b>Your first real LLM call.</b> No mock, no key-less shortcut &mdash; this is where Step&nbsp;1's imaginary agent shape meets the real Claude API.</p>
+
+  <div class="orient">
+    <p><span class="label">What happens when you run it</span> It prints an input token count, then a structured sentiment classification as a Python dict, then streams a one-sentence answer to a hardcoded question, character by character.</p>
+    <p><span class="label">The one idea it teaches</span> A Pydantic model can force an LLM's reply into a shape you validate &mdash; the same contract trick from Step&nbsp;1's tool schemas, now aimed at the model's <i>output</i> instead of a tool's <i>input</i>.</p>
+    <p><span class="label">What it deliberately leaves out</span> No retry/backoff (Step 1 had it, this doesn't), no conversation memory between the three calls, no real tool execution &mdash; that's Step 3. Every run costs real API tokens.</p>
+  </div>
+
+  <div class="diagram">
+    <p class="dg-title">three lanes, one client, no shared state</p>
+    <p class="dg-note">Each row is a complete, independent request &mdash; none of them sees what the others sent.</p>
+    <svg viewBox="0 0 760 340" role="img" aria-label="Three independent request lanes: classify uses a forced tool call and validation, stream_reply streams tokens live, count checks token cost before sending.">
+      <defs>
+        <marker id="dgArrow2" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path class="dg-arrowhead" d="M0,0 L10,5 L0,10 z"/>
+        </marker>
+      </defs>
+
+      <path class="dg-arrow" marker-end="url(#dgArrow2)" d="M170,70 L200,70"/>
+      <path class="dg-arrow" marker-end="url(#dgArrow2)" d="M450,70 L480,70"/>
+      <path class="dg-arrow" marker-end="url(#dgArrow2)" d="M170,180 L200,180"/>
+      <path class="dg-arrow" marker-end="url(#dgArrow2)" d="M450,180 L480,180"/>
+      <path class="dg-arrow" marker-end="url(#dgArrow2)" d="M170,290 L200,290"/>
+      <path class="dg-arrow" marker-end="url(#dgArrow2)" d="M450,290 L480,290"/>
+
+      <text class="dg-lane" x="20" y="32">classify()</text>
+      <g>
+        <rect class="dg-box" x="20" y="42" width="150" height="56" rx="10"/>
+        <text class="dg-text" x="95" y="74" text-anchor="middle">question text</text>
+      </g>
+      <g>
+        <rect class="dg-box-accent" x="200" y="42" width="250" height="56" rx="10"/>
+        <text class="dg-text" x="325" y="66" text-anchor="middle">force tool_choice</text>
+        <text class="dg-sub" x="325" y="82" text-anchor="middle">record_sentiment, effort set</text>
+      </g>
+      <g>
+        <rect class="dg-box" x="480" y="42" width="250" height="56" rx="10"/>
+        <text class="dg-text" x="605" y="66" text-anchor="middle">model_validate()</text>
+        <text class="dg-sub" x="605" y="82" text-anchor="middle">&rarr; Sentiment object</text>
+      </g>
+
+      <text class="dg-lane" x="20" y="142">stream_reply()</text>
+      <g>
+        <rect class="dg-box" x="20" y="152" width="150" height="56" rx="10"/>
+        <text class="dg-text" x="95" y="184" text-anchor="middle">prompt</text>
+      </g>
+      <g>
+        <rect class="dg-box-accent" x="200" y="152" width="250" height="56" rx="10"/>
+        <text class="dg-text" x="325" y="176" text-anchor="middle">messages.stream()</text>
+        <text class="dg-sub" x="325" y="192" text-anchor="middle">context manager</text>
+      </g>
+      <g>
+        <rect class="dg-box" x="480" y="152" width="250" height="56" rx="10"/>
+        <text class="dg-text" x="605" y="176" text-anchor="middle">tokens print live</text>
+        <text class="dg-sub" x="605" y="192" text-anchor="middle">as they arrive</text>
+      </g>
+
+      <text class="dg-lane" x="20" y="252">count()</text>
+      <g>
+        <rect class="dg-box" x="20" y="262" width="150" height="56" rx="10"/>
+        <text class="dg-text" x="95" y="294" text-anchor="middle">prompt</text>
+      </g>
+      <g>
+        <rect class="dg-box-accent" x="200" y="262" width="250" height="56" rx="10"/>
+        <text class="dg-text" x="325" y="286" text-anchor="middle">count_tokens()</text>
+        <text class="dg-sub" x="325" y="302" text-anchor="middle">before sending</text>
+      </g>
+      <g>
+        <rect class="dg-box" x="480" y="262" width="250" height="56" rx="10"/>
+        <text class="dg-text" x="605" y="286" text-anchor="middle">input_tokens</text>
+        <text class="dg-sub" x="605" y="302" text-anchor="middle">printed count</text>
+      </g>
+    </svg>
+  </div>
+
+  <section class="block">
+    <h2><span class="badge" style="background:var(--s1)">1</span>Imports &amp; client</h2>
+    <p class="loc"><a class="file" href="../step2_first_call.py#L15">step2_first_call.py:15-23</a></p>
+    <p class="did">Pulls in the real Anthropic SDK, the shared <code>MODEL</code> id from <code>config.py</code>, and builds one client.</p>
+    <div class="concept"><b>Concept</b>Config from the environment (1.6). <code>Anthropic()</code> auto-reads <code>ANTHROPIC_API_KEY</code> &mdash; you never type the key into code.</div>
+    <div class="why"><b>Why this way</b>The naive move is pasting the key as a string in the script. That key would end up in git history the moment you commit. Reading it from the environment means the same code runs for you, a teammate, or CI, each with their own key, and nothing secret ever touches the file.</div>
+  </section>
+
+  <section class="block">
+    <h2><span class="badge" style="background:var(--s2)">2</span>The <code>Sentiment</code> model</h2>
+    <p class="loc"><a class="file" href="../step2_first_call.py#L27">step2_first_call.py:27-30</a></p>
+    <p class="did">A Pydantic model describing exactly what a sentiment judgment should look like: a label, a confidence score, a reason.</p>
+    <pre><code>label: Literal["positive", "negative", "neutral"]
+confidence: float = Field(ge=0, le=1)</code></pre>
+    <div class="concept"><b>Concept</b>The same <code>BaseModel</code> tool from Step&nbsp;1 (<code>WeatherArgs</code>), but pointed the other direction &mdash; describing the model's <i>output</i>, not a function's input.</div>
+    <div class="why"><b>Why this way</b>The naive alternative is Step 1's <code>extract_json</code> trick: ask for JSON in plain prose, then regex it out. That breaks the moment the model adds a caveat sentence or writes <code>"confidence": "high"</code> instead of a number. Forcing the reply through a schema constrains what the model can emit before it even answers; <code>Field(ge=0, le=1)</code> then catches anything that slips through numerically wrong.</div>
+  </section>
+
+  <section class="block">
+    <h2><span class="badge" style="background:var(--s3)">3</span><code>classify()</code> &mdash; structured output</h2>
+    <p class="loc"><a class="file" href="../step2_first_call.py#L33">step2_first_call.py:33-48</a></p>
+    <p class="did">Defines a "tool" the model never actually runs &mdash; its only job is to force the reply into <code>Sentiment</code>'s shape &mdash; then validates what comes back.</p>
+    <pre><code>tool_choice={"type": "tool", "name": "record_sentiment"}  # force the tool
+output_config={"effort": EFFORT}                          # NOT temperature -- see below</code></pre>
+    <div class="concept"><b>Concept</b><code>tool_choice</code> forcing + <code>effort</code>. Effort controls how much the model <i>reasons</i> before answering: <code>low</code> through <code>max</code>. It is the dial that replaced temperature.</div>
+    <div class="why" style="border-left-color:var(--s4)"><b>This line used to read <code>temperature=0</code>, and that was a bug.</b> Current models &mdash; Sonnet 5, Opus 5, Opus 4.7/4.8 &mdash; return a <b>400 error</b> if <code>temperature</code>, <code>top_p</code> or <code>top_k</code> is set to a non-default value. So the old version of this file, and this walkthrough describing it, could not actually run. It's a useful thing to have happen to you once: the reasoning ("low temperature is right for extraction") was perfectly sound and completely obsolete, and nothing about reading the code would have told you. Only running it does. Module <a href="../../02-llm-fundamentals-map.html">2.4</a> covers the three patterns this affects.</div>
+    <div class="why"><b>Why this way</b>Response content is a <i>list</i> of blocks &mdash; a model could in principle talk and call a tool in the same reply &mdash; so line 47 searches for the <code>tool_use</code> block rather than grabbing <code>msg.content[0]</code> blindly. And even though the tool schema constrains the <i>shape</i>, <code>Sentiment.model_validate(block.input)</code> still re-checks the <i>values</i> on the way back &mdash; the same "never trust, always validate" rule as Step 1's <code>dispatch()</code>, now applied to a real model instead of a mock.</div>
+  </section>
+
+  <section class="block">
+    <h2><span class="badge" style="background:var(--s4)">4</span><code>stream_reply()</code> &mdash; streaming</h2>
+    <p class="loc"><a class="file" href="../step2_first_call.py#L52">step2_first_call.py:52-60</a></p>
+    <p class="did">Opens a streaming request and prints each chunk of text the instant it arrives, instead of waiting for the full reply.</p>
+    <div class="concept"><b>Concept</b>Token-by-token streaming, for perceived latency.</div>
+    <div class="why"><b>Why this way</b>The naive alternative &mdash; <code>client.messages.create()</code> then print the whole result &mdash; means the terminal (or a chat UI) shows nothing for however many seconds the full answer takes to generate. Streaming lets you show output as it's produced.</div>
+    <div class="why" style="border-left-color:var(--s4)"><b>This function is now genuinely async, and it wasn't before.</b> It uses <code>get_client(async_=True)</code> with <code>async with</code> / <code>async for</code>. The earlier version used the <i>synchronous</i> client while its comment claimed a tie to module 1.2 (async) &mdash; so the track's self-declared keystone skill vanished the moment a real model appeared, and reappeared only as a comment. If it isn't <code>async for</code>, you're still blocking a whole worker for the entire response, which matters enormously by Step 6. It also now calls <code>await stream.get_final_message()</code> at the end, because <code>usage</code> and <code>stop_reason</code> only exist on the completed message.</div>
+  </section>
+
+  <section class="block">
+    <h2><span class="badge" style="background:var(--s5)">5</span><code>count()</code> &mdash; tokens before you spend</h2>
+    <p class="loc"><a class="file" href="../step2_first_call.py#L64">step2_first_call.py:64-69</a></p>
+    <p class="did">Calls a dedicated endpoint that counts how many tokens a prompt will cost <i>before</i> you send it for a completion.</p>
+    <div class="concept"><b>Concept</b>Tokens are the billing and context-window unit &mdash; not characters, not words. Counting first is a cost/budget check, not a nice-to-have.</div>
+    <div class="why"><b>Why this way</b>Eyeballing prompt length in characters is unreliable &mdash; tokenization doesn't map 1:1 to characters and varies by content. The comment on <a class="file" href="../step2_first_call.py#L77">lines 77-80</a> says the real reason this matters: an agent loop re-sends its <i>whole history</i> every turn, so token count &mdash; and cost &mdash; compounds fast as a conversation grows. That pain shows up for real once Step 3 adds a loop.</div>
+  </section>
+
+  <section class="block">
+    <h2>Traced end to end</h2>
+    <p class="did">One input, followed through <code>classify()</code>:</p>
+    <div class="trace-card">
+      <ol>
+        <li><b>Input:</b> <code>"The delivery was two days late, but support fixed it in minutes."</code> &mdash; deliberately mixed, so the label isn't obvious.</li>
+        <li><code>classify()</code> builds a one-tool list from <code>Sentiment.model_json_schema()</code> and wraps the text in <code>"Classify the sentiment of: ..."</code>.</li>
+        <li><code>client.messages.create()</code> sends it with <code>tool_choice</code> forcing <code>record_sentiment</code> &mdash; the model has no option to just reply in prose.</li>
+        <li>The response's <code>content</code> list is searched for the block where <code>type == "tool_use"</code>.</li>
+        <li>That block's <code>.input</code> &mdash; something like <code>{"label": "neutral", "confidence": 0.6, "reason": "..."}</code> &mdash; is re-validated through <code>Sentiment.model_validate()</code>.</li>
+        <li><b>Output:</b> a real <code>Sentiment</code> object, printed as a dict in <code>main()</code>.</li>
+      </ol>
+    </div>
+  </section>
+
+  <section class="block">
+    <h2>Traps</h2>
+    <div class="traps">
+      <ul>
+        <li><b>The token count and the actual request don't match.</b> <code>count(review)</code> counts the <i>raw review text</i> &mdash; not the <code>"Classify the sentiment of: ..."</code> wrapper, and not the tool schema, both of which <code>classify()</code> also sends and pays for. The printed number is a lower bound, not the true cost of that call.</li>
+        <li><b>Non-determinism is expected, and you cannot switch it off.</b> There is no temperature knob any more, so both functions will vary between runs &mdash; <code>classify()</code> less, because a forced schema constrains what it <i>can</i> emit, but still not identically. Different wording is normal, not a bug. If you need stability, get it from structure (a schema) and from evals (assert on facts, never on an exact string) &mdash; never from a sampling parameter.</li>
+        <li><b>This needs a real key and spends real money.</b> Unlike Step 1, there's no offline fallback. <code>ANTHROPIC_API_KEY</code> must be set, and the guard on <a class="file" href="../step2_first_call.py#L73">lines 73-74</a> fails fast with a clear message if it isn't &mdash; rather than a cryptic auth error several stack frames down inside the SDK.</li>
+        <li><b>Three calls, zero shared memory.</b> <code>count()</code>, <code>classify()</code>, and <code>stream_reply()</code> are each an independent, stateless request &mdash; none of them sees what the others sent. Step 3 is what adds a running conversation.</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="block">
+    <h2>What to watch when you run it</h2>
+    <p class="did">From inside <code>samples/</code>, with your key set:</p>
+    <span class="watch-cmd">uv run step2_first_call.py</span>
+    <p class="did">Three lines matter: the input token count, the <code>structured result: {...}</code> dict, and the streamed sentence appearing gradually rather than all at once.</p>
+    <div class="predict">
+      <b>Predict before you press enter</b>
+      The review is deliberately mixed &mdash; a late delivery, but support fixed it fast. Before running, commit to a guess: will <code>label</code> come back <code>"positive"</code>, <code>"negative"</code>, or <code>"neutral"</code>? There's no clean right answer &mdash; that's exactly why it's a useful case to watch a real model actually decide.
+    </div>
+  </section>
+
+  <div class="navrow">
+    <a href="step1_mock_agent.html">&larr; step 1: the mock agent loop</a>
+    <a href="step2b_document_extract.html">step 2b: documents in, structured data out &rarr;</a>
+  </div>
+
+  <footer>
+    generated by <code>/explain</code> &middot; source: <a href="../step2_first_call.py">step2_first_call.py</a> &middot; see also <a href="../README.md">README.md</a>
+  </footer>
+
+</div>
+</body>
+</html>

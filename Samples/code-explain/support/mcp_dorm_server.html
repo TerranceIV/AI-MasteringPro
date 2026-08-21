@@ -1,0 +1,262 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Explained · mcp_dorm_server.py</title>
+<style>
+  :root {
+    --bg:#eef1ee; --surface:#ffffff; --surface-2:#f3f6f2; --ink:#182019; --muted:#586459; --faint:#8a968b; --line:#dbe2db;
+    --accent:#2f8f5b; --accent-2:#1f7d6b; --accent-soft:#dcefe2; --warn:#b8791a; --warn-soft:#f7ecd9;
+    --shadow:0 1px 2px rgba(24,32,25,.05),0 10px 30px rgba(24,32,25,.07);
+    --mono:ui-monospace,"Cascadia Code","SF Mono",Menlo,Consolas,monospace;
+    --sans:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+    --s1:#2f7cb0; --s2:#7a4fb0; --s3:#12897a; --s4:#c2610f; --s5:#a83a6a; --s6:#3f5bb0;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{ --bg:#0c110d; --surface:#141a15; --surface-2:#19211a; --ink:#e7eee8; --muted:#98a89b; --faint:#6c7a6e; --line:#232d25;
+      --accent:#4fb37e; --accent-2:#46c2ab; --accent-soft:#14301f; --warn:#e0a94e; --warn-soft:#2b230f;
+      --s1:#58a9dc; --s2:#b48fe0; --s3:#4ec6b1; --s4:#e8944a; --s5:#e07aa6; --s6:#8b9ff0;
+      --shadow:0 1px 2px rgba(0,0,0,.35),0 10px 30px rgba(0,0,0,.45); }
+  }
+  :root[data-theme="light"]{ --bg:#eef1ee; --surface:#ffffff; --surface-2:#f3f6f2; --ink:#182019; --muted:#586459; --faint:#8a968b; --line:#dbe2db; --accent:#2f8f5b; --accent-2:#1f7d6b; --accent-soft:#dcefe2; --warn:#b8791a; --warn-soft:#f7ecd9; --s1:#2f7cb0; --s2:#7a4fb0; --s3:#12897a; --s4:#c2610f; --s5:#a83a6a; --s6:#3f5bb0; --shadow:0 1px 2px rgba(24,32,25,.05),0 10px 30px rgba(24,32,25,.07); }
+  :root[data-theme="dark"]{ --bg:#0c110d; --surface:#141a15; --surface-2:#19211a; --ink:#e7eee8; --muted:#98a89b; --faint:#6c7a6e; --line:#232d25; --accent:#4fb37e; --accent-2:#46c2ab; --accent-soft:#14301f; --warn:#e0a94e; --warn-soft:#2b230f; --s1:#58a9dc; --s2:#b48fe0; --s3:#4ec6b1; --s4:#e8944a; --s5:#e07aa6; --s6:#8b9ff0; --shadow:0 1px 2px rgba(0,0,0,.35),0 10px 30px rgba(0,0,0,.45); }
+
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink); font-family:var(--sans); line-height:1.65; -webkit-font-smoothing:antialiased; }
+  .wrap { max-width:840px; margin:0 auto; padding:clamp(24px,5vw,56px) clamp(18px,4vw,36px); }
+
+  code { font-family:var(--mono); font-size:.85em; background:var(--surface-2); padding:2px 6px; border-radius:5px; word-break:break-word; }
+  a { color:var(--accent-2); }
+  a.file { text-decoration:none; font-family:var(--mono); font-size:.85em; font-weight:600; }
+  a.file:hover { text-decoration:underline; }
+
+  .kicker { font-family:var(--mono); font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--accent); font-weight:700; margin:0 0 12px; }
+  h1 { font-size:clamp(26px,5.5vw,38px); line-height:1.1; margin:0 0 16px; letter-spacing:-.02em; text-wrap:balance; font-weight:800; }
+  .intro { font-size:clamp(15.5px,2.2vw,17px); color:var(--muted); margin:0 0 6px; }
+  .intro b { color:var(--ink); }
+
+  .orient { background:var(--surface); border:1px solid var(--line); border-radius:14px; padding:18px 20px; margin:22px 0 8px; box-shadow:var(--shadow); }
+  .orient p { margin:0 0 10px; font-size:14.5px; }
+  .orient p:last-child { margin-bottom:0; }
+  .orient .label { font-family:var(--mono); font-size:11px; letter-spacing:.08em; text-transform:uppercase; color:var(--accent); font-weight:700; display:block; margin-bottom:3px; }
+
+  section.block { margin:42px 0; }
+  h2 { font-size:clamp(18px,3vw,21px); margin:0 0 4px; letter-spacing:-.01em; display:flex; align-items:center; gap:10px; }
+  h2 .badge { font-family:var(--mono); font-size:12px; font-weight:700; color:#fff; width:26px; height:26px; border-radius:8px; display:inline-flex; align-items:center; justify-content:center; flex:none; }
+  .loc { font-family:var(--mono); font-size:12.5px; margin:0 0 14px; }
+  .did { font-size:15px; margin:0 0 14px; }
+
+  pre { background:var(--surface-2); border:1px solid var(--line); border-radius:10px; padding:12px 14px; overflow-x:auto; margin:0 0 14px; }
+  pre code { background:none; padding:0; font-size:13px; }
+
+  .concept, .why, .trace, .trap, .predict {
+    border-radius:12px; padding:14px 16px; margin:0 0 12px; font-size:14px; border:1px solid var(--line);
+  }
+  .concept { background:var(--accent-soft); border-left:4px solid var(--accent); }
+  .why { background:var(--surface); box-shadow:var(--shadow); }
+  .concept b, .why b { color:var(--ink); font-family:var(--mono); font-size:11.5px; letter-spacing:.06em; text-transform:uppercase; display:block; margin-bottom:5px; color:var(--accent-2); }
+
+  .trace-card { background:var(--surface); border:1px solid var(--line); border-radius:14px; padding:18px 20px; box-shadow:var(--shadow); }
+  .trace-card ol { margin:0; padding-left:22px; }
+  .trace-card li { margin-bottom:10px; font-size:14.5px; }
+  .trace-card li:last-child { margin-bottom:0; }
+
+  .traps { background:var(--warn-soft); border:1px solid var(--line); border-left:4px solid var(--warn); border-radius:12px; padding:16px 20px; }
+  .traps ul { margin:0; padding-left:20px; }
+  .traps li { margin-bottom:9px; font-size:14.5px; }
+  .traps li:last-child { margin-bottom:0; }
+
+  .predict { background:var(--surface); box-shadow:var(--shadow); }
+  .predict b { display:block; color:var(--ink); font-size:14.5px; margin-bottom:6px; }
+
+  .watch-cmd { display:block; font-family:var(--mono); font-size:13.5px; background:var(--surface-2); border:1px solid var(--line); border-radius:8px; padding:10px 14px; margin:14px 0; color:var(--ink); }
+
+  .diagram { background:var(--surface); border:1px solid var(--line); border-radius:14px; padding:20px; margin:22px 0 36px; box-shadow:var(--shadow); overflow-x:auto; }
+  .diagram .dg-title { font-family:var(--mono); font-size:11px; letter-spacing:.08em; text-transform:uppercase; color:var(--accent); font-weight:700; margin:0 0 6px; }
+  .diagram .dg-note { margin:0 0 16px; font-size:12.5px; color:var(--muted); }
+  .diagram svg { width:100%; height:auto; display:block; min-width:560px; }
+  .dg-box { fill:var(--surface-2); stroke:var(--line); stroke-width:1.5; }
+  .dg-box-accent { fill:var(--accent-soft); stroke:var(--accent); stroke-width:1.5; }
+  .dg-box-warn { fill:var(--warn-soft); stroke:var(--warn); stroke-width:1.5; }
+  .dg-box-dashed { fill:none; stroke:var(--faint); stroke-width:1.5; stroke-dasharray:6 5; }
+  .dg-text { fill:var(--ink); font-family:var(--sans); font-size:12.5px; font-weight:600; }
+  .dg-sub { fill:var(--muted); font-family:var(--sans); font-size:10.8px; }
+  .dg-label { fill:var(--faint); font-family:var(--mono); font-size:10px; text-transform:uppercase; letter-spacing:.03em; }
+  .dg-lane { fill:var(--accent-2); font-family:var(--mono); font-size:11px; font-weight:700; }
+  .dg-arrow { stroke:var(--faint); stroke-width:1.6; fill:none; }
+  .dg-arrowhead { fill:var(--faint); }
+
+  .navrow { display:flex; justify-content:space-between; gap:12px; margin-top:8px; font-family:var(--mono); font-size:12.5px; }
+  .navrow a { text-decoration:none; font-weight:600; }
+  .navrow a:hover { text-decoration:underline; }
+
+  footer { margin-top:52px; padding-top:20px; border-top:1px solid var(--line); color:var(--faint); font-family:var(--mono); font-size:12px; text-align:center; }
+  footer a { color:var(--faint); }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <p class="kicker">/explain &middot; support file</p>
+  <h1>mcp_dorm_server.py</h1>
+  <p class="intro"><b>52 lines, two tools, no magic.</b> This is the thing you'll usually <i>consume</i> rather than write &mdash; and it exists mainly so you can see there's nothing intimidating inside one.</p>
+
+  <div class="orient">
+    <p><span class="label">What happens when you run it</span> Almost nothing visible. It waits on standard input for a client to speak to it, and looks hung. That is correct behaviour, not a bug &mdash; <a class="file" href="../step5b_mcp_client.html">step5b_mcp_client.py</a> launches it as a subprocess.</p>
+    <p><span class="label">The one idea it teaches</span> A tool <b>definition</b> and a tool <b>implementation</b> can be the same object. The decorator turns your function signature into the schema and your docstring into the description.</p>
+    <p><span class="label">What it deliberately leaves out</span> Everything that makes a server production-worthy: no auth, no rate limiting, no input validation beyond the type hints, no remote transport, and a keyword search barely worth the name.</p>
+  </div>
+
+  <div class="diagram">
+    <p class="dg-title">where the schema comes from</p>
+    <p class="dg-note">Compare with step3: same information, written once here instead of twice by hand.</p>
+    <svg viewBox="0 0 760 250" role="img" aria-label="A decorated Python function's type hints become the JSON schema and its docstring becomes the tool description; the decorator registers it so the server can advertise it over stdio.">
+      <defs>
+        <marker id="dgArrowSrv" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path class="dg-arrowhead" d="M0,0 L10,5 L0,10 z"/>
+        </marker>
+      </defs>
+
+      <path class="dg-arrow" marker-end="url(#dgArrowSrv)" d="M296,74 L356,74"/>
+      <path class="dg-arrow" marker-end="url(#dgArrowSrv)" d="M296,150 L356,150"/>
+      <path class="dg-arrow" marker-end="url(#dgArrowSrv)" d="M600,110 L660,110"/>
+
+      <text class="dg-label" x="20" y="42">what you write</text>
+      <g>
+        <rect class="dg-box" x="20" y="46" width="276" height="56" rx="10"/>
+        <text class="dg-text" x="158" y="70" text-anchor="middle">def search_dorm_facts(query: str) -&gt; str</text>
+        <text class="dg-sub" x="158" y="88" text-anchor="middle">the type hints</text>
+      </g>
+      <g>
+        <rect class="dg-box" x="20" y="122" width="276" height="56" rx="10"/>
+        <text class="dg-text" x="158" y="146" text-anchor="middle">"""Search the knowledge base..."""</text>
+        <text class="dg-sub" x="158" y="164" text-anchor="middle">the docstring</text>
+      </g>
+
+      <text class="dg-label" x="356" y="42">what @mcp.tool() makes</text>
+      <g>
+        <rect class="dg-box-accent" x="356" y="46" width="244" height="56" rx="10"/>
+        <text class="dg-text" x="478" y="70" text-anchor="middle">input_schema</text>
+        <text class="dg-sub" x="478" y="88" text-anchor="middle">{"query": {"type": "string"}}</text>
+      </g>
+      <g>
+        <rect class="dg-box-accent" x="356" y="122" width="244" height="56" rx="10"/>
+        <text class="dg-text" x="478" y="146" text-anchor="middle">description</text>
+        <text class="dg-sub" x="478" y="164" text-anchor="middle">read by the model</text>
+      </g>
+
+      <g>
+        <rect class="dg-box-dashed" x="660" y="76" width="80" height="68" rx="10"/>
+        <text class="dg-sub" x="700" y="106" text-anchor="middle">stdio</text>
+        <text class="dg-sub" x="700" y="122" text-anchor="middle">&rarr; client</text>
+      </g>
+    </svg>
+  </div>
+
+  <section class="block">
+    <h2><span class="badge" style="background:var(--s1)">1</span><code>FastMCP("dorm-facts")</code> &mdash; the whole server object</h2>
+    <p class="loc"><a class="file" href="../../mcp_dorm_server.py#L20">mcp_dorm_server.py:20-21</a></p>
+    <pre><code>from mcp.server.fastmcp import FastMCP
+mcp = FastMCP("dorm-facts")</code></pre>
+    <div class="concept"><b>Concept</b>A server is an object you register tools on. The string is its name, which clients see during the handshake.</div>
+    <div class="why"><b>Why this is a separate project from the Anthropic SDK</b><code>mcp</code> is the protocol SDK, maintained independently. MCP is an <b>open standard</b> &mdash; this same server works with other clients and other models. Nothing in this file is Anthropic-specific, which is the entire point of a standard and the reason it's worth knowing.</div>
+  </section>
+
+  <section class="block">
+    <h2><span class="badge" style="background:var(--s2)">2</span><code>@mcp.tool()</code> &mdash; the only interesting line in the file</h2>
+    <p class="loc"><a class="file" href="../../mcp_dorm_server.py#L30">mcp_dorm_server.py:30-43</a></p>
+    <p class="did">Registers a plain function as a tool, deriving its schema from the signature and its description from the docstring.</p>
+    <pre><code>@mcp.tool()
+def search_dorm_facts(query: str) -&gt; str:
+    """Search the dormitory knowledge base for facts about blocks and rules.
+
+    Args:
+        query: Words to look for, e.g. "Dorm A residents" or "quiet hours".
+    """</code></pre>
+    <div class="concept"><b>Concept</b>Introspection as configuration. <code>query: str</code> becomes <code>{"type": "string"}</code>; the docstring becomes the text the model reads when deciding whether to call this.</div>
+    <div class="why"><b>Why this beats writing the schema by hand</b>Open <a class="file" href="../../step3_agent.py#L67">step3_agent.py's <code>TOOL_SCHEMAS</code></a>: a registry dict <i>and</i> a parallel list of hand-written JSON Schema, kept in sync by hand. Add a tool to one and forget the other and either the model doesn't know it exists, or a call arrives and hits a <code>KeyError</code>. Here there's one source of truth. <b>The walkthrough for step3 calls that duplication a rough edge &mdash; this is what fixing it looks like.</b></div>
+    <div class="why"><b>Why the docstring is load-bearing, not documentation</b>It's the only thing the model has to decide whether this tool is relevant. A vague one-liner produces a tool that gets ignored or misused. That's why this docstring includes <i>examples</i> of what to pass &mdash; <code>"Dorm A residents"</code>, <code>"quiet hours"</code>. <b>Write tool docstrings for the model, not for the next developer</b>, and note this is module 1.3's "the description is sent to the LLM" lesson in a different costume.</div>
+    <div class="why"><b>The Step 1 drill was pointing here all along</b><a class="file" href="../step1_mock_agent.html">step1_mock_agent.py</a> asked you to extend <code>register_tool</code> so it captured each function's docstring and signature into a schema dict via <code>inspect</code>. That's precisely what this decorator does. You built the toy version before meeting the standardised one.</div>
+  </section>
+
+  <section class="block">
+    <h2><span class="badge" style="background:var(--s3)">3</span>The two tools &mdash; deliberately unimpressive</h2>
+    <p class="loc"><a class="file" href="../../mcp_dorm_server.py#L37">mcp_dorm_server.py:37-48</a></p>
+    <p class="did"><code>search_dorm_facts</code> does naive word-overlap over three strings. <code>list_blocks</code> returns the dict keys starting with <code>dorm-</code>.</p>
+    <div class="why"><b>Why the search is bad on purpose</b>It's the same naive overlap that <a class="file" href="../step3b_retrieval.html">step3b_retrieval.py</a> measures at <b>recall@1 of 0.46</b>. Nothing about MCP improves retrieval quality &mdash; a protocol moves a function call across a process boundary, it doesn't make the function better. Worth being clear about, because "we exposed it over MCP" is sometimes said as though it were an upgrade.</div>
+    <div class="why"><b>Why there are two tools and not one</b>So <a class="file" href="../step5b_mcp_client.html">the client</a> can demonstrate a <i>choice</i>. Ask "how many residents in Dorm A?" and the model picks <code>search_dorm_facts</code>; ask "list every block" and it picks <code>list_blocks</code> &mdash; a decision nothing in the client code influences, made purely from the two descriptions.</div>
+    <div class="why"><b><code>list_blocks() -&gt; list[str]</code> with no arguments</b>A tool needn't take input. The return annotation still matters: it tells the client what shape comes back. Cheap detail, easy to omit, and omitting it makes the tool harder for the model to use well.</div>
+  </section>
+
+  <section class="block">
+    <h2><span class="badge" style="background:var(--s4)">4</span><code>mcp.run()</code> &mdash; and why the silence is correct</h2>
+    <p class="loc"><a class="file" href="../../mcp_dorm_server.py#L51">mcp_dorm_server.py:51-52</a></p>
+    <pre><code>if __name__ == "__main__":
+    mcp.run()          # stdio transport -- the client spawns us and talks over pipes</code></pre>
+    <div class="concept"><b>Concept</b>stdio transport. The client launches this as a child process and speaks the protocol over its stdin/stdout &mdash; the same mechanism a shell pipeline uses.</div>
+    <div class="why"><b>Why you must never <code>print()</code> in an MCP server</b>Because <b>stdout is the protocol channel</b>. A stray <code>print()</code> injects garbage into the message stream and the client's parser fails &mdash; usually with an error that says nothing about your print statement. If you need to log from a stdio server, log to <b>stderr</b> or to a file. This is the single most common way to break one, and the reason this file prints nothing at all.</div>
+    <div class="why"><b>Why running it directly looks broken</b>It blocks waiting for a client on stdin. No banner, no port, no output. Correct, and confusing the first time &mdash; which is why the module docstring says so explicitly.</div>
+    <div class="why"><b>What changes for a remote server</b>Only the transport. The tools and decorators stay identical; you'd swap stdio for HTTP and then genuinely need the auth, rate limiting and input validation this file has none of. <b>A local stdio server you launch yourself and a remote one you connect to have very different threat models</b>, even though the code looks the same.</div>
+  </section>
+
+  <section class="block">
+    <h2>Traced end to end</h2>
+    <p class="did">What this process experiences during one client run.</p>
+    <div class="trace-card">
+      <ol>
+        <li><a class="file" href="../step5b_mcp_client.html">step5b</a> spawns <code>python mcp_dorm_server.py</code>. Import runs; <code>@mcp.tool()</code> registers both functions into the <code>FastMCP</code> instance.</li>
+        <li><code>mcp.run()</code> blocks on stdin. Nothing is printed.</li>
+        <li>An <code>initialize</code> message arrives; the server replies with its name and capabilities.</li>
+        <li>A <code>list_tools</code> request arrives. The server serialises both registered tools &mdash; names, generated schemas, docstring descriptions &mdash; and writes them to stdout.</li>
+        <li>A <code>call_tool</code> request arrives for <code>search_dorm_facts</code> with <code>{"query": "Dorm A Dorm B residents"}</code>.</li>
+        <li>The arguments are validated against the generated schema, then the plain Python function runs: split, filter words over two characters, match against <code>DOCS</code>.</li>
+        <li>Two matching lines are returned as one string, serialised back over stdout.</li>
+        <li>The client finishes and closes the pipes. This process exits &mdash; its lifetime was entirely the client's <code>async with</code> block.</li>
+      </ol>
+    </div>
+  </section>
+
+  <section class="block">
+    <h2>Traps</h2>
+    <div class="traps">
+      <ul>
+        <li><b>Running it directly looks hung.</b> It's waiting for a client on stdin. Not a bug &mdash; press Ctrl+C.</li>
+        <li><b>Never <code>print()</code> here.</b> stdout is the protocol. Use stderr or a file if you must log.</li>
+        <li><b>Needs the <code>mcp</code> package and Python 3.10+.</b> <code>uv run --with mcp mcp_dorm_server.py</code> only proves it imports.</li>
+        <li><b>Launched with a relative path</b> by the client, so both must run from inside <code>samples/</code>.</li>
+        <li><b>Zero security.</b> No auth, no rate limiting, no authorisation on <code>list_blocks</code>. Fine for a local subprocess you wrote; not a template for anything reachable.</li>
+        <li><b>The search is genuinely poor</b> &mdash; naive word overlap, no ranking. Deliberate: it's the baseline step3b measures.</li>
+        <li><b>Needs no API key.</b> It never talks to a model &mdash; it's a tool provider, not a client.</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="block">
+    <h2>What to watch when you run it</h2>
+    <p class="did">Don't run it directly &mdash; run the client and watch what it discovers:</p>
+    <span class="watch-cmd">uv run --with "anthropic[mcp],mcp" step5b_mcp_client.py</span>
+    <p class="did">The <code>tools discovered from the server</code> list is this file's docstrings and signatures, round-tripped through the protocol.</p>
+    <div class="predict">
+      <b>Predict before you run</b>
+      The client prints each tool's description. Where does the text come from &mdash; a config file, a schema you wrote, or something already in this file? And will the <code>Args:</code> section appear in it?
+    </div>
+    <div class="predict">
+      <b>Then prove the protocol claim &mdash; the whole point of this file</b>
+      Add a third tool here:
+      <br><code>@mcp.tool()</code><br><code>def count_residents(block: str) -&gt; str:</code> with a docstring, returning whatever <code>DOCS.get(block)</code> gives.
+      <br><br>Now re-run <b>the client, unchanged</b>. It appears in the discovered list and the model will use it. Then count what the same addition costs in <a class="file" href="../../step3_agent.py">step3_agent.py</a>: a function, a <code>TOOLS</code> entry, <i>and</i> a hand-written JSON schema kept in sync. That difference is the value of a protocol boundary — and you've now measured it rather than read about it.
+    </div>
+  </section>
+
+  <div class="navrow">
+    <a href="evals.html">&larr; support: evals.py</a>
+    <a href="Dockerfile.html">support: Dockerfile &rarr;</a>
+  </div>
+
+  <footer>
+    generated by <code>/explain</code> &middot; source: <a href="../../mcp_dorm_server.py">mcp_dorm_server.py</a> &middot; consumed by <a href="../step5b_mcp_client.html">step5b_mcp_client.py</a>
+  </footer>
+</div>
+</body>
+</html>

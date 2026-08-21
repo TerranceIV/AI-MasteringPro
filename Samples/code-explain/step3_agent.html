@@ -1,0 +1,282 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Explained · step3_agent.py</title>
+<style>
+  :root {
+    --bg:#eef1ee; --surface:#ffffff; --surface-2:#f3f6f2; --ink:#182019; --muted:#586459; --faint:#8a968b; --line:#dbe2db;
+    --accent:#2f8f5b; --accent-2:#1f7d6b; --accent-soft:#dcefe2; --warn:#b8791a; --warn-soft:#f7ecd9;
+    --shadow:0 1px 2px rgba(24,32,25,.05),0 10px 30px rgba(24,32,25,.07);
+    --mono:ui-monospace,"Cascadia Code","SF Mono",Menlo,Consolas,monospace;
+    --sans:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+    --s1:#2f7cb0; --s2:#7a4fb0; --s3:#12897a; --s4:#c2610f; --s5:#a83a6a; --s6:#3f5bb0;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{ --bg:#0c110d; --surface:#141a15; --surface-2:#19211a; --ink:#e7eee8; --muted:#98a89b; --faint:#6c7a6e; --line:#232d25;
+      --accent:#4fb37e; --accent-2:#46c2ab; --accent-soft:#14301f; --warn:#e0a94e; --warn-soft:#2b230f;
+      --s1:#58a9dc; --s2:#b48fe0; --s3:#4ec6b1; --s4:#e8944a; --s5:#e07aa6; --s6:#8b9ff0;
+      --shadow:0 1px 2px rgba(0,0,0,.35),0 10px 30px rgba(0,0,0,.45); }
+  }
+  :root[data-theme="light"]{ --bg:#eef1ee; --surface:#ffffff; --surface-2:#f3f6f2; --ink:#182019; --muted:#586459; --faint:#8a968b; --line:#dbe2db; --accent:#2f8f5b; --accent-2:#1f7d6b; --accent-soft:#dcefe2; --warn:#b8791a; --warn-soft:#f7ecd9; --s1:#2f7cb0; --s2:#7a4fb0; --s3:#12897a; --s4:#c2610f; --s5:#a83a6a; --s6:#3f5bb0; --shadow:0 1px 2px rgba(24,32,25,.05),0 10px 30px rgba(24,32,25,.07); }
+  :root[data-theme="dark"]{ --bg:#0c110d; --surface:#141a15; --surface-2:#19211a; --ink:#e7eee8; --muted:#98a89b; --faint:#6c7a6e; --line:#232d25; --accent:#4fb37e; --accent-2:#46c2ab; --accent-soft:#14301f; --warn:#e0a94e; --warn-soft:#2b230f; --s1:#58a9dc; --s2:#b48fe0; --s3:#4ec6b1; --s4:#e8944a; --s5:#e07aa6; --s6:#8b9ff0; --shadow:0 1px 2px rgba(0,0,0,.35),0 10px 30px rgba(0,0,0,.45); }
+
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink); font-family:var(--sans); line-height:1.65; -webkit-font-smoothing:antialiased; }
+  .wrap { max-width:840px; margin:0 auto; padding:clamp(24px,5vw,56px) clamp(18px,4vw,36px); }
+
+  code { font-family:var(--mono); font-size:.85em; background:var(--surface-2); padding:2px 6px; border-radius:5px; word-break:break-word; }
+  a { color:var(--accent-2); }
+  a.file { text-decoration:none; font-family:var(--mono); font-size:.85em; font-weight:600; }
+  a.file:hover { text-decoration:underline; }
+
+  .kicker { font-family:var(--mono); font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--accent); font-weight:700; margin:0 0 12px; }
+  h1 { font-size:clamp(26px,5.5vw,38px); line-height:1.1; margin:0 0 16px; letter-spacing:-.02em; text-wrap:balance; font-weight:800; }
+  .intro { font-size:clamp(15.5px,2.2vw,17px); color:var(--muted); margin:0 0 6px; }
+  .intro b { color:var(--ink); }
+
+  .orient { background:var(--surface); border:1px solid var(--line); border-radius:14px; padding:18px 20px; margin:22px 0 8px; box-shadow:var(--shadow); }
+  .orient p { margin:0 0 10px; font-size:14.5px; }
+  .orient p:last-child { margin-bottom:0; }
+  .orient .label { font-family:var(--mono); font-size:11px; letter-spacing:.08em; text-transform:uppercase; color:var(--accent); font-weight:700; display:block; margin-bottom:3px; }
+
+  section.block { margin:42px 0; }
+  h2 { font-size:clamp(18px,3vw,21px); margin:0 0 4px; letter-spacing:-.01em; display:flex; align-items:center; gap:10px; }
+  h2 .badge { font-family:var(--mono); font-size:12px; font-weight:700; color:#fff; width:26px; height:26px; border-radius:8px; display:inline-flex; align-items:center; justify-content:center; flex:none; }
+  .loc { font-family:var(--mono); font-size:12.5px; margin:0 0 14px; }
+  .did { font-size:15px; margin:0 0 14px; }
+
+  pre { background:var(--surface-2); border:1px solid var(--line); border-radius:10px; padding:12px 14px; overflow-x:auto; margin:0 0 14px; }
+  pre code { background:none; padding:0; font-size:13px; }
+
+  .concept, .why, .trace, .trap, .predict {
+    border-radius:12px; padding:14px 16px; margin:0 0 12px; font-size:14px; border:1px solid var(--line);
+  }
+  .concept { background:var(--accent-soft); border-left:4px solid var(--accent); }
+  .why { background:var(--surface); box-shadow:var(--shadow); }
+  .concept b, .why b { color:var(--ink); font-family:var(--mono); font-size:11.5px; letter-spacing:.06em; text-transform:uppercase; display:block; margin-bottom:5px; color:var(--accent-2); }
+
+  .trace-card { background:var(--surface); border:1px solid var(--line); border-radius:14px; padding:18px 20px; box-shadow:var(--shadow); }
+  .trace-card ol { margin:0; padding-left:22px; }
+  .trace-card li { margin-bottom:10px; font-size:14.5px; }
+  .trace-card li:last-child { margin-bottom:0; }
+
+  .traps { background:var(--warn-soft); border:1px solid var(--line); border-left:4px solid var(--warn); border-radius:12px; padding:16px 20px; }
+  .traps ul { margin:0; padding-left:20px; }
+  .traps li { margin-bottom:9px; font-size:14.5px; }
+  .traps li:last-child { margin-bottom:0; }
+
+  .predict { background:var(--surface); box-shadow:var(--shadow); }
+  .predict b { display:block; color:var(--ink); font-size:14.5px; margin-bottom:6px; }
+
+  .watch-cmd { display:block; font-family:var(--mono); font-size:13.5px; background:var(--surface-2); border:1px solid var(--line); border-radius:8px; padding:10px 14px; margin:14px 0; color:var(--ink); }
+
+  .diagram { background:var(--surface); border:1px solid var(--line); border-radius:14px; padding:20px; margin:22px 0 36px; box-shadow:var(--shadow); overflow-x:auto; }
+  .diagram .dg-title { font-family:var(--mono); font-size:11px; letter-spacing:.08em; text-transform:uppercase; color:var(--accent); font-weight:700; margin:0 0 6px; }
+  .diagram .dg-note { margin:0 0 16px; font-size:12.5px; color:var(--muted); }
+  .diagram svg { width:100%; height:auto; display:block; min-width:560px; }
+  .dg-box { fill:var(--surface-2); stroke:var(--line); stroke-width:1.5; }
+  .dg-box-accent { fill:var(--accent-soft); stroke:var(--accent); stroke-width:1.5; }
+  .dg-box-warn { fill:var(--warn-soft); stroke:var(--warn); stroke-width:1.5; }
+  .dg-box-dashed { fill:none; stroke:var(--faint); stroke-width:1.5; stroke-dasharray:6 5; }
+  .dg-text { fill:var(--ink); font-family:var(--sans); font-size:12.5px; font-weight:600; }
+  .dg-sub { fill:var(--muted); font-family:var(--sans); font-size:10.8px; }
+  .dg-label { fill:var(--faint); font-family:var(--mono); font-size:10px; text-transform:uppercase; letter-spacing:.03em; }
+  .dg-lane { fill:var(--accent-2); font-family:var(--mono); font-size:11px; font-weight:700; }
+  .dg-arrow { stroke:var(--faint); stroke-width:1.6; fill:none; }
+  .dg-arrowhead { fill:var(--faint); }
+
+  .navrow { display:flex; justify-content:space-between; gap:12px; margin-top:8px; font-family:var(--mono); font-size:12.5px; }
+  .navrow a { text-decoration:none; font-weight:600; }
+  .navrow a:hover { text-decoration:underline; }
+
+  footer { margin-top:52px; padding-top:20px; border-top:1px solid var(--line); color:var(--faint); font-family:var(--mono); font-size:12px; text-align:center; }
+  footer a { color:var(--faint); }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <p class="kicker">/explain &middot; step 3</p>
+  <h1>step3_agent.py</h1>
+  <p class="intro"><b>The flagship: a real tool-calling agent.</b> Step 2's single call, wrapped in a loop, handed two real tools, a tiny retrieval store, and a growing memory.</p>
+
+  <div class="orient">
+    <p><span class="label">What happens when you run it</span> You pass a question on the command line; it prints each tool call live as the model makes it, then prints a final answer once the model stops asking for tools.</p>
+    <p><span class="label">The one idea it teaches</span> The entire agent loop &mdash; call &rarr; check if a tool was requested &rarr; run it &rarr; feed the result back &rarr; repeat &mdash; is barely 25 lines. Everything in Steps 1&ndash;2 was groundwork for this one loop.</p>
+    <p><span class="label">What it deliberately leaves out</span> The "RAG" store is a 3-entry dict with keyword matching, not a real vector database. The calculator uses <code>eval()</code> behind a weak regex. There's no retry/backoff here, unlike Step 1 &mdash; one API failure just crashes the run.</p>
+  </div>
+
+  <div class="diagram">
+    <p class="dg-title">the agent loop &mdash; call, check, act, repeat</p>
+    <p class="dg-note">Everything in Steps 1&ndash;2 was groundwork for this one loop. It only exits through the final-answer box or the safety cap.</p>
+    <svg viewBox="0 0 760 630" role="img" aria-label="Flowchart of the Step 3 agent loop: send messages, check stop_reason, either return the final answer or dispatch tool calls and loop, bounded by MAX_STEPS.">
+      <defs>
+        <marker id="dgArrow3" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path class="dg-arrowhead" d="M0,0 L10,5 L0,10 z"/>
+        </marker>
+      </defs>
+
+      <path class="dg-arrow" marker-end="url(#dgArrow3)" d="M350,68 L350,118"/>
+      <path class="dg-arrow" marker-end="url(#dgArrow3)" d="M350,178 L350,228"/>
+      <path class="dg-arrow" marker-end="url(#dgArrow3)" d="M300,288 L182,340"/>
+      <path class="dg-arrow" marker-end="url(#dgArrow3)" d="M400,288 L528,340"/>
+      <path class="dg-arrow" marker-end="url(#dgArrow3)" d="M560,398 L560,440"/>
+      <path class="dg-arrow" marker-end="url(#dgArrow3)" d="M560,498 L560,540"/>
+      <path class="dg-arrow" marker-end="url(#dgArrow3)" d="M670,470 C742,470 742,150 462,150"/>
+
+      <text class="dg-label" x="205" y="318">no &mdash; final text</text>
+      <text class="dg-label" x="450" y="318">yes &mdash; tool_use</text>
+      <text class="dg-label" x="600" y="290">loop, &le; 6&times;</text>
+      <text class="dg-label" x="572" y="524">6 iterations, still tool_use</text>
+
+      <g>
+        <rect class="dg-box" x="240" y="12" width="220" height="56" rx="10"/>
+        <text class="dg-text" x="350" y="36" text-anchor="middle">start</text>
+        <text class="dg-sub" x="350" y="52" text-anchor="middle">messages = [user: task]</text>
+      </g>
+
+      <g>
+        <rect class="dg-box-accent" x="240" y="122" width="220" height="56" rx="10"/>
+        <text class="dg-text" x="350" y="146" text-anchor="middle">messages.create()</text>
+        <text class="dg-sub" x="350" y="162" text-anchor="middle">send the full messages list</text>
+      </g>
+
+      <g>
+        <rect class="dg-box" x="240" y="232" width="220" height="56" rx="10"/>
+        <text class="dg-text" x="350" y="256" text-anchor="middle">stop_reason == 'tool_use'?</text>
+        <text class="dg-sub" x="350" y="272" text-anchor="middle">the branch point</text>
+      </g>
+
+      <g>
+        <rect class="dg-box-accent" x="40" y="342" width="220" height="56" rx="10"/>
+        <text class="dg-text" x="150" y="366" text-anchor="middle">return final answer</text>
+        <text class="dg-sub" x="150" y="382" text-anchor="middle">join the text blocks</text>
+      </g>
+
+      <g>
+        <rect class="dg-box" x="450" y="342" width="220" height="56" rx="10"/>
+        <text class="dg-text" x="560" y="366" text-anchor="middle">dispatch tool_use blocks</text>
+        <text class="dg-sub" x="560" y="382" text-anchor="middle">run search / calculator</text>
+      </g>
+
+      <g>
+        <rect class="dg-box" x="450" y="442" width="220" height="56" rx="10"/>
+        <text class="dg-text" x="560" y="466" text-anchor="middle">append tool_result(s)</text>
+        <text class="dg-sub" x="560" y="482" text-anchor="middle">the observation &rarr; memory</text>
+      </g>
+
+      <g>
+        <rect class="dg-box-warn" x="450" y="542" width="220" height="56" rx="10"/>
+        <text class="dg-text" x="560" y="566" text-anchor="middle">hit MAX_STEPS</text>
+        <text class="dg-sub" x="560" y="582" text-anchor="middle">return "stopped: ..."</text>
+      </g>
+    </svg>
+  </div>
+
+  <section class="block">
+    <h2><span class="badge" style="background:var(--s1)">1</span>The tools</h2>
+    <p class="loc"><a class="file" href="../step3_agent.py#L36">step3_agent.py:36-47</a></p>
+    <p class="did"><code>search</code> keyword-matches a query against a hardcoded <code>DOCS</code> dict. <code>calculator</code> regex-checks an expression, then <code>eval()</code>s it.</p>
+    <pre><code>if not re.fullmatch(r"[0-9+\-*/(). ]+", expression):
+    return "ERROR: only digits and + - * / ( ) are allowed"
+return str(eval(expression))    # demo only; the regex is the (weak) sandbox</code></pre>
+    <div class="concept"><b>Concept</b>A tool is just a normal Python function &mdash; nothing about the agent loop itself is magic.</div>
+    <div class="why"><b>Why this way</b>The comment on line 47 says it outright: this is a demo-only sandbox. A character allowlist regex doesn't stop everything an attacker could construct within "digits and operators" &mdash; it only looks safe. Never ship this pattern; it exists so the loop has something real to call without pulling in an external API for a calculator.</div>
+  </section>
+
+  <section class="block">
+    <h2><span class="badge" style="background:var(--s2)">2</span>Tool registry + schemas</h2>
+    <p class="loc"><a class="file" href="../step3_agent.py#L51">step3_agent.py:51-71</a></p>
+    <p class="did"><code>TOOLS</code> maps a name to the real function to call; <code>TOOL_SCHEMAS</code> is the separate structure actually sent to the model.</p>
+    <div class="concept"><b>Concept</b>Two parallel structures describing the same tools &mdash; built by hand this time, instead of derived from one Pydantic model like Step 1's <code>@tool</code> decorator.</div>
+    <div class="why"><b>Why this way</b>Worth noticing as a step <i>backward</i>, not forward: Step 1 generated the schema straight from <code>WeatherArgs.model_json_schema()</code>, so the contract and the description could never disagree. Here, <code>TOOLS</code> and <code>TOOL_SCHEMAS</code> are two dicts you keep in sync by hand &mdash; add a tool to one and forget the other, and the model either doesn't know a tool exists, or a call reaches <code>dispatch</code> and hits a <code>KeyError</code>. A fixable rough edge, not a design requirement.</div>
+  </section>
+
+  <section class="block">
+    <h2><span class="badge" style="background:var(--s3)">3</span>The agent loop</h2>
+    <p class="loc"><a class="file" href="../step3_agent.py#L75">step3_agent.py:75-102</a></p>
+    <p class="did">Sends the growing message list, checks whether the model wants a tool or is done, and either returns the final text or dispatches every requested tool call.</p>
+    <pre><code>async def run(task: str, on_usage=None) -> str:
+    messages = [{"role": "user", "content": task}]    # 3.4 short-term memory
+    for _ in range(MAX_STEPS):                        # 3.6 bounded
+        msg = await client.messages.create(...)       # 1.2 async, for real</code></pre>
+    <div class="concept"><b>Concept: memory as a growing list.</b> <code>messages</code> is never cleared &mdash; every turn appends to it, and the <i>whole</i> list is resent on every call.</div>
+    <div class="why" style="border-left-color:var(--s4)"><b>This loop is now <code>async</code>, and that change propagates all the way to Step 6.</b> An earlier version used the synchronous client, which meant Step 5 had to wrap workers in <code>asyncio.to_thread</code> to get concurrency and Step 6 did the same to avoid freezing its event loop &mdash; two workarounds for one design decision. Async here and both disappear: Step 5's fan-out is a plain <code>gather</code>, and Step 6 can just <code>await</code> the agent. This is the file where Step 1's insistence on async stops being theoretical.<br><br>Also new: <code>on_usage</code>, a callback invoked with the <code>usage</code> object of every model call. That single parameter is the seam Step 6 turns into per-request cost tracing &mdash; and running it is how you discover that <b>one user question is several billable calls</b>.</div>
+    <div class="concept"><b>Concept: <code>MAX_STEPS</code> as a guardrail.</b> A hard cap on loop iterations.</div>
+    <div class="concept"><b>Concept: <code>stop_reason</code> as the branch point.</b> If the model didn't ask for a tool, it's done; extract the text and return.</div>
+    <div class="why"><b>Why this way</b>The growing <code>messages</code> list is exactly what Step 2's cost-intuition comment warned about &mdash; a conversation's cost compounds because history keeps growing every turn, tokens and all. And without <code>MAX_STEPS</code>, a model stuck calling tools in a loop (e.g. re-searching the same thing because it's never satisfied) would run forever, burning tokens with no ceiling. Six iterations guarantees the function returns &mdash; worst case with an honest <code>"stopped: hit MAX_STEPS"</code> message &mdash; instead of hanging.</div>
+  </section>
+
+  <section class="block">
+    <h2><span class="badge" style="background:var(--s4)">4</span>Tool dispatch + error feedback</h2>
+    <p class="loc"><a class="file" href="../step3_agent.py#L86">step3_agent.py:86-100</a></p>
+    <p class="did">Runs each tool the model requested this turn, catching any exception and turning it into a string, then appends every result back into <code>messages</code>.</p>
+    <pre><code>try:
+    output = await TOOLS[block.name](**block.input)   # 3.2 dispatch
+    is_error = False
+except Exception as exc:                              # 3.6 feed the error BACK
+    output, is_error = f"ERROR: {exc}", True
+
+# every result from one turn goes back in ONE user message:
+blocks = [b for b in msg.content if b.type == "tool_use"]
+tool_results = await asyncio.gather(*(_run_one_tool(b) for b in blocks))</code></pre>
+    <div class="concept"><b>Concept</b>Step 1's <code>dispatch()</code> pattern again &mdash; errors as data, not crashes &mdash; but cruder this time.</div>
+    <div class="why" style="border-left-color:var(--s4)"><b>Two changes here worth understanding, because both are silent failures otherwise.</b><br><br><b>1. Tools now run concurrently.</b> The model can request several tools in one turn, and <code>gather</code> runs them at once &mdash; two 200ms tools take 200ms, not 400ms. But note carefully that every result still goes back in a <b>single</b> user message. Splitting them across separate messages is accepted by the API and quietly teaches the model to stop making parallel calls at all: no error, just an agent that gets slower and pricier over long conversations for no visible reason.<br><br><b>2. <code>is_error=True</code>.</b> Without it, your error string arrives as ordinary <i>data</i> and the model may reason about &mdash; or cheerfully report &mdash; <code>"ERROR: division by zero"</code> as though it were a result. The flag is what tells it the call failed so it can try something else.</div>
+    <div class="why"><b>Why this way</b>Notice what's missing compared to Step 1: no Pydantic validation of <code>block.input</code> before the call. A bare <code>except Exception</code> catches whatever Python happens to raise and turns it into a string the model sees next turn &mdash; it works, but you're trusting a raw Python exception message to be a useful correction, instead of a clean, structured "here's exactly what's wrong" from a typed contract. The core lesson still holds: the tool result &mdash; success <i>or</i> error &mdash; goes back into <code>messages</code> as the next user turn, which is how the model gets to "observe" what it did and react to it.</div>
+  </section>
+
+  <section class="block">
+    <h2>Traced end to end</h2>
+    <p class="did">Input: <code>"How many residents live across Dorm A and Dorm B combined? Use the tools."</code></p>
+    <div class="trace-card">
+      <ol>
+        <li><code>messages</code> starts as one user turn holding the task.</li>
+        <li><b>Loop 1:</b> the model decides it needs facts and returns a <code>tool_use</code> block calling <code>search(query="Dorm A Dorm B residents")</code>.</li>
+        <li><code>TOOLS["search"]</code> keyword-matches <code>DOCS</code>, returning both dorms' resident counts as one string.</li>
+        <li>That string is appended back into <code>messages</code> as a <code>tool_result</code>.</li>
+        <li><b>Loop 2:</b> with both numbers in hand, the model calls <code>calculator(expression="480 + 320")</code>.</li>
+        <li>The regex passes, <code>eval()</code> returns <code>800</code>, fed back as another <code>tool_result</code>.</li>
+        <li><b>Loop 3:</b> the model now has everything it needs and returns plain text &mdash; <code>stop_reason != "tool_use"</code>.</li>
+        <li><b>Output:</b> a final sentence stating 800 residents (exact wording varies between runs).</li>
+      </ol>
+    </div>
+  </section>
+
+  <section class="block">
+    <h2>Traps</h2>
+    <div class="traps">
+      <ul>
+        <li><b>No key-less mode.</b> Needs <code>ANTHROPIC_API_KEY</code>, checked with the same fail-fast guard as Step 2 (<a class="file" href="../step3_agent.py#L106">lines 106-107</a>).</li>
+        <li><b>Non-determinism compounds here.</b> Each of the (up to 6) loop iterations is its own model call &mdash; the number of tool calls, their order, and the wording can all vary between runs on the <i>same</i> question. Expected, not a bug.</li>
+        <li><b><code>eval()</code> is real risk if ever reused.</b> Fine in this closed demo where only you type the input; never acceptable if <code>calculator</code> received user-facing input in a real service.</li>
+        <li><b>Silent mismatch risk in <code>TOOLS</code> / <code>TOOL_SCHEMAS</code>.</b> Nothing enforces these two structures agree &mdash; unlike Step 1, a mismatch here won't be caught at import time.</li>
+        <li><b>Hitting <code>MAX_STEPS</code> is a real possible outcome</b>, not just a theoretical guard &mdash; a genuinely ambiguous question may legitimately end in <code>"stopped: hit MAX_STEPS..."</code>.</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="block">
+    <h2>What to watch when you run it</h2>
+    <p class="did">From inside <code>samples/</code>, with your key set:</p>
+    <span class="watch-cmd">uv run step3_agent.py "How many residents live across Dorm A and Dorm B?"</span>
+    <p class="did">Watch the <code>[tool] ...</code> lines print live &mdash; that's the model's reasoning steps happening in real time, not a final answer appearing out of nowhere. Count how many tool calls it takes.</p>
+    <div class="predict">
+      <b>Predict before you run it</b>
+      Will the model call <code>search</code> once with a combined query, or twice &mdash; once per dorm? Both are reasonable; nothing tells it to be efficient, only correct. Guess, then check the printed <code>[tool]</code> lines.
+    </div>
+  </section>
+
+  <div class="navrow">
+    <a href="step2b_document_extract.html">&larr; step 2b: documents in, structured data out</a>
+    <a href="step3b_retrieval.html">step 3b: retrieval quality, measured &rarr;</a>
+  </div>
+
+  <footer>
+    generated by <code>/explain</code> &middot; source: <a href="../step3_agent.py">step3_agent.py</a> &middot; see also <a href="../README.md">README.md</a>
+  </footer>
+
+</div>
+</body>
+</html>

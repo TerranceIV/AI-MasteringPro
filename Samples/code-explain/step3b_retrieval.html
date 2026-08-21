@@ -1,0 +1,272 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Explained · step3b_retrieval.py</title>
+<style>
+  :root {
+    --bg:#eef1ee; --surface:#ffffff; --surface-2:#f3f6f2; --ink:#182019; --muted:#586459; --faint:#8a968b; --line:#dbe2db;
+    --accent:#2f8f5b; --accent-2:#1f7d6b; --accent-soft:#dcefe2; --warn:#b8791a; --warn-soft:#f7ecd9;
+    --shadow:0 1px 2px rgba(24,32,25,.05),0 10px 30px rgba(24,32,25,.07);
+    --mono:ui-monospace,"Cascadia Code","SF Mono",Menlo,Consolas,monospace;
+    --sans:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+    --s1:#2f7cb0; --s2:#7a4fb0; --s3:#12897a; --s4:#c2610f; --s5:#a83a6a; --s6:#3f5bb0;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{ --bg:#0c110d; --surface:#141a15; --surface-2:#19211a; --ink:#e7eee8; --muted:#98a89b; --faint:#6c7a6e; --line:#232d25;
+      --accent:#4fb37e; --accent-2:#46c2ab; --accent-soft:#14301f; --warn:#e0a94e; --warn-soft:#2b230f;
+      --s1:#58a9dc; --s2:#b48fe0; --s3:#4ec6b1; --s4:#e8944a; --s5:#e07aa6; --s6:#8b9ff0;
+      --shadow:0 1px 2px rgba(0,0,0,.35),0 10px 30px rgba(0,0,0,.45); }
+  }
+  :root[data-theme="light"]{ --bg:#eef1ee; --surface:#ffffff; --surface-2:#f3f6f2; --ink:#182019; --muted:#586459; --faint:#8a968b; --line:#dbe2db; --accent:#2f8f5b; --accent-2:#1f7d6b; --accent-soft:#dcefe2; --warn:#b8791a; --warn-soft:#f7ecd9; --s1:#2f7cb0; --s2:#7a4fb0; --s3:#12897a; --s4:#c2610f; --s5:#a83a6a; --s6:#3f5bb0; --shadow:0 1px 2px rgba(24,32,25,.05),0 10px 30px rgba(24,32,25,.07); }
+  :root[data-theme="dark"]{ --bg:#0c110d; --surface:#141a15; --surface-2:#19211a; --ink:#e7eee8; --muted:#98a89b; --faint:#6c7a6e; --line:#232d25; --accent:#4fb37e; --accent-2:#46c2ab; --accent-soft:#14301f; --warn:#e0a94e; --warn-soft:#2b230f; --s1:#58a9dc; --s2:#b48fe0; --s3:#4ec6b1; --s4:#e8944a; --s5:#e07aa6; --s6:#8b9ff0; --shadow:0 1px 2px rgba(0,0,0,.35),0 10px 30px rgba(0,0,0,.45); }
+
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink); font-family:var(--sans); line-height:1.65; -webkit-font-smoothing:antialiased; }
+  .wrap { max-width:840px; margin:0 auto; padding:clamp(24px,5vw,56px) clamp(18px,4vw,36px); }
+
+  code { font-family:var(--mono); font-size:.85em; background:var(--surface-2); padding:2px 6px; border-radius:5px; word-break:break-word; }
+  a { color:var(--accent-2); }
+  a.file { text-decoration:none; font-family:var(--mono); font-size:.85em; font-weight:600; }
+  a.file:hover { text-decoration:underline; }
+
+  .kicker { font-family:var(--mono); font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--accent); font-weight:700; margin:0 0 12px; }
+  h1 { font-size:clamp(26px,5.5vw,38px); line-height:1.1; margin:0 0 16px; letter-spacing:-.02em; text-wrap:balance; font-weight:800; }
+  .intro { font-size:clamp(15.5px,2.2vw,17px); color:var(--muted); margin:0 0 6px; }
+  .intro b { color:var(--ink); }
+
+  .orient { background:var(--surface); border:1px solid var(--line); border-radius:14px; padding:18px 20px; margin:22px 0 8px; box-shadow:var(--shadow); }
+  .orient p { margin:0 0 10px; font-size:14.5px; }
+  .orient p:last-child { margin-bottom:0; }
+  .orient .label { font-family:var(--mono); font-size:11px; letter-spacing:.08em; text-transform:uppercase; color:var(--accent); font-weight:700; display:block; margin-bottom:3px; }
+
+  section.block { margin:42px 0; }
+  h2 { font-size:clamp(18px,3vw,21px); margin:0 0 4px; letter-spacing:-.01em; display:flex; align-items:center; gap:10px; }
+  h2 .badge { font-family:var(--mono); font-size:12px; font-weight:700; color:#fff; width:26px; height:26px; border-radius:8px; display:inline-flex; align-items:center; justify-content:center; flex:none; }
+  .loc { font-family:var(--mono); font-size:12.5px; margin:0 0 14px; }
+  .did { font-size:15px; margin:0 0 14px; }
+
+  pre { background:var(--surface-2); border:1px solid var(--line); border-radius:10px; padding:12px 14px; overflow-x:auto; margin:0 0 14px; }
+  pre code { background:none; padding:0; font-size:13px; }
+
+  .concept, .why, .trace, .trap, .predict {
+    border-radius:12px; padding:14px 16px; margin:0 0 12px; font-size:14px; border:1px solid var(--line);
+  }
+  .concept { background:var(--accent-soft); border-left:4px solid var(--accent); }
+  .why { background:var(--surface); box-shadow:var(--shadow); }
+  .concept b, .why b { color:var(--ink); font-family:var(--mono); font-size:11.5px; letter-spacing:.06em; text-transform:uppercase; display:block; margin-bottom:5px; color:var(--accent-2); }
+
+  .trace-card { background:var(--surface); border:1px solid var(--line); border-radius:14px; padding:18px 20px; box-shadow:var(--shadow); }
+  .trace-card ol { margin:0; padding-left:22px; }
+  .trace-card li { margin-bottom:10px; font-size:14.5px; }
+  .trace-card li:last-child { margin-bottom:0; }
+
+  .traps { background:var(--warn-soft); border:1px solid var(--line); border-left:4px solid var(--warn); border-radius:12px; padding:16px 20px; }
+  .traps ul { margin:0; padding-left:20px; }
+  .traps li { margin-bottom:9px; font-size:14.5px; }
+  .traps li:last-child { margin-bottom:0; }
+
+  .predict { background:var(--surface); box-shadow:var(--shadow); }
+  .predict b { display:block; color:var(--ink); font-size:14.5px; margin-bottom:6px; }
+
+  .watch-cmd { display:block; font-family:var(--mono); font-size:13.5px; background:var(--surface-2); border:1px solid var(--line); border-radius:8px; padding:10px 14px; margin:14px 0; color:var(--ink); }
+
+  .diagram { background:var(--surface); border:1px solid var(--line); border-radius:14px; padding:20px; margin:22px 0 36px; box-shadow:var(--shadow); overflow-x:auto; }
+  .diagram .dg-title { font-family:var(--mono); font-size:11px; letter-spacing:.08em; text-transform:uppercase; color:var(--accent); font-weight:700; margin:0 0 6px; }
+  .diagram .dg-note { margin:0 0 16px; font-size:12.5px; color:var(--muted); }
+  .diagram svg { width:100%; height:auto; display:block; min-width:560px; }
+  .dg-box { fill:var(--surface-2); stroke:var(--line); stroke-width:1.5; }
+  .dg-box-accent { fill:var(--accent-soft); stroke:var(--accent); stroke-width:1.5; }
+  .dg-box-warn { fill:var(--warn-soft); stroke:var(--warn); stroke-width:1.5; }
+  .dg-box-dashed { fill:none; stroke:var(--faint); stroke-width:1.5; stroke-dasharray:6 5; }
+  .dg-text { fill:var(--ink); font-family:var(--sans); font-size:12.5px; font-weight:600; }
+  .dg-sub { fill:var(--muted); font-family:var(--sans); font-size:10.8px; }
+  .dg-label { fill:var(--faint); font-family:var(--mono); font-size:10px; text-transform:uppercase; letter-spacing:.03em; }
+  .dg-lane { fill:var(--accent-2); font-family:var(--mono); font-size:11px; font-weight:700; }
+  .dg-arrow { stroke:var(--faint); stroke-width:1.6; fill:none; }
+  .dg-arrowhead { fill:var(--faint); }
+
+  .navrow { display:flex; justify-content:space-between; gap:12px; margin-top:8px; font-family:var(--mono); font-size:12.5px; }
+  .navrow a { text-decoration:none; font-weight:600; }
+  .navrow a:hover { text-decoration:underline; }
+
+  footer { margin-top:52px; padding-top:20px; border-top:1px solid var(--line); color:var(--faint); font-family:var(--mono); font-size:12px; text-align:center; }
+  footer a { color:var(--faint); }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <p class="kicker">/explain &middot; step 3b</p>
+  <h1>step3b_retrieval.py</h1>
+  <p class="intro"><b>Three retrievers, twelve labelled queries, one table.</b> This file doesn't build an agent &mdash; it <i>measures</i> the part of an agent that most often causes what people call hallucination.</p>
+
+  <div class="orient">
+    <p><span class="label">What happens when you run it</span> It prints a row per query showing whether each of three retrievers found the right document, then two mean scores, then a short essay about what the numbers mean. Only the third retriever calls the model, so it's cheap.</p>
+    <p><span class="label">The one idea it teaches</span> Grade the retriever <b>separately</b> from the agent. Otherwise you cannot tell "the model lied" apart from "the model never saw it" &mdash; and those have completely different fixes.</p>
+    <p><span class="label">What it deliberately leaves out</span> Real embeddings and a vector index. That absence is the point: two of the twelve queries are unfixable without them, and the file shows you exactly which two rather than asserting that you need a vector database.</p>
+  </div>
+
+  <div class="diagram">
+    <p class="dg-title">two-stage retrieval, and where each stage fails</p>
+    <p class="dg-note">Stage 1 decides what's <i>possible</i>. Stage 2 only reorders what stage 1 already found.</p>
+    <svg viewBox="0 0 760 280" role="img" aria-label="A query enters BM25 which returns six candidates from eighteen documents, then a model rerank picks the top three. Below, a note that a query whose words are absent from the corpus produces an empty candidate pool, which reranking cannot repair.">
+      <defs>
+        <marker id="dgArrow3b" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path class="dg-arrowhead" d="M0,0 L10,5 L0,10 z"/>
+        </marker>
+      </defs>
+
+      <path class="dg-arrow" marker-end="url(#dgArrow3b)" d="M160,74 L196,74"/>
+      <path class="dg-arrow" marker-end="url(#dgArrow3b)" d="M424,74 L460,74"/>
+      <path class="dg-arrow" marker-end="url(#dgArrow3b)" d="M290,110 L290,178"/>
+
+      <text class="dg-label" x="20" y="32">a question</text>
+      <g>
+        <rect class="dg-box" x="20" y="46" width="140" height="56" rx="10"/>
+        <text class="dg-text" x="90" y="70" text-anchor="middle">query</text>
+        <text class="dg-sub" x="90" y="88" text-anchor="middle">tokenised, stopwords cut</text>
+      </g>
+
+      <text class="dg-label" x="196" y="32">stage 1 &middot; recall &middot; free</text>
+      <g>
+        <rect class="dg-box-accent" x="196" y="46" width="228" height="56" rx="10"/>
+        <text class="dg-text" x="310" y="70" text-anchor="middle">BM25 over 18 docs</text>
+        <text class="dg-sub" x="310" y="88" text-anchor="middle">rare words score higher &rarr; 6 candidates</text>
+      </g>
+
+      <text class="dg-label" x="460" y="32">stage 2 &middot; precision &middot; 1 call</text>
+      <g>
+        <rect class="dg-box" x="460" y="46" width="270" height="56" rx="10"/>
+        <text class="dg-text" x="595" y="70" text-anchor="middle">model reranks the 6</text>
+        <text class="dg-sub" x="595" y="88" text-anchor="middle">&rarr; best 3, worst dropped</text>
+      </g>
+
+      <g>
+        <rect class="dg-box-warn" x="150" y="178" width="460" height="72" rx="10"/>
+        <text class="dg-text" x="380" y="204" text-anchor="middle">if stage 1 returns nothing, stage 2 returns nothing</text>
+        <text class="dg-sub" x="380" y="224" text-anchor="middle">&ldquo;Can I keep a cat?&rdquo; &mdash; the word &ldquo;cat&rdquo; is in no document</text>
+        <text class="dg-sub" x="380" y="240" text-anchor="middle">this, and only this, is what embeddings are for</text>
+      </g>
+    </svg>
+  </div>
+
+  <section class="block">
+    <h2><span class="badge" style="background:var(--s1)">1</span><code>DOCS</code> &mdash; a corpus with deliberate traps</h2>
+    <p class="loc"><a class="file" href="../step3b_retrieval.py#L40">step3b_retrieval.py:40-58</a></p>
+    <p class="did">Eighteen one-line documents about a dormitory.</p>
+    <div class="concept"><b>Concept</b>Near-duplicates. <code>laundry</code> / <code>laundry-cost</code>, <code>rent</code> / <code>deposit</code>, <code>quiet</code> / <code>noise</code> are pairs that both look plausible for the same query.</div>
+    <div class="why"><b>Why this way</b>A toy corpus of five unrelated facts makes every retriever look perfect, which teaches you nothing. Real corpora are full of documents that <i>almost</i> answer the question &mdash; and that is precisely what breaks naive retrieval, because the right document is in the pile but not at the top. The near-duplicates here are the whole reason the numbers differ between retrievers.</div>
+  </section>
+
+  <section class="block">
+    <h2><span class="badge" style="background:var(--s2)">2</span><code>EVALS</code> &mdash; the actual work</h2>
+    <p class="loc"><a class="file" href="../step3b_retrieval.py#L65">step3b_retrieval.py:65-78</a></p>
+    <p class="did">Twelve queries, each paired with the set of document ids that <i>should</i> come back. The trailing comment on each line says what that query is there to prove.</p>
+    <pre><code>("How much does a laundry wash cost?",    {"laundry-cost"}),   # naive fails, BM25 wins
+("Where can I leave my bicycle?",         {"bicycle"}),        # BM25 mis-RANKS it
+("Can I keep a cat?",                     {"pets"}),           # lexically impossible</code></pre>
+    <div class="concept"><b>Concept</b>A labelled retrieval set. Query &rarr; ground truth, written by a human.</div>
+    <div class="why"><b>Why this is the most valuable block in the file</b>Everything else here is arithmetic you could copy from anywhere. <b>This list is the thing almost nobody writes</b>, and without it the other 200 lines are meaningless. Ten or twelve labelled queries is enough to turn "our retrieval feels bad" into three distinct, named problems with three different fixes. It took maybe twenty minutes to write.</div>
+    <div class="why"><b>Why the set is balanced on purpose</b>Four easy queries, three where ranking matters, two where BM25 mis-orders the right answer, two that are lexically impossible. If you only include queries your retriever already handles, your score is a comfortable lie. <b>An eval set should contain the failures you expect and a couple you fear.</b></div>
+  </section>
+
+  <section class="block">
+    <h2><span class="badge" style="background:var(--s3)">3</span><code>retrieve_naive()</code> &mdash; the baseline that's secretly bad</h2>
+    <p class="loc"><a class="file" href="../step3b_retrieval.py#L90">step3b_retrieval.py:90-94</a></p>
+    <p class="did">Returns any document sharing at least one word with the query, in whatever order the dictionary happens to iterate.</p>
+    <pre><code>hits = [doc_id for doc_id, text in DOCS.items() if qs &amp; set(tokens(text))]
+return hits[:k]          # note: NO ranking at all -- dict order decides</code></pre>
+    <div class="concept"><b>Concept</b>Boolean matching with no scoring &mdash; membership, not relevance.</div>
+    <div class="why"><b>Why show a retriever you know is bad</b>Because it's what <a class="file" href="../step3_agent.py#L57">step3_agent.py's <code>search()</code></a> does, and it's what most people write first. It isn't <i>wrong</i> &mdash; it finds the right document plenty of times. Its flaw is that it has no opinion about <b>order</b>, so with <code>k=3</code> the answer you need is often present but fourth. Its recall@3 is nearly as good as BM25's; its recall@1 is far worse. That gap is the single most useful thing in the output table.</div>
+  </section>
+
+  <section class="block">
+    <h2><span class="badge" style="background:var(--s4)">4</span><code>bm25_score()</code> &mdash; thirty lines that beat the naive version</h2>
+    <p class="loc"><a class="file" href="../step3b_retrieval.py#L108">step3b_retrieval.py:108-125</a></p>
+    <p class="did">Scores each document against the query using BM25, then sorts.</p>
+    <pre><code>idf = math.log(1 + (_N - _DF[w] + 0.5) / (_DF[w] + 0.5))
+tf  = freq[w] * (K1 + 1) / (freq[w] + K1 * (1 - B + B * length / _AVG_LEN))
+score += idf * tf</code></pre>
+    <div class="concept"><b>Concept</b>Lexical ranking. Two ideas carry all the weight: a word appearing in <b>few</b> documents is more informative (that's <code>idf</code>), and a word appearing ten times isn't ten times more relevant (that's the saturation in <code>tf</code>, tuned by <code>K1</code>).</div>
+    <div class="why"><b>Why this is the retriever to beat before you buy anything</b>No embeddings. No index build. No database. No API calls. No dimension to choose, no model to keep in sync between index time and query time. It is pure arithmetic over the documents you already have &mdash; and it produces the <b>largest single jump</b> in the output table. If you take one thing from this file: <b>fix your lexical baseline before you shop for infrastructure.</b></div>
+    <div class="why"><b>The <code>_DF</code> / <code>_AVG_LEN</code> globals</b>Computed once at import from the whole corpus, because IDF is a property of the <i>collection</i>, not of a document. In a real system these are the numbers that go stale when documents change &mdash; which is the mundane reason "keeping the index fresh" is a real engineering concern rather than a detail.</div>
+  </section>
+
+  <section class="block">
+    <h2><span class="badge" style="background:var(--s5)">5</span><code>retrieve_reranked()</code> &mdash; cheap recall, expensive precision</h2>
+    <p class="loc"><a class="file" href="../step3b_retrieval.py#L136">step3b_retrieval.py:136-161</a></p>
+    <p class="did">Takes BM25's top <b>six</b>, shows them to the model, and asks for them back in relevance order with the irrelevant ones dropped.</p>
+    <pre><code>pool = retrieve_bm25(query, k=candidates)   # cast a WIDE net: 6, not 3
+...
+output_config={"effort": "low"},            # reranking is a narrow judgement
+output_format=Ranking,</code></pre>
+    <div class="concept"><b>Concept</b>Two-stage retrieval &mdash; a cheap wide net, then an expensive narrow filter. Almost every good retrieval system has this shape.</div>
+    <div class="why"><b>Why retrieve 6 to return 3</b>Because a reranker can only reorder what it is given. If you hand it exactly the three you were going to return, it has nothing to fix. The wide-then-narrow split is what makes the second stage useful <i>and</i> affordable &mdash; the model sees six short documents, not eighteen, and never the whole corpus.</div>
+    <div class="why"><b>Why <code>effort: "low"</code></b>"Which of these six answers the question?" is a narrow judgement, not a reasoning problem. High effort would cost more and change nothing. This is module 2.4's dial being used properly: <b>match the effort to the difficulty of the decision</b>, and reserve the expensive settings for the calls that earn them.</div>
+    <div class="why"><b>The <code>Ranking</code> model earns its keep</b>Asking for prose &mdash; "put these in order" &mdash; gets you a paragraph you then have to parse. <code>output_format=Ranking</code> gets you <code>list[str]</code>. And note the guard on the next line: <code>[d for d in ...doc_ids if d in DOCS]</code>, because a model asked for ids can return an id that doesn't exist. <b>Validate on the way back even when the schema constrained the way out.</b></div>
+  </section>
+
+  <section class="block">
+    <h2><span class="badge" style="background:var(--s6)">6</span><code>recall_at_k()</code> &mdash; the metric, in one line</h2>
+    <p class="loc"><a class="file" href="../step3b_retrieval.py#L164">step3b_retrieval.py:164-166</a></p>
+    <pre><code>return len(set(got[:k]) &amp; want) / len(want)</code></pre>
+    <div class="concept"><b>Concept</b><b>recall@k</b> &mdash; of the documents that should have come back, what fraction appeared in the top <code>k</code>?</div>
+    <div class="why"><b>Why recall and not precision</b>For feeding an agent, missing the right document is fatal and carrying one extra irrelevant one is merely wasteful &mdash; the model is good at ignoring a bad chunk and helpless without a good one. So recall is the metric that matters here. Watch <b>both</b> @1 and @3 though: the gap between them is exactly the space a reranker can win back, and comparing the two columns tells you whether your problem is <i>finding</i> or <i>ordering</i>.</div>
+  </section>
+
+  <section class="block">
+    <h2>Traced end to end</h2>
+    <p class="did">Query: <code>"Where can I leave my bicycle?"</code>, expected: <code>{"bicycle"}</code></p>
+    <div class="trace-card">
+      <ol>
+        <li><code>tokens()</code> strips stopwords &rarr; <code>["leave", "bicycle"]</code>.</li>
+        <li><b>naive:</b> both <code>visitors</code> ("...and <b>leave</b> by 10pm") and <code>bicycle</code> ("<b>Bicycle</b> racks...") share a word. Dict order puts <code>visitors</code> first &rarr; <b>recall@1 = 0.00</b>, recall@3 = 1.00.</li>
+        <li><b>BM25:</b> scores both. "leave" and "bicycle" are each rare, so the scores land close &mdash; and <code>visitors</code> still edges ahead &rarr; <b>recall@1 = 0.00</b>, recall@3 = 1.00. Better maths, same wrong winner.</li>
+        <li><b>rerank:</b> BM25's top 6 (including both) go to the model with the question. It sees that a rule about visitor curfew does not answer "where do I put my bike" and drops it &rarr; <code>bicycle</code> first, <b>recall@1 = 1.00</b>.</li>
+        <li>This is the row that justifies the third retriever's existence: the document was always retrievable, and only ranking was broken.</li>
+      </ol>
+    </div>
+    <div class="why"><b>Now the contrasting row</b><code>"Can I keep a cat?"</code> &rarr; tokens <code>["keep", "cat"]</code>. Neither word appears in any document (<code>pets</code> says "Pets are not permitted..."). BM25 returns an <b>empty</b> candidate list, so the reranker is handed nothing and returns nothing. All three retrievers score 0.00. <b>No amount of lexical tuning fixes this</b>, and that is the one honest argument for adding embeddings.</div>
+  </section>
+
+  <section class="block">
+    <h2>Traps</h2>
+    <div class="traps">
+      <ul>
+        <li><b>Two rows are supposed to be 0.00 everywhere.</b> "Can I keep a cat?" and "Where do I wash clothes?" fail by design &mdash; they are the vocabulary-mismatch demonstration, not a broken retriever.</li>
+        <li><b>The measured averages are modest, and that's deliberate.</b> Roughly naive@1 0.46 &rarr; BM25@1 0.71 &rarr; rerank ceiling 0.83. A tutorial that makes reranking look heroic has usually rigged the corpus. The shape of these numbers &mdash; big free win, moderate paid win, hard ceiling &mdash; is the realistic one.</li>
+        <li><b>Only the rerank column costs money</b>, one small call per query. Naive and BM25 make zero API calls.</li>
+        <li><b>Rerank output varies slightly between runs.</b> A borderline row may flip. Don't treat a single run as a measurement &mdash; that variance is itself a lesson about judge-style evaluation.</li>
+        <li><b>The corpus is 18 one-line documents.</b> Real chunking decisions &mdash; how big, where to split, how much overlap &mdash; don't appear here at all.</li>
+        <li><b>Needs <code>ANTHROPIC_API_KEY</code></b>, plus <code>anthropic</code> and <code>pydantic</code>.</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="block">
+    <h2>What to watch when you run it</h2>
+    <span class="watch-cmd">uv run --with "anthropic,pydantic" step3b_retrieval.py</span>
+    <p class="did">Don't read the averages first. Read <b>which rows differ between columns</b> &mdash; that's where the information is.</p>
+    <div class="predict">
+      <b>Predict before you run</b>
+      Which will be the bigger jump: naive@1 &rarr; BM25@1, or BM25@1 &rarr; rerank@1? Most people guess the reranker, because it involves the model. Guess, then look &mdash; and if you guessed wrong, that misconception was about to cost you a vector database.
+    </div>
+    <div class="predict">
+      <b>Then earn the vector index</b>
+      Add one word to the <code>pets</code> document &mdash; say <code>"Cats, dogs and other pets are not permitted..."</code> &mdash; and re-run. "Can I keep a cat?" jumps from 0.00 to 1.00 with no model involved. <b>That's the lesson:</b> vocabulary mismatch is sometimes a content problem, not an infrastructure problem. Check which one you have <i>before</i> you buy the infrastructure.
+    </div>
+  </section>
+
+  <div class="navrow">
+    <a href="step3_agent.html">&larr; step 3: the real tool-calling agent</a>
+    <a href="step4_langgraph_agent.html">step 4: the same agent on a framework &rarr;</a>
+  </div>
+
+  <footer>
+    generated by <code>/explain</code> &middot; source: <a href="../step3b_retrieval.py">step3b_retrieval.py</a> &middot; see also <a href="../README.md">README.md</a>
+  </footer>
+</div>
+</body>
+</html>

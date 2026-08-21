@@ -1,0 +1,348 @@
+<title>Start Here · Learn AI Agents</title>
+<style>
+  :root {
+    --bg:#eef1ee; --surface:#ffffff; --surface-2:#f3f6f2; --ink:#182019; --muted:#586459; --faint:#8a968b; --line:#dbe2db;
+    --accent:#2f8f5b; --accent-2:#1f7d6b; --accent-soft:#dcefe2; --warn:#b8791a;
+    --shadow:0 1px 2px rgba(24,32,25,.05),0 10px 30px rgba(24,32,25,.07);
+    --mono:ui-monospace,"Cascadia Code","SF Mono",Menlo,Consolas,monospace;
+    --sans:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+    --s1:#2f7cb0; --s2:#7a4fb0; --s3:#12897a; --s4:#c2610f; --s5:#a83a6a; --s6:#3f5bb0;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{ --bg:#0c110d; --surface:#141a15; --surface-2:#19211a; --ink:#e7eee8; --muted:#98a89b; --faint:#6c7a6e; --line:#232d25;
+      --accent:#4fb37e; --accent-2:#46c2ab; --accent-soft:#14301f; --warn:#e0a94e;
+      --s1:#58a9dc; --s2:#b48fe0; --s3:#4ec6b1; --s4:#e8944a; --s5:#e07aa6; --s6:#8b9ff0;
+      --shadow:0 1px 2px rgba(0,0,0,.35),0 10px 30px rgba(0,0,0,.45); }
+  }
+  :root[data-theme="light"]{ --bg:#eef1ee; --surface:#ffffff; --surface-2:#f3f6f2; --ink:#182019; --muted:#586459; --faint:#8a968b; --line:#dbe2db; --accent:#2f8f5b; --accent-2:#1f7d6b; --accent-soft:#dcefe2; --warn:#b8791a; --s1:#2f7cb0; --s2:#7a4fb0; --s3:#12897a; --s4:#c2610f; --s5:#a83a6a; --s6:#3f5bb0; --shadow:0 1px 2px rgba(24,32,25,.05),0 10px 30px rgba(24,32,25,.07); }
+  :root[data-theme="dark"]{ --bg:#0c110d; --surface:#141a15; --surface-2:#19211a; --ink:#e7eee8; --muted:#98a89b; --faint:#6c7a6e; --line:#232d25; --accent:#4fb37e; --accent-2:#46c2ab; --accent-soft:#14301f; --warn:#e0a94e; --s1:#58a9dc; --s2:#b48fe0; --s3:#4ec6b1; --s4:#e8944a; --s5:#e07aa6; --s6:#8b9ff0; --shadow:0 1px 2px rgba(0,0,0,.35),0 10px 30px rgba(0,0,0,.45); }
+
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink); font-family:var(--sans); line-height:1.65; -webkit-font-smoothing:antialiased; }
+  .wrap { max-width:1120px; margin:0 auto; padding:clamp(24px,5vw,56px) clamp(18px,4vw,36px); }
+  code { font-family:var(--mono); font-size:.85em; background:var(--surface-2); padding:2px 6px; border-radius:5px; word-break:break-word; }
+  a { color:var(--accent-2); }
+
+  .kicker { font-family:var(--mono); font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--accent); font-weight:700; margin:0 0 12px; }
+  h1 { font-size:clamp(30px,6.5vw,48px); line-height:1.05; margin:0 0 14px; letter-spacing:-.02em; text-wrap:balance; font-weight:800; }
+  .intro { font-size:clamp(16px,2.4vw,19px); color:var(--muted); margin:0 0 8px; }
+  .intro b { color:var(--ink); }
+
+  /* progress bar */
+  .progress-card { margin:26px 0 8px; background:var(--surface); border:1px solid var(--line); border-radius:14px; padding:18px 20px; box-shadow:var(--shadow); }
+  .progress-top { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:10px; }
+  .progress-top strong { font-size:15px; }
+  .progress-top .count { font-family:var(--mono); font-size:13px; color:var(--accent); font-weight:700; }
+  .bar { height:12px; background:var(--surface-2); border-radius:999px; overflow:hidden; border:1px solid var(--line); }
+  .bar > span { display:block; height:100%; width:0%; background:linear-gradient(90deg,var(--accent),var(--accent-2)); border-radius:999px; transition:width .3s ease; }
+  .reset { margin-top:12px; font-family:var(--mono); font-size:11.5px; color:var(--faint); background:none; border:1px solid var(--line); border-radius:7px; padding:5px 10px; cursor:pointer; }
+  .reset:hover { color:var(--ink); border-color:var(--muted); }
+  @media (prefers-reduced-motion: reduce){ .bar > span { transition:none; } }
+
+  h2 { font-size:clamp(19px,3vw,23px); margin:44px 0 6px; letter-spacing:-.01em; display:flex; align-items:center; gap:10px; }
+  h2 .badge { font-family:var(--mono); font-size:12px; font-weight:700; color:#fff; background:var(--accent); width:26px; height:26px; border-radius:8px; display:inline-flex; align-items:center; justify-content:center; flex:none; }
+  .sub { color:var(--muted); margin:0 0 16px; font-size:15px; }
+
+  /* checklist */
+  .list { display:flex; flex-direction:column; gap:10px; }
+  .item { display:flex; gap:13px; align-items:flex-start; background:var(--surface); border:1px solid var(--line); border-radius:12px; padding:14px 16px; box-shadow:var(--shadow); }
+  .item input { appearance:none; -webkit-appearance:none; margin:2px 0 0; width:22px; height:22px; border:2px solid var(--line); border-radius:6px; flex:none; cursor:pointer; position:relative; background:var(--surface); transition:background .15s,border-color .15s; }
+  .item input:hover { border-color:var(--accent); }
+  .item input:checked { background:var(--accent); border-color:var(--accent); }
+  .item input:checked::after { content:"✓"; color:#fff; font-size:14px; font-weight:700; position:absolute; inset:0; display:flex; align-items:center; justify-content:center; }
+  .item input:focus-visible { outline:2px solid var(--accent); outline-offset:2px; }
+  .item .body { min-width:0; }
+  .item .body .t { font-weight:600; font-size:15px; }
+  .item .body .d { color:var(--muted); font-size:13.5px; margin-top:2px; }
+  .item .body .d a { font-weight:600; text-decoration:none; }
+  .item .body .d a:hover { text-decoration:underline; }
+  .item input:checked ~ .body .t { color:var(--faint); text-decoration:line-through; }
+  .cmd { display:block; font-family:var(--mono); font-size:12.5px; background:var(--surface-2); border:1px solid var(--line); border-radius:7px; padding:8px 10px; margin-top:8px; overflow-x:auto; color:var(--ink); }
+
+  .step-dot { width:9px; height:9px; border-radius:50%; display:inline-block; margin-right:2px; vertical-align:middle; }
+  .d1{background:var(--s1)} .d2{background:var(--s2)} .d3{background:var(--s3)} .d4{background:var(--s4)} .d5{background:var(--s5)} .d6{background:var(--s6)}
+
+  .callout { background:var(--accent-soft); border:1px solid var(--line); border-left:4px solid var(--accent); border-radius:12px; padding:16px 18px; margin:18px 0; font-size:14.5px; }
+  .callout b { color:var(--ink); }
+  .tip { background:var(--surface); border:1px solid var(--line); border-radius:12px; padding:16px 18px; box-shadow:var(--shadow); font-size:14.5px; color:var(--muted); }
+  .tip b { color:var(--ink); }
+
+  .rhythm { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; }
+  @media (max-width:640px){ .rhythm{grid-template-columns:1fr} }
+  .week { background:var(--surface); border:1px solid var(--line); border-radius:12px; padding:14px 16px; box-shadow:var(--shadow); }
+  .week h4 { margin:0 0 4px; font-size:14px; font-family:var(--mono); color:var(--accent); letter-spacing:.04em; }
+  .week p { margin:0; font-size:13.5px; color:var(--muted); }
+
+  .home { display:inline-flex; align-items:center; gap:8px; margin-top:8px; font-family:var(--mono); font-size:13px; font-weight:700; text-decoration:none; color:#fff; background:var(--accent); padding:11px 18px; border-radius:10px; }
+  .home:hover { background:var(--accent-2); }
+
+  footer { margin-top:52px; padding-top:20px; border-top:1px solid var(--line); color:var(--faint); font-family:var(--mono); font-size:12px; text-align:center; }
+</style>
+
+<div class="wrap">
+
+  <p class="kicker">★ Bookmark this page — it is your home base</p>
+  <h1>Start Here: Learn to Build AI Agents</h1>
+  <p class="intro">A calm, step-by-step path from zero to a working AI agent you can show off. <b>You need a web browser and 30–60 minutes a day.</b> Tick each box as you go — this page remembers your progress, so you never have to keep notes or search for where you left off.</p>
+
+  <div class="callout" style="margin-top:18px">
+    <b>How long this really takes:</b> about <b>4–6 months of evenings</b> to finish Step 6, and a bit longer with the portfolio projects. That's the honest number — the per-step estimates on the six maps add up to it, and an earlier version of this page implied roughly half that.
+    <span style="display:block;margin-top:8px">Why say so up front: a plan that quietly runs twice its advertised length is the single most common reason people abandon self-taught tracks, usually around week five — which is <i>Step 3</i>, the step that matters most. <b>You are not behind.</b> Step 3 alone is 3–4 weeks of evenings, and it is supposed to be.</span>
+  </div>
+
+  <div class="progress-card">
+    <div class="progress-top"><strong>Your progress</strong><span class="count" id="count">loading…</span></div>
+    <div class="bar"><span id="fill"></span></div>
+    <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:12px">
+      <button class="reset" id="reset" type="button" style="margin-top:0">Reset progress</button>
+      <button class="reset" id="export" type="button" style="margin-top:0">Export progress</button>
+      <button class="reset" id="import" type="button" style="margin-top:0">Import progress</button>
+    </div>
+  </div>
+
+  <div class="callout">
+    <b>How this works, in one line:</b> for each step you (1) <b>open the map</b> to understand it, then (2) <b>run the sample</b> to see it work. Reading + running = it sticks. Don't just read.
+  </div>
+
+  <div class="tip" style="margin:14px 0 0">
+    <b>Short on time?</b> Not every module matters equally — about a dozen of the 38 carry most of the value, and four are the real keystone. The <b>Critical Path</b> page marks what to master vs. skim across all six steps.
+    <a class="home" href="guide-critical-path.html" style="margin-top:10px">★ Open the Critical Path →</a>
+  </div>
+
+  <div class="tip" style="margin:14px 0 0">
+    <b>Wondering if this plan is enough?</b> The <b>Plan Audit</b> grades the whole track against what an AI-engineer role actually asks for — what's solid, the seven real gaps, and the eight patches worth making. Read it once, then get back to Step 1.
+    <a class="home" href="guide-plan-audit.html" style="margin-top:10px">◈ Open the Plan Audit →</a>
+  </div>
+
+  <!-- ===== PART 1: SETUP ===== -->
+  <h2><span class="badge">1</span> Get set up (about 20 minutes, once)</h2>
+  <p class="sub">Install one tool. That's it — it brings Python with it. Full details &amp; troubleshooting are in <a href="samples/SETUP.md">samples/SETUP.md</a>.</p>
+  <div class="callout"><b>Don't want to install anything?</b> You can run every sample in your browser with zero setup using <b>Google Colab</b> (colab.research.google.com) or <b>GitHub Codespaces</b> — upload the <code>samples</code> folder, prefix a cell with <code>!pip install</code> for the packages, and run. Handy for trying it on any machine.</div>
+  <div class="list">
+
+    <label class="item"><input type="checkbox" data-k="s-install">
+      <span class="body"><span class="t">Install <code>uv</code> (the only tool you need)</span>
+        <span class="d">Open PowerShell and paste this one line:</span>
+        <code class="cmd">powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"</code>
+      </span>
+    </label>
+
+    <label class="item"><input type="checkbox" data-k="s-verify">
+      <span class="body"><span class="t">Open a NEW PowerShell window and check it worked</span>
+        <span class="d">A new window is important — it refreshes the settings.</span>
+        <code class="cmd">uv --version</code>
+      </span>
+    </label>
+
+    <label class="item"><input type="checkbox" data-k="s-run1">
+      <span class="body"><span class="t">Run your first sample — see an agent loop work (no key needed)</span>
+        <span class="d">Go to the folder, then run Step 1. First run is slow (it downloads Python), then instant.</span>
+        <code class="cmd">cd "C:\Users\Administrator\Documents\DEV\Learning\samples"
+uv run --with pydantic step1_mock_agent.py</code>
+      </span>
+    </label>
+
+    <label class="item"><input type="checkbox" data-k="s-key">
+      <span class="body"><span class="t">Get an AI key (needed from Step 2 onward)</span>
+        <span class="d">Make a key at <a href="https://console.anthropic.com/" target="_blank" rel="noopener">console.anthropic.com</a>, then paste it in (in the same window you'll run samples from):</span>
+        <code class="cmd">$env:ANTHROPIC_API_KEY = "sk-ant-...paste-your-key..."</code>
+      </span>
+    </label>
+
+  </div>
+
+  <!-- ===== PART 2: THE 6 STEPS ===== -->
+  <h2><span class="badge">2</span> Learn the 6 steps (in order)</h2>
+  <p class="sub">Each step = open the map to learn it, then run the sample to prove it. Click a step name to open its visual map.</p>
+  <div class="list">
+
+    <label class="item"><input type="checkbox" data-k="l-1">
+      <span class="body"><span class="t"><span class="step-dot d1"></span>Step 1 — <a href="01-python-fluency-map.html">Python Fluency</a></span>
+        <span class="d">The Python you actually need: async, Pydantic, the basics agents are built on.</span>
+        <code class="cmd">uv run --with pydantic step1_mock_agent.py</code>
+      </span>
+    </label>
+
+    <label class="item"><input type="checkbox" data-k="l-2">
+      <span class="body"><span class="t"><span class="step-dot d2"></span>Step 2 — <a href="02-llm-fundamentals-map.html">LLM Fundamentals</a></span>
+        <span class="d">How the AI model really works: tokens, prompting, structured output, streaming. <b>Read module 2.4</b> — three things every older tutorial does now cause a hard error.</span>
+        <code class="cmd">uv run --with "anthropic,pydantic" step2_first_call.py</code>
+      </span>
+    </label>
+
+    <label class="item"><input type="checkbox" data-k="l-2b">
+      <span class="body"><span class="t"><span class="step-dot d2"></span>Step 2b — <a href="02-llm-fundamentals-map.html">Documents &amp; images</a></span>
+        <span class="d">Feed it a PDF, get back structured data. Half a day, and probably the first genuinely useful thing you could ship at work.</span>
+        <code class="cmd">uv run --with "anthropic,pydantic" step2b_document_extract.py</code>
+      </span>
+    </label>
+
+    <label class="item"><input type="checkbox" data-k="l-3">
+      <span class="body"><span class="t"><span class="step-dot d3"></span>Step 3 — <a href="03-agent-building-blocks-map.html">Agent Building Blocks</a></span>
+        <span class="d">The heart of it all: the agent loop, tools, retrieval, and memory. This is where you build a real agent. <b>Spend 3–4 weeks here.</b></span>
+        <code class="cmd">uv run --with anthropic step3_agent.py "Total residents in Dorm A and B?"</code>
+      </span>
+    </label>
+
+    <label class="item"><input type="checkbox" data-k="l-3b">
+      <span class="body"><span class="t"><span class="step-dot d3"></span>Step 3b — <a href="03-agent-building-blocks-map.html">Retrieval, measured</a></span>
+        <span class="d">Score three retrievers against 12 labelled queries. The table it prints is the thing that makes a portfolio project credible.</span>
+        <code class="cmd">uv run --with "anthropic,pydantic" step3b_retrieval.py</code>
+      </span>
+    </label>
+
+    <label class="item"><input type="checkbox" data-k="l-4">
+      <span class="body"><span class="t"><span class="step-dot d4"></span>Step 4 — <a href="04-frameworks-map.html">Frameworks</a></span>
+        <span class="d">Let a tool do the boring parts now that you've done them by hand. Pick one, ship with it, move on.</span>
+        <code class="cmd">uv run --with "langgraph,langchain-anthropic" step4_langgraph_agent.py</code>
+      </span>
+    </label>
+
+    <label class="item"><input type="checkbox" data-k="l-5">
+      <span class="body"><span class="t"><span class="step-dot d5"></span>Step 5 — <a href="05-multi-agent-mcp-map.html">Multi-Agent &amp; Evaluation</a></span>
+        <span class="d">Make several agents work together, and <b>measure quality properly</b> — a 12-case suite with real refusal tests. This is the step that separates hobbyist from professional.</span>
+        <code class="cmd">uv run --with "anthropic,pydantic" step5_orchestrator.py</code>
+      </span>
+    </label>
+
+    <label class="item"><input type="checkbox" data-k="l-5b">
+      <span class="body"><span class="t"><span class="step-dot d5"></span>Step 5b — <a href="05-multi-agent-mcp-map.html">Speak MCP</a></span>
+        <span class="d">Connect to a tool server and discover its tools at runtime — capabilities your agent was never coded against. About an hour.</span>
+        <code class="cmd">uv run --with "anthropic[mcp],mcp" step5b_mcp_client.py</code>
+      </span>
+    </label>
+
+    <label class="item"><input type="checkbox" data-k="l-6">
+      <span class="body"><span class="t"><span class="step-dot d6"></span>Step 6 — <a href="06-production-map.html">Production</a></span>
+        <span class="d">Ship it safely: watch it, cost it, guard it, authenticate it, containerise it. Set <code>$env:API_KEYS</code> first — the service now refuses anonymous calls on purpose.</span>
+        <code class="cmd">$env:API_KEYS = "dev-key-123"
+uv run --with "fastapi,uvicorn,anthropic" uvicorn step6_service:app --reload</code>
+      </span>
+    </label>
+
+    <label class="item"><input type="checkbox" data-k="l-6b">
+      <span class="body"><span class="t"><span class="step-dot d6"></span>Step 6b — <a href="06-production-map.html">Governance &amp; audit</a> <span style="color:var(--accent);font-family:var(--mono);font-size:11px">★ your differentiator</span></span>
+        <span class="d">Redaction, a tamper-evident audit trail, approval gates on writes. Runs free with no API key. In a government context this is the rarest skill in the whole track.</span>
+        <code class="cmd">uv run step6b_governance.py --offline</code>
+      </span>
+    </label>
+
+  </div>
+
+  <!-- ===== PART 3: FINISH ===== -->
+  <h2><span class="badge">3</span> Finish: prove it, then show it</h2>
+  <p class="sub">Two different things, and most people skip the first. Ticking a box is not the same as being able to do something.</p>
+  <div class="list">
+
+    <label class="item"><input type="checkbox" data-k="f-checks">
+      <span class="body"><span class="t">Pass the exit check for each step</span>
+        <span class="d">Five "predict what this prints" questions per step, plus two rebuild-from-blank drills. This is the only thing here that tests <b>ability</b> rather than recognition — reading code you understand feels identical to being able to write it, right up until you can't.
+        <a href="guide-exit-checks.html">Open the exit checks →</a></span>
+      </span>
+    </label>
+
+    <label class="item"><input type="checkbox" data-k="f-review">
+      <span class="body"><span class="t">Get one human to review your Step 3 agent</span>
+        <span class="d">Post it publicly and ask for critique. Everything else on this page is you grading yourself, which is exactly the wrong person for the job.</span>
+      </span>
+    </label>
+
+    <label class="item"><input type="checkbox" data-k="f-portfolio">
+      <span class="body"><span class="t">Build 4 small projects and put the code online</span>
+        <span class="d">A grounded Q&amp;A bot <b>with a measured recall number</b> · a document extractor · a tool-using agent that hits a real API · a deployed, auditable agent service. Write up what broke for each — that's the part experienced engineers read.</span>
+      </span>
+    </label>
+
+  </div>
+
+  <!-- ===== A SIMPLE RHYTHM ===== -->
+  <h2><span class="badge">★</span> A realistic rhythm</h2>
+  <p class="sub">Not sure how to pace it? Follow this. 30–60 minutes a day, and the road doesn't stop at week four.</p>
+  <div class="rhythm">
+    <div class="week"><h4>WEEKS 1–3</h4><p>Setup + Step 1, then Step 2. Get comfortable running samples. Read 2.4 carefully — it's the one that saves you an afternoon.</p></div>
+    <div class="week"><h4>WEEKS 4–7</h4><p><b>Step 3. The important one.</b> Don't rush it and don't measure yourself against the calendar here. Build the agent twice.</p></div>
+    <div class="week"><h4>WEEKS 8–11</h4><p>Step 4 (quick — pick one framework and move on) and Step 5, taking real time over evaluation.</p></div>
+    <div class="week"><h4>MONTHS 3–5</h4><p>Step 6, including governance. Then your first portfolio project — the document extractor is the fastest one to something genuinely useful.</p></div>
+  </div>
+  <div class="tip" style="margin-top:12px">
+    <b>If you only have a few weeks, don't follow this at all.</b> Follow the 20% path on the <a href="guide-critical-path.html">Critical Path</a> instead: <code>1.2+1.3 → 2.5+2.6 → 3.1+3.2 → 5.4 → 6.7</code>. Half-finishing every step is worse than fully finishing the five that matter.
+  </div>
+
+  <!-- ===== RECOMMENDED VIEW ===== -->
+  <h2><span class="badge">?</span> So you never lose track</h2>
+  <div class="tip">
+    <p style="margin:0 0 10px"><b>Bookmark just this one page.</b> Everything links from here — the setup, all six maps, and every sample — and your ticked boxes are saved automatically in this browser. You never need to keep notes or search.</p>
+    <p style="margin:0">Want the big-picture visual instead? Open the map hub:</p>
+    <a class="home" href="index.html">🗺 Open the visual track hub →</a>
+  </div>
+
+  <div class="tip" style="margin-top:14px">
+    <p style="margin:0 0 10px"><b>How the files are named</b>, so the folder itself tells you what to open:</p>
+    <p style="margin:0 0 8px;font-family:var(--mono);font-size:13px;line-height:1.9">
+      <b>00-</b>START-HERE &nbsp;←&nbsp; you are here<br>
+      <b>01-</b> … <b>06-</b> &nbsp;the six steps, in order<br>
+      <b>guide-</b> &nbsp;companions — read any time, in any order<br>
+      <b>samples/</b> &nbsp;the code, one capstone per step
+    </p>
+    <p style="margin:0"><b>Numbers are the path; <code>guide-</code> files are optional companions.</b> So if you ever lose your place, sort the folder by name and the next thing to open is the lowest number you haven't finished. The three guides — <a href="guide-critical-path.html">Critical Path</a>, <a href="guide-exit-checks.html">Exit Checks</a>, <a href="guide-plan-audit.html">Plan Audit</a> — sit outside the sequence on purpose, because you'll come back to them repeatedly rather than once.</p>
+  </div>
+
+  <footer>Your home base for learning AI agents · progress saved in this browser</footer>
+</div>
+
+<script>
+  (function () {
+    var KEY = "ai-track-progress-v1";
+    var boxes = Array.prototype.slice.call(document.querySelectorAll('input[type=checkbox][data-k]'));
+    var fill = document.getElementById('fill');
+    var count = document.getElementById('count');
+
+    function load() {
+      try { return JSON.parse(localStorage.getItem(KEY)) || {}; }
+      catch (e) { return {}; }
+    }
+    function save(state) {
+      try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {}
+    }
+    function refresh() {
+      var done = boxes.filter(function (b) { return b.checked; }).length;
+      var total = boxes.length;
+      fill.style.width = (total ? (done / total * 100) : 0) + '%';
+      count.textContent = done + ' of ' + total + ' done';
+    }
+
+    var state = load();
+    boxes.forEach(function (b) {
+      if (state[b.dataset.k]) b.checked = true;
+      b.addEventListener('change', function () {
+        var s = load();
+        s[b.dataset.k] = b.checked;
+        save(s);
+        refresh();
+      });
+    });
+    refresh();
+
+    document.getElementById('reset').addEventListener('click', function () {
+      save({});
+      boxes.forEach(function (b) { b.checked = false; });
+      refresh();
+    });
+
+    // Export/import lets you move progress between browsers or machines.
+    document.getElementById('export').addEventListener('click', function () {
+      window.prompt('Copy this text to back up or move your progress:', localStorage.getItem(KEY) || '{}');
+    });
+
+    document.getElementById('import').addEventListener('click', function () {
+      var v = window.prompt('Paste previously-exported progress text:');
+      if (!v) return;
+      try {
+        var parsed = JSON.parse(v);
+        save(parsed);
+        boxes.forEach(function (b) { b.checked = !!parsed[b.dataset.k]; });
+        refresh();
+      } catch (e) { window.alert('That was not valid progress text.'); }
+    });
+  })();
+</script>

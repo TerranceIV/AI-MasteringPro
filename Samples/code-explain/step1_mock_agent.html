@@ -1,0 +1,303 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Explained · step1_mock_agent.py</title>
+<style>
+  :root {
+    --bg:#eef1ee; --surface:#ffffff; --surface-2:#f3f6f2; --ink:#182019; --muted:#586459; --faint:#8a968b; --line:#dbe2db;
+    --accent:#2f8f5b; --accent-2:#1f7d6b; --accent-soft:#dcefe2; --warn:#b8791a; --warn-soft:#f7ecd9;
+    --shadow:0 1px 2px rgba(24,32,25,.05),0 10px 30px rgba(24,32,25,.07);
+    --mono:ui-monospace,"Cascadia Code","SF Mono",Menlo,Consolas,monospace;
+    --sans:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+    --s1:#2f7cb0; --s2:#7a4fb0; --s3:#12897a; --s4:#c2610f; --s5:#a83a6a; --s6:#3f5bb0; --s7:#5a7a2f;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{ --bg:#0c110d; --surface:#141a15; --surface-2:#19211a; --ink:#e7eee8; --muted:#98a89b; --faint:#6c7a6e; --line:#232d25;
+      --accent:#4fb37e; --accent-2:#46c2ab; --accent-soft:#14301f; --warn:#e0a94e; --warn-soft:#2b230f;
+      --s1:#58a9dc; --s2:#b48fe0; --s3:#4ec6b1; --s4:#e8944a; --s5:#e07aa6; --s6:#8b9ff0; --s7:#9fc25c;
+      --shadow:0 1px 2px rgba(0,0,0,.35),0 10px 30px rgba(0,0,0,.45); }
+  }
+  :root[data-theme="light"]{ --bg:#eef1ee; --surface:#ffffff; --surface-2:#f3f6f2; --ink:#182019; --muted:#586459; --faint:#8a968b; --line:#dbe2db; --accent:#2f8f5b; --accent-2:#1f7d6b; --accent-soft:#dcefe2; --warn:#b8791a; --warn-soft:#f7ecd9; --s1:#2f7cb0; --s2:#7a4fb0; --s3:#12897a; --s4:#c2610f; --s5:#a83a6a; --s6:#3f5bb0; --s7:#5a7a2f; --shadow:0 1px 2px rgba(24,32,25,.05),0 10px 30px rgba(24,32,25,.07); }
+  :root[data-theme="dark"]{ --bg:#0c110d; --surface:#141a15; --surface-2:#19211a; --ink:#e7eee8; --muted:#98a89b; --faint:#6c7a6e; --line:#232d25; --accent:#4fb37e; --accent-2:#46c2ab; --accent-soft:#14301f; --warn:#e0a94e; --warn-soft:#2b230f; --s1:#58a9dc; --s2:#b48fe0; --s3:#4ec6b1; --s4:#e8944a; --s5:#e07aa6; --s6:#8b9ff0; --s7:#9fc25c; --shadow:0 1px 2px rgba(0,0,0,.35),0 10px 30px rgba(0,0,0,.45); }
+
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink); font-family:var(--sans); line-height:1.65; -webkit-font-smoothing:antialiased; }
+  .wrap { max-width:840px; margin:0 auto; padding:clamp(24px,5vw,56px) clamp(18px,4vw,36px); }
+
+  code { font-family:var(--mono); font-size:.85em; background:var(--surface-2); padding:2px 6px; border-radius:5px; word-break:break-word; }
+  a { color:var(--accent-2); }
+  a.file { text-decoration:none; font-family:var(--mono); font-size:.85em; font-weight:600; }
+  a.file:hover { text-decoration:underline; }
+
+  .kicker { font-family:var(--mono); font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--accent); font-weight:700; margin:0 0 12px; }
+  h1 { font-size:clamp(26px,5.5vw,38px); line-height:1.1; margin:0 0 16px; letter-spacing:-.02em; text-wrap:balance; font-weight:800; }
+  .intro { font-size:clamp(15.5px,2.2vw,17px); color:var(--muted); margin:0 0 6px; }
+  .intro b { color:var(--ink); }
+
+  .orient { background:var(--surface); border:1px solid var(--line); border-radius:14px; padding:18px 20px; margin:22px 0 8px; box-shadow:var(--shadow); }
+  .orient p { margin:0 0 10px; font-size:14.5px; }
+  .orient p:last-child { margin-bottom:0; }
+  .orient .label { font-family:var(--mono); font-size:11px; letter-spacing:.08em; text-transform:uppercase; color:var(--accent); font-weight:700; display:block; margin-bottom:3px; }
+
+  section.block { margin:42px 0; }
+  h2 { font-size:clamp(18px,3vw,21px); margin:0 0 4px; letter-spacing:-.01em; display:flex; align-items:center; gap:10px; }
+  h2 .badge { font-family:var(--mono); font-size:12px; font-weight:700; color:#fff; width:26px; height:26px; border-radius:8px; display:inline-flex; align-items:center; justify-content:center; flex:none; }
+  .loc { font-family:var(--mono); font-size:12.5px; margin:0 0 14px; }
+  .did { font-size:15px; margin:0 0 14px; }
+
+  pre { background:var(--surface-2); border:1px solid var(--line); border-radius:10px; padding:12px 14px; overflow-x:auto; margin:0 0 14px; }
+  pre code { background:none; padding:0; font-size:13px; }
+
+  .concept, .why, .trace, .trap, .predict {
+    border-radius:12px; padding:14px 16px; margin:0 0 12px; font-size:14px; border:1px solid var(--line);
+  }
+  .concept { background:var(--accent-soft); border-left:4px solid var(--accent); }
+  .why { background:var(--surface); box-shadow:var(--shadow); }
+  .concept b, .why b { color:var(--ink); font-family:var(--mono); font-size:11.5px; letter-spacing:.06em; text-transform:uppercase; display:block; margin-bottom:5px; color:var(--accent-2); }
+
+  .trace-card { background:var(--surface); border:1px solid var(--line); border-radius:14px; padding:18px 20px; box-shadow:var(--shadow); }
+  .trace-card ol { margin:0; padding-left:22px; }
+  .trace-card li { margin-bottom:10px; font-size:14.5px; }
+  .trace-card li:last-child { margin-bottom:0; }
+
+  .traps { background:var(--warn-soft); border:1px solid var(--line); border-left:4px solid var(--warn); border-radius:12px; padding:16px 20px; }
+  .traps ul { margin:0; padding-left:20px; }
+  .traps li { margin-bottom:9px; font-size:14.5px; }
+  .traps li:last-child { margin-bottom:0; }
+
+  .predict { background:var(--surface); box-shadow:var(--shadow); }
+  .predict b { display:block; color:var(--ink); font-size:14.5px; margin-bottom:6px; }
+
+  .watch-cmd { display:block; font-family:var(--mono); font-size:13.5px; background:var(--surface-2); border:1px solid var(--line); border-radius:8px; padding:10px 14px; margin:14px 0; color:var(--ink); }
+
+  .diagram { background:var(--surface); border:1px solid var(--line); border-radius:14px; padding:20px; margin:22px 0 36px; box-shadow:var(--shadow); overflow-x:auto; }
+  .diagram .dg-title { font-family:var(--mono); font-size:11px; letter-spacing:.08em; text-transform:uppercase; color:var(--accent); font-weight:700; margin:0 0 6px; }
+  .diagram .dg-note { margin:0 0 16px; font-size:12.5px; color:var(--muted); }
+  .diagram svg { width:100%; height:auto; display:block; min-width:560px; }
+  .dg-box { fill:var(--surface-2); stroke:var(--line); stroke-width:1.5; }
+  .dg-box-accent { fill:var(--accent-soft); stroke:var(--accent); stroke-width:1.5; }
+  .dg-box-warn { fill:var(--warn-soft); stroke:var(--warn); stroke-width:1.5; }
+  .dg-box-dashed { fill:none; stroke:var(--faint); stroke-width:1.5; stroke-dasharray:6 5; }
+  .dg-text { fill:var(--ink); font-family:var(--sans); font-size:12.5px; font-weight:600; }
+  .dg-sub { fill:var(--muted); font-family:var(--sans); font-size:10.8px; }
+  .dg-label { fill:var(--faint); font-family:var(--mono); font-size:10px; text-transform:uppercase; letter-spacing:.03em; }
+  .dg-lane { fill:var(--accent-2); font-family:var(--mono); font-size:11px; font-weight:700; }
+  .dg-arrow { stroke:var(--faint); stroke-width:1.6; fill:none; }
+  .dg-arrowhead { fill:var(--faint); }
+
+  .navrow { display:flex; justify-content:space-between; gap:12px; margin-top:8px; font-family:var(--mono); font-size:12.5px; }
+  .navrow a { text-decoration:none; font-weight:600; }
+  .navrow a:hover { text-decoration:underline; }
+
+  footer { margin-top:52px; padding-top:20px; border-top:1px solid var(--line); color:var(--faint); font-family:var(--mono); font-size:12px; text-align:center; }
+  footer a { color:var(--faint); }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <p class="kicker">/explain &middot; step 1</p>
+  <h1>step1_mock_agent.py</h1>
+  <p class="intro"><b>The shape of agent code, with no LLM involved.</b> No API key, no network call &mdash; a stand-in "endpoint" plays the model's part so you can learn the plumbing before it costs anything.</p>
+
+  <div class="orient">
+    <p><span class="label">What happens when you run it</span> It prints the tool registry, prints one tool's JSON schema, then fires four "tool calls" at the same time and prints four result lines &mdash; three successes and one deliberate validation error.</p>
+    <p><span class="label">The one idea it teaches</span> An agent is a loop that <i>validates</i> arguments, calls functions <i>concurrently</i>, and turns failures into <i>text</i> instead of crashes &mdash; every module in this file exists to serve that one shape.</p>
+    <p><span class="label">What it deliberately leaves out</span> There is no language model. <code>mock_call</code> sleeps, randomly fails, and echoes your own payload back wrapped in prose &mdash; real reasoning starts in Step 2.</p>
+  </div>
+
+  <div class="diagram">
+    <p class="dg-title">the shape of dispatch() &mdash; every exit becomes a string</p>
+    <p class="dg-note">Both failure paths &mdash; bad arguments and a tool call that fails outright &mdash; converge on the same shape: a returned string, never an unhandled exception.</p>
+    <svg viewBox="0 0 700 580" role="img" aria-label="Flowchart of dispatch(): validate args, call the tool, and route every failure into a returned error string instead of an exception.">
+      <defs>
+        <marker id="dgArrow1" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path class="dg-arrowhead" d="M0,0 L10,5 L0,10 z"/>
+        </marker>
+      </defs>
+
+      <path class="dg-arrow" marker-end="url(#dgArrow1)" d="M350,72 L350,110"/>
+      <path class="dg-arrow" marker-end="url(#dgArrow1)" d="M300,168 L172,206"/>
+      <path class="dg-arrow" marker-end="url(#dgArrow1)" d="M400,168 L528,206"/>
+      <path class="dg-arrow" marker-end="url(#dgArrow1)" d="M550,264 L550,302"/>
+      <path class="dg-arrow" marker-end="url(#dgArrow1)" d="M550,360 L550,398"/>
+      <path class="dg-arrow" marker-end="url(#dgArrow1)" d="M472,352 L206,402"/>
+      <path class="dg-arrow" marker-end="url(#dgArrow1)" d="M158,264 L298,494"/>
+      <path class="dg-arrow" marker-end="url(#dgArrow1)" d="M158,456 L300,498"/>
+      <path class="dg-arrow" marker-end="url(#dgArrow1)" d="M542,456 L410,498"/>
+
+      <text class="dg-label" x="235" y="184">invalid</text>
+      <text class="dg-label" x="465" y="184">valid</text>
+      <text class="dg-label" x="290" y="372">4/4 attempts failed</text>
+
+      <g>
+        <rect class="dg-box" x="240" y="16" width="220" height="56" rx="10"/>
+        <text class="dg-text" x="350" y="40" text-anchor="middle">tool call</text>
+        <text class="dg-sub" x="350" y="56" text-anchor="middle">(name, args) from the plan</text>
+      </g>
+
+      <g>
+        <rect class="dg-box-accent" x="240" y="112" width="220" height="56" rx="10"/>
+        <text class="dg-text" x="350" y="136" text-anchor="middle">validate args</text>
+        <text class="dg-sub" x="350" y="152" text-anchor="middle">Pydantic model_validate()</text>
+      </g>
+
+      <g>
+        <rect class="dg-box-warn" x="40" y="208" width="220" height="56" rx="10"/>
+        <text class="dg-text" x="150" y="232" text-anchor="middle">invalid &rarr; ERROR string</text>
+        <text class="dg-sub" x="150" y="248" text-anchor="middle">e.error_count() problems</text>
+      </g>
+
+      <g>
+        <rect class="dg-box" x="440" y="208" width="220" height="56" rx="10"/>
+        <text class="dg-text" x="550" y="240" text-anchor="middle">valid &rarr; call tool fn</text>
+      </g>
+
+      <g>
+        <rect class="dg-box" x="440" y="304" width="220" height="56" rx="10"/>
+        <text class="dg-text" x="550" y="328" text-anchor="middle">mock_call()</text>
+        <text class="dg-sub" x="550" y="344" text-anchor="middle">semaphore + retry &times;4, ~50%/attempt</text>
+      </g>
+
+      <g>
+        <rect class="dg-box" x="440" y="400" width="220" height="56" rx="10"/>
+        <text class="dg-text" x="550" y="424" text-anchor="middle">extract_json &rarr; format</text>
+        <text class="dg-sub" x="550" y="440" text-anchor="middle">success path</text>
+      </g>
+
+      <g>
+        <rect class="dg-box-warn" x="40" y="400" width="220" height="56" rx="10"/>
+        <text class="dg-text" x="150" y="422" text-anchor="middle">exhausted &rarr; ERROR string</text>
+        <text class="dg-sub" x="150" y="438" text-anchor="middle">was: uncaught crash &mdash; now fixed</text>
+      </g>
+
+      <g>
+        <rect class="dg-box-accent" x="240" y="496" width="220" height="56" rx="10"/>
+        <text class="dg-text" x="350" y="520" text-anchor="middle">results[i]</text>
+        <text class="dg-sub" x="350" y="536" text-anchor="middle">asyncio.gather &mdash; order preserved</text>
+      </g>
+    </svg>
+  </div>
+
+  <section class="block">
+    <h2><span class="badge" style="background:var(--s1)">1</span>Tool argument models</h2>
+    <p class="loc"><a class="file" href="../step1_mock_agent.py#L29">step1_mock_agent.py:29-36</a></p>
+    <p class="did">Two Pydantic classes describing exactly what each tool is allowed to receive.</p>
+    <pre><code>class WeatherArgs(BaseModel):
+    city: str = Field(description="City name")
+    units: Literal["c", "f"] = "c"</code></pre>
+    <div class="concept"><b>Concept</b>The tool schema as a contract. <code>Literal["c", "f"]</code> means exactly two values are legal &mdash; nothing else, ever.</div>
+    <div class="why"><b>Why this way</b>The naive alternative is checking inside the function itself &mdash; <code>if units not in ("c","f"): raise</code>. That drifts out of sync as the function grows, and it only exists at runtime. A Pydantic model can also <i>generate</i> its own JSON Schema (used on line 54) &mdash; exactly the format an LLM needs to be told what a tool accepts. One declaration becomes both the runtime guard and the documentation you hand the model, instead of two things that can quietly disagree.</div>
+  </section>
+
+  <section class="block">
+    <h2><span class="badge" style="background:var(--s2)">2</span>The registry &amp; <code>@tool</code> decorator</h2>
+    <p class="loc"><a class="file" href="../step1_mock_agent.py#L40">step1_mock_agent.py:40-56</a></p>
+    <p class="did"><code>TOOLS</code> is a plain dict; <code>@tool(WeatherArgs)</code> registers a function into it under its own name.</p>
+    <div class="concept"><b>Concept</b>A decorator as registration. <code>TOOLS[fn.__name__] = Tool(...)</code> &mdash; the function's name <i>is</i> the tool name, so the two can never fall out of sync.</div>
+    <div class="why"><b>Why this way</b>The naive version is a hand-maintained dict at the bottom of the file. Add a fifth tool, forget the entry, and the agent reports "unknown tool" for a function that plainly exists. Here, defining a tool and registering it are the same act. Notice the decorator returns <code>fn</code> unchanged on line 55 &mdash; it adds a side effect and gets out of the way, so <code>get_weather</code> is still an ordinary function you can call and test directly.</div>
+  </section>
+
+  <section class="block">
+    <h2><span class="badge" style="background:var(--s3)">3</span>Retry with backoff</h2>
+    <p class="loc"><a class="file" href="../step1_mock_agent.py#L60">step1_mock_agent.py:60-76</a></p>
+    <p class="did">Retries a call up to 4 times &mdash; but only for one specific, named failure type.</p>
+    <pre><code>delay = base * (2 ** i) + random.random() * base  # backoff + jitter</code></pre>
+    <div class="concept"><b>Concept</b>Exponential backoff with jitter. Waits roughly grow 0.05s &rarr; 0.10s &rarr; 0.20s, each nudged by a small random amount.</div>
+    <div class="why"><b>Why this way</b>Three decisions hide in these lines. A custom <code>RetryableError</code> class means only <i>transient</i> failures get retried &mdash; <code>except Exception</code> would retry your typos too, four times slower to fail. Doubling the delay gives an overloaded service room to recover instead of ten clients hammering it at a fixed rate. Jitter stops those ten clients from retrying <i>together</i> again a moment later &mdash; the same thundering herd, just delayed. One more detail: the sleep happens <i>outside</i> the semaphore block on line 94, so a call waiting to retry has already given up its concurrency slot instead of blocking the queue while idle.</div>
+  </section>
+
+  <section class="block">
+    <h2><span class="badge" style="background:var(--s4)">4</span>The lazy semaphore</h2>
+    <p class="loc"><a class="file" href="../step1_mock_agent.py#L81">step1_mock_agent.py:81-89</a></p>
+    <p class="did">Reads <code>MAX_CONCURRENCY</code> from the environment, but builds the semaphore on first use &mdash; not at import.</p>
+    <div class="concept"><b>Concept</b>Config from the environment (1.6), plus a real async gotcha: an <code>asyncio</code> object must be created on a running event loop.</div>
+    <div class="why"><b>Why this way</b>A semaphore created at module import time attaches to whatever event loop exists then &mdash; usually none, or the wrong one &mdash; and fails later with a baffling "attached to a different loop" error. Deferring creation until inside an <code>async def</code> guarantees the loop is already running. This one bites people constantly in real async code. Mechanically, a semaphore is just a counter: three calls get in, a fourth waits at <code>async with</code> until one exits &mdash; how you stay under a provider's rate limit.</div>
+  </section>
+
+  <section class="block">
+    <h2><span class="badge" style="background:var(--s5)">5</span>The mock endpoint</h2>
+    <p class="loc"><a class="file" href="../step1_mock_agent.py#L92">step1_mock_agent.py:92-99</a></p>
+    <p class="did">Sleeps briefly, fails about 30% of the time, and returns your own payload wrapped in chatty prose.</p>
+    <div class="concept"><b>Concept</b><code>await asyncio.sleep</code>, never <code>time.sleep</code>, inside async code.</div>
+    <div class="why"><b>Why this way</b><code>time.sleep</code> blocks the <i>entire</i> event loop &mdash; every other concurrent call freezes too, and four "parallel" calls quietly become four sequential ones. <code>asyncio.sleep</code> yields control so the others keep moving. This is the single most common async mistake, and the file is built to make it visible if you get it wrong. The prose wrapper is deliberate too: real models return JSON buried in chat text and code fences, and a parser built against clean output breaks the instant it meets a real one.</div>
+  </section>
+
+  <section class="block">
+    <h2><span class="badge" style="background:var(--s6)">6</span>Defensive JSON extraction</h2>
+    <p class="loc"><a class="file" href="../step1_mock_agent.py#L103">step1_mock_agent.py:103-107</a></p>
+    <p class="did">Regex-finds the first <code>{</code> through the last <code>}</code> in a blob of text, then parses just that.</p>
+    <div class="concept"><b>Concept</b>Never trust model output to be well-formed. <code>json.loads()</code> on the whole response throws instantly on <code>"Sure!\n```json\n{...}"</code>, because it's prose <i>containing</i> JSON, not JSON.</div>
+    <div class="why"><b>Why this way</b><code>re.DOTALL</code> makes <code>.</code> match newlines, so a multi-line object is captured whole. The pattern is deliberately greedy &mdash; the right call for one object wrapped in text &mdash; but that's also its limit: two JSON objects in one reply, or a stray <code>}</code> in the surrounding prose, and it grabs too much. Fine for this lesson; something worth hardening in a real system.</div>
+  </section>
+
+  <section class="block">
+    <h2><span class="badge" style="background:var(--s7)">7</span><code>dispatch()</code> &mdash; the heart of the file</h2>
+    <p class="loc"><a class="file" href="../step1_mock_agent.py#L124">step1_mock_agent.py:124-131</a></p>
+    <p class="did">Validates arguments first, calls the tool second, and turns <i>both</i> a validation failure and a failed tool call into a <i>returned string</i> instead of an exception.</p>
+    <pre><code>except ValidationError as e:
+    return f"ERROR: bad args for {name} -- {e.error_count()} problem(s)"
+try:
+    return await spec.fn(**valid.model_dump())
+except Exception as exc:          # retries exhausted, or any other tool failure
+    return f"ERROR: {name} failed -- {exc}"</code></pre>
+    <div class="concept"><b>Concept</b>Errors as data. This is the exact line you hit on your first run &mdash; the <code>units: "x"</code> failure is this concept working as intended, not a bug.</div>
+    <div class="why"><b>Why this way</b>Without the first <code>try/except</code>, a bad <code>units</code> value would reach <code>get_weather</code>, raise, and take the whole batch down with it &mdash; <code>asyncio.gather()</code> on line 149 propagates the first exception it sees by default, so the other calls' results are lost too. The second <code>try/except</code> exists for a less obvious reason: <code>mock_call</code> fails about half the time per attempt and retries up to 4 times &mdash; roughly 1 run in 8 it exhausts all 4 attempts on a weather call and raises <code>RetryableError</code> <i>after</i> validation already passed. Originally only the validation branch was caught, so that retry-exhaustion case still crashed the whole script &mdash; a real, easily-reproducible gap caught during a <code>/refactor</code> pass and hardened here. Now every failure, wherever it comes from, becomes a string. In Step 3 that string gets handed back to the model as its own tool result, so it can read its mistake and correct itself next turn &mdash; a crash gives the model nothing to learn from.</div>
+  </section>
+
+  <section class="block">
+    <h2>Traced end to end</h2>
+    <p class="did">One call, followed all the way through:</p>
+    <div class="trace-card">
+      <ol>
+        <li><b>Input:</b> <code>("get_weather", {"city": "Tokyo", "units": "f"})</code></li>
+        <li><code>dispatch()</code> looks up <code>TOOLS["get_weather"]</code> &mdash; the registered function plus its <code>WeatherArgs</code> contract.</li>
+        <li><code>model_validate()</code> checks <code>city</code> is a string and <code>units</code> is <code>"c"</code> or <code>"f"</code>. <code>"f"</code> passes.</li>
+        <li><code>model_dump()</code> turns that back into <code>{"city": "Tokyo", "units": "f"}</code>, splatted into <code>get_weather(city="Tokyo", units="f")</code>.</li>
+        <li><code>get_weather</code> builds a payload with a random temperature and awaits <code>mock_call</code>.</li>
+        <li>The semaphore admits it (or the call waits its turn), it sleeps briefly, and a coin flip decides pass/fail. Say attempt 0 raises <code>RetryableError</code> &mdash; the slot is released, the wrapper sleeps &sim;0.06s, attempt 1 succeeds.</li>
+        <li>The reply arrives as prose wrapping JSON; <code>extract_json()</code> strips it down to a real dict.</li>
+        <li><b>Output:</b> <code>"27°F in Tokyo"</code>, landing in its slot in the results list &mdash; in submission order, not finish order.</li>
+      </ol>
+    </div>
+  </section>
+
+  <section class="block">
+    <h2>Traps</h2>
+    <div class="traps">
+      <ul>
+        <li><b>The <code>ERROR: bad args</code> line is the demo, not a bug.</b> Line 144 sends <code>units: "x"</code> on purpose, with a comment saying so.</li>
+        <li><b><code>add</code> prints <code>42.0</code>, not <code>42</code>.</b> <code>AddArgs</code> declares <code>a: float</code>, so Pydantic coerces <code>21</code> &rarr; <code>21.0</code>. That's type coercion working as intended, not a glitch.</li>
+        <li><b>Every run looks slightly different.</b> Random temperatures, random sleep durations, random 503s. Different output between runs is normal; only a <i>traceback</i> is a problem.</li>
+        <li><b>A rare genuine failure is possible.</b> Four consecutive coin-flip failures is about 0.3⁴ &asymp; 0.8%. If a <code>RetryableError</code> ever escapes uncaught, that's the retry budget legitimately exhausted &mdash; just re-run.</li>
+        <li><b><code>MAX_CONCURRENCY</code> is read at import time</b> (line 81), so set it <i>before</i> launching: <code>$env:MAX_CONCURRENCY = "1"</code>.</li>
+        <li><b>No API key needed here.</b> This is the only step that runs fully offline &mdash; it just needs <code>pydantic</code> (<code>uv add pydantic</code>), run from inside <code>samples/</code>.</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="block">
+    <h2>What to watch when you run it</h2>
+    <p class="did">From inside <code>samples/</code>:</p>
+    <span class="watch-cmd">uv run step1_mock_agent.py</span>
+    <p class="did">Three things matter: the printed schema (compare it to <code>WeatherArgs</code> &mdash; nothing was written twice), the four result lines (do the three good ones survive the bad one?), and the total runtime (well under a second, even with sleeps and retries &mdash; concurrency doing its job).</p>
+    <div class="predict">
+      <b>Predict before you press enter</b>
+      Results print in plan order &mdash; Singapore, Tokyo, the sum, then the Oslo error &mdash; but the calls actually <i>finish</i> in random order, since they run concurrently. So: is <code>asyncio.gather()</code> sorting the results for you, or is something else going on? Commit to an answer, then set <code>$env:MAX_CONCURRENCY = "1"</code> and run again &mdash; if your reasoning was right, you'll know exactly what changes and what doesn't.
+    </div>
+  </section>
+
+  <div class="navrow">
+    <span></span>
+    <a href="step2_first_call.html">step 2: the first real LLM call &rarr;</a>
+  </div>
+
+  <footer>
+    generated by <code>/explain</code> &middot; source: <a href="../step1_mock_agent.py">step1_mock_agent.py</a> &middot; see also <a href="../README.md">README.md</a>
+  </footer>
+
+</div>
+</body>
+</html>

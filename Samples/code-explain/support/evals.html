@@ -1,0 +1,308 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Explained · evals.py</title>
+<style>
+  :root {
+    --bg:#eef1ee; --surface:#ffffff; --surface-2:#f3f6f2; --ink:#182019; --muted:#586459; --faint:#8a968b; --line:#dbe2db;
+    --accent:#2f8f5b; --accent-2:#1f7d6b; --accent-soft:#dcefe2; --warn:#b8791a; --warn-soft:#f7ecd9;
+    --shadow:0 1px 2px rgba(24,32,25,.05),0 10px 30px rgba(24,32,25,.07);
+    --mono:ui-monospace,"Cascadia Code","SF Mono",Menlo,Consolas,monospace;
+    --sans:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+    --s1:#2f7cb0; --s2:#7a4fb0; --s3:#12897a; --s4:#c2610f; --s5:#a83a6a; --s6:#3f5bb0;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{ --bg:#0c110d; --surface:#141a15; --surface-2:#19211a; --ink:#e7eee8; --muted:#98a89b; --faint:#6c7a6e; --line:#232d25;
+      --accent:#4fb37e; --accent-2:#46c2ab; --accent-soft:#14301f; --warn:#e0a94e; --warn-soft:#2b230f;
+      --s1:#58a9dc; --s2:#b48fe0; --s3:#4ec6b1; --s4:#e8944a; --s5:#e07aa6; --s6:#8b9ff0;
+      --shadow:0 1px 2px rgba(0,0,0,.35),0 10px 30px rgba(0,0,0,.45); }
+  }
+  :root[data-theme="light"]{ --bg:#eef1ee; --surface:#ffffff; --surface-2:#f3f6f2; --ink:#182019; --muted:#586459; --faint:#8a968b; --line:#dbe2db; --accent:#2f8f5b; --accent-2:#1f7d6b; --accent-soft:#dcefe2; --warn:#b8791a; --warn-soft:#f7ecd9; --s1:#2f7cb0; --s2:#7a4fb0; --s3:#12897a; --s4:#c2610f; --s5:#a83a6a; --s6:#3f5bb0; --shadow:0 1px 2px rgba(24,32,25,.05),0 10px 30px rgba(24,32,25,.07); }
+  :root[data-theme="dark"]{ --bg:#0c110d; --surface:#141a15; --surface-2:#19211a; --ink:#e7eee8; --muted:#98a89b; --faint:#6c7a6e; --line:#232d25; --accent:#4fb37e; --accent-2:#46c2ab; --accent-soft:#14301f; --warn:#e0a94e; --warn-soft:#2b230f; --s1:#58a9dc; --s2:#b48fe0; --s3:#4ec6b1; --s4:#e8944a; --s5:#e07aa6; --s6:#8b9ff0; --shadow:0 1px 2px rgba(0,0,0,.35),0 10px 30px rgba(0,0,0,.45); }
+
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink); font-family:var(--sans); line-height:1.65; -webkit-font-smoothing:antialiased; }
+  .wrap { max-width:840px; margin:0 auto; padding:clamp(24px,5vw,56px) clamp(18px,4vw,36px); }
+
+  code { font-family:var(--mono); font-size:.85em; background:var(--surface-2); padding:2px 6px; border-radius:5px; word-break:break-word; }
+  a { color:var(--accent-2); }
+  a.file { text-decoration:none; font-family:var(--mono); font-size:.85em; font-weight:600; }
+  a.file:hover { text-decoration:underline; }
+
+  .kicker { font-family:var(--mono); font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--accent); font-weight:700; margin:0 0 12px; }
+  h1 { font-size:clamp(26px,5.5vw,38px); line-height:1.1; margin:0 0 16px; letter-spacing:-.02em; text-wrap:balance; font-weight:800; }
+  .intro { font-size:clamp(15.5px,2.2vw,17px); color:var(--muted); margin:0 0 6px; }
+  .intro b { color:var(--ink); }
+
+  .orient { background:var(--surface); border:1px solid var(--line); border-radius:14px; padding:18px 20px; margin:22px 0 8px; box-shadow:var(--shadow); }
+  .orient p { margin:0 0 10px; font-size:14.5px; }
+  .orient p:last-child { margin-bottom:0; }
+  .orient .label { font-family:var(--mono); font-size:11px; letter-spacing:.08em; text-transform:uppercase; color:var(--accent); font-weight:700; display:block; margin-bottom:3px; }
+
+  section.block { margin:42px 0; }
+  h2 { font-size:clamp(18px,3vw,21px); margin:0 0 4px; letter-spacing:-.01em; display:flex; align-items:center; gap:10px; }
+  h2 .badge { font-family:var(--mono); font-size:12px; font-weight:700; color:#fff; width:26px; height:26px; border-radius:8px; display:inline-flex; align-items:center; justify-content:center; flex:none; }
+  .loc { font-family:var(--mono); font-size:12.5px; margin:0 0 14px; }
+  .did { font-size:15px; margin:0 0 14px; }
+
+  pre { background:var(--surface-2); border:1px solid var(--line); border-radius:10px; padding:12px 14px; overflow-x:auto; margin:0 0 14px; }
+  pre code { background:none; padding:0; font-size:13px; }
+
+  .concept, .why, .trace, .trap, .predict {
+    border-radius:12px; padding:14px 16px; margin:0 0 12px; font-size:14px; border:1px solid var(--line);
+  }
+  .concept { background:var(--accent-soft); border-left:4px solid var(--accent); }
+  .why { background:var(--surface); box-shadow:var(--shadow); }
+  .concept b, .why b { color:var(--ink); font-family:var(--mono); font-size:11.5px; letter-spacing:.06em; text-transform:uppercase; display:block; margin-bottom:5px; color:var(--accent-2); }
+
+  .trace-card { background:var(--surface); border:1px solid var(--line); border-radius:14px; padding:18px 20px; box-shadow:var(--shadow); }
+  .trace-card ol { margin:0; padding-left:22px; }
+  .trace-card li { margin-bottom:10px; font-size:14.5px; }
+  .trace-card li:last-child { margin-bottom:0; }
+
+  .traps { background:var(--warn-soft); border:1px solid var(--line); border-left:4px solid var(--warn); border-radius:12px; padding:16px 20px; }
+  .traps ul { margin:0; padding-left:20px; }
+  .traps li { margin-bottom:9px; font-size:14.5px; }
+  .traps li:last-child { margin-bottom:0; }
+
+  .predict { background:var(--surface); box-shadow:var(--shadow); }
+  .predict b { display:block; color:var(--ink); font-size:14.5px; margin-bottom:6px; }
+
+  .watch-cmd { display:block; font-family:var(--mono); font-size:13.5px; background:var(--surface-2); border:1px solid var(--line); border-radius:8px; padding:10px 14px; margin:14px 0; color:var(--ink); }
+
+  .diagram { background:var(--surface); border:1px solid var(--line); border-radius:14px; padding:20px; margin:22px 0 36px; box-shadow:var(--shadow); overflow-x:auto; }
+  .diagram .dg-title { font-family:var(--mono); font-size:11px; letter-spacing:.08em; text-transform:uppercase; color:var(--accent); font-weight:700; margin:0 0 6px; }
+  .diagram .dg-note { margin:0 0 16px; font-size:12.5px; color:var(--muted); }
+  .diagram svg { width:100%; height:auto; display:block; min-width:560px; }
+  .dg-box { fill:var(--surface-2); stroke:var(--line); stroke-width:1.5; }
+  .dg-box-accent { fill:var(--accent-soft); stroke:var(--accent); stroke-width:1.5; }
+  .dg-box-warn { fill:var(--warn-soft); stroke:var(--warn); stroke-width:1.5; }
+  .dg-box-dashed { fill:none; stroke:var(--faint); stroke-width:1.5; stroke-dasharray:6 5; }
+  .dg-text { fill:var(--ink); font-family:var(--sans); font-size:12.5px; font-weight:600; }
+  .dg-sub { fill:var(--muted); font-family:var(--sans); font-size:10.8px; }
+  .dg-label { fill:var(--faint); font-family:var(--mono); font-size:10px; text-transform:uppercase; letter-spacing:.03em; }
+  .dg-lane { fill:var(--accent-2); font-family:var(--mono); font-size:11px; font-weight:700; }
+  .dg-arrow { stroke:var(--faint); stroke-width:1.6; fill:none; }
+  .dg-arrowhead { fill:var(--faint); }
+
+  .navrow { display:flex; justify-content:space-between; gap:12px; margin-top:8px; font-family:var(--mono); font-size:12.5px; }
+  .navrow a { text-decoration:none; font-weight:600; }
+  .navrow a:hover { text-decoration:underline; }
+
+  footer { margin-top:52px; padding-top:20px; border-top:1px solid var(--line); color:var(--faint); font-family:var(--mono); font-size:12px; text-align:center; }
+  footer a { color:var(--faint); }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <p class="kicker">/explain &middot; support file</p>
+  <h1>evals.py</h1>
+  <p class="intro"><b>The file that turns "it feels right" into a number.</b> Twelve cases, two graders, one pass rate &mdash; and it's the same module you run by hand and the CI gate runs on every pull request.</p>
+
+  <div class="orient">
+    <p><span class="label">What happens when you run it</span> Nothing directly &mdash; it has no <code>main</code>. <a class="file" href="../step5_orchestrator.html">step5_orchestrator.py</a> imports it and calls <code>run_suite()</code>, which prints a PASS/FAIL line per case and a final pass rate.</p>
+    <p><span class="label">The one idea it teaches</span> <b>Use the cheapest grader that can do the job.</b> Eight cases here are graded by a free substring check; four need a model because no assertion can express what they're testing.</p>
+    <p><span class="label">What it deliberately leaves out</span> Trace-based grading (did it call the <i>right tools</i>, not just reach the right answer), any check of the judge's agreement with a human, and a held-out set you never tune against. Twelve cases is a starting point, not a suite.</p>
+  </div>
+
+  <div class="diagram">
+    <p class="dg-title">one case, two possible graders</p>
+    <p class="dg-note">The branch on the left is free and never flakes. The one on the right costs a call &mdash; and can judge things the left cannot.</p>
+    <svg viewBox="0 0 760 290" role="img" aria-label="A case runs through the agent to produce an answer, then branches: if the case has an expect field a substring check grades it for free, otherwise an LLM judge grades it against a rubric. Both produce a pass or fail that feeds the pass rate.">
+      <defs>
+        <marker id="dgArrowEv" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path class="dg-arrowhead" d="M0,0 L10,5 L0,10 z"/>
+        </marker>
+      </defs>
+
+      <path class="dg-arrow" marker-end="url(#dgArrowEv)" d="M300,58 L360,58"/>
+      <path class="dg-arrow" marker-end="url(#dgArrowEv)" d="M380,86 L200,132"/>
+      <path class="dg-arrow" marker-end="url(#dgArrowEv)" d="M400,86 L560,132"/>
+      <path class="dg-arrow" marker-end="url(#dgArrowEv)" d="M180,196 L340,240"/>
+      <path class="dg-arrow" marker-end="url(#dgArrowEv)" d="M580,196 L420,240"/>
+
+      <g>
+        <rect class="dg-box" x="20" y="30" width="280" height="56" rx="10"/>
+        <text class="dg-text" x="160" y="54" text-anchor="middle">case &rarr; orchestrate() &rarr; answer</text>
+        <text class="dg-sub" x="160" y="72" text-anchor="middle">12 cases, 4 at a time</text>
+      </g>
+
+      <g>
+        <rect class="dg-box-accent" x="360" y="30" width="200" height="56" rx="10"/>
+        <text class="dg-text" x="460" y="54" text-anchor="middle">"expect" in case ?</text>
+        <text class="dg-sub" x="460" y="72" text-anchor="middle">the whole routing decision</text>
+      </g>
+
+      <text class="dg-label" x="20" y="128">8 cases &middot; free &middot; instant</text>
+      <g>
+        <rect class="dg-box" x="20" y="140" width="300" height="56" rx="10"/>
+        <text class="dg-text" x="170" y="164" text-anchor="middle">substring check</text>
+        <text class="dg-sub" x="170" y="182" text-anchor="middle">"800" in answer &mdash; never flakes</text>
+      </g>
+
+      <text class="dg-label" x="440" y="128">4 cases &middot; 1 call each</text>
+      <g>
+        <rect class="dg-box-warn" x="440" y="140" width="290" height="56" rx="10"/>
+        <text class="dg-text" x="585" y="164" text-anchor="middle">LLM judge + rubric</text>
+        <text class="dg-sub" x="585" y="182" text-anchor="middle">"must NOT invent a number"</text>
+      </g>
+
+      <g>
+        <rect class="dg-box-accent" x="280" y="240" width="200" height="46" rx="10"/>
+        <text class="dg-text" x="380" y="269" text-anchor="middle">pass rate &rarr; CI gate</text>
+      </g>
+    </svg>
+  </div>
+
+  <section class="block">
+    <h2><span class="badge" style="background:var(--s1)">1</span><code>EVALS</code> &mdash; the part that's actually hard</h2>
+    <p class="loc"><a class="file" href="../../evals.py#L29">evals.py:29-119</a></p>
+    <p class="did">Twelve dictionaries. Each has a question, the subtasks the orchestrator should fan out, and <i>either</i> an <code>expect</code> substring <i>or</i> a <code>rubric</code>.</p>
+    <pre><code>{"id": "two-dorm-sum",
+ "q": "What is the total number of residents across Dorm A and Dorm B?",
+ "subtasks": ["How many residents live in Dorm A?",
+              "How many residents live in Dorm B?"],
+ "expect": "800"}</code></pre>
+    <div class="concept"><b>Concept</b>An eval set &mdash; a regression test for <i>behaviour</i>, not for code correctness. Your unit tests can all pass while the agent gets worse.</div>
+    <div class="why"><b>Why this list is worth more than the 60 lines of machinery below it</b>The graders are generic; you could copy them from anywhere. <b>This list is domain knowledge</b>, and it's the part almost nobody writes. Twelve cases took perhaps half an hour and they're what makes every later change measurable instead of hopeful.</div>
+    <div class="why"><b>Why <code>id</code> matters</b>So a failure is reportable. <code>[FAIL] grounding-unknown-block</code> tells you what broke; <code>[FAIL] case 10</code> tells you to go counting. Ids also survive reordering, which "case 10" doesn't.</div>
+    <div class="why"><b>Read the comments on the awkward cases</b>They record <i>why</i> each case exists. <code>comparison</code> carries a note explaining that a substring check would pass for the wrong reason; the two <code>grounding-*</code> cases explain that the correct answer is a refusal. Six months from now that reasoning is the difference between maintaining the suite and rewriting it.</div>
+  </section>
+
+  <section class="block">
+    <h2><span class="badge" style="background:var(--s2)">2</span>The case a substring check gets wrong</h2>
+    <p class="loc"><a class="file" href="../../evals.py#L86">evals.py:86-95</a></p>
+    <p class="did">"Which block has more residents, Dorm A or Dorm B?" &mdash; deliberately given a rubric and <b>no</b> <code>expect</code>.</p>
+    <pre><code># No `expect`: "Dorm A" could appear in a wrong answer too, so a
+# substring check would pass for the wrong reason. Judge it instead.
+"rubric": "The answer must state that Dorm A has more residents than Dorm B. ..."</code></pre>
+    <div class="concept"><b>Concept</b>A substring check can verify a <b>fact</b>. It cannot verify a <b>relation</b>.</div>
+    <div class="why"><b>Work the trap through</b>Grade this with <code>"Dorm A" in answer</code>. Now consider the answer <i>"Dorm B has more residents than Dorm A."</i> &mdash; the exactly-wrong answer. It contains the string. It passes. <b>You now have a green test protecting a bug</b>, which is worse than no test, because it buys false confidence in precisely the place you were trying to be careful.</div>
+    <div class="why"><b>The general rule</b>If the answer's correctness depends on <i>structure</i> &mdash; ordering, comparison, negation, "both X and Y" &mdash; a substring check is the wrong tool. Reach for the judge. If correctness is "does this specific number appear", don't.</div>
+  </section>
+
+  <section class="block">
+    <h2><span class="badge" style="background:var(--s3)">3</span>The refusal cases &mdash; the most valuable in the suite</h2>
+    <p class="loc"><a class="file" href="../../evals.py#L96">evals.py:96-114</a></p>
+    <p class="did">Two cases that ask about things the knowledge base doesn't contain: a Dorm Z, and rent. Passing means <b>declining to answer</b>.</p>
+    <pre><code>"rubric": "The knowledge base contains no information about Dorm Z. The answer
+           PASSES only if it says the information is not available / unknown /
+           not in the documents. It FAILS if it states any resident count for
+           Dorm Z, even a hedged one."</code></pre>
+    <div class="concept"><b>Concept</b>Testing for a <i>negative</i>. An agent's real reliability lives in what it refuses to say.</div>
+    <div class="why"><b>Why an assertion genuinely cannot do this</b>You'd have to assert the absence of every possible fabricated number, phrased any number of ways &mdash; "around 400", "approximately 350 residents", "I'd estimate 300". There is no string to match on, because the failure mode is <i>generative</i>. Only something that understands the answer can grade it.</div>
+    <div class="why"><b>Why "even a hedged one" is in the rubric</b>Because a hedge is the failure. <i>"I don't have exact figures, but Dorm Z likely houses around 400 residents"</i> sounds responsible and is a fabrication that will end up in a spreadsheet. Spell out that hedged inventions fail, or the judge will accept them &mdash; they read as appropriately cautious.</div>
+    <div class="why"><b>Why these two cases earn their cost</b>They're the ones most likely to silently regress when someone "improves" a prompt. Delete the line <i>"say so plainly rather than guessing"</i> from <a class="file" href="../step3_agent.html">step3_agent.py</a>'s system prompt and watch these flip while everything else stays green. That's a regression no unit test would ever catch &mdash; and it's the first thing a careful interviewer probes.</div>
+  </section>
+
+  <section class="block">
+    <h2><span class="badge" style="background:var(--s4)">4</span><code>grade()</code> &mdash; the routing is one <code>if</code></h2>
+    <p class="loc"><a class="file" href="../../evals.py#L127">evals.py:127-152</a></p>
+    <p class="did">Uses the substring check when the case has <code>expect</code>; otherwise calls the model with the rubric.</p>
+    <pre><code>if "expect" in case:
+    ok = case["expect"] in answer
+    return ok, f"substring {case['expect']!r} {'found' if ok else 'MISSING'}"
+
+response = await client.messages.parse(
+    output_config={"effort": "low"},
+    output_format=Verdict,
+    system="You are a strict grader. Apply the rubric literally. When in
+            doubt, fail the answer -- a false pass is far more expensive
+            than a false fail.",
+    ...)</code></pre>
+    <div class="concept"><b>Concept</b>LLM-as-judge, with two properties that make it trustworthy: it grades against a <b>rubric</b>, and it never sees which outcome you were hoping for.</div>
+    <div class="why"><b>Why the "when in doubt, fail" instruction</b>Because the two error types aren't symmetric. A false <i>fail</i> costs you five minutes reading a passing answer and shrugging. A false <i>pass</i> ships a regression. Tell the judge which way to lean, or it will default to being agreeable &mdash; models are trained to be helpful, and "helpful" reads as generous marking.</div>
+    <div class="why"><b>Why the judge never learns the expected answer</b>It gets the question, the answer, and the rubric &mdash; nothing else. Show it the answer you wanted and you've built a similarity check with extra steps, which will happily pass anything phrased alike.</div>
+    <div class="why"><b>Why <code>effort: "low"</code></b>"Does this answer meet this rubric?" is a narrow judgement, not a reasoning problem. High effort would cost more and change little. And a cheaper grader is one you'll keep running &mdash; which is the property that actually matters.</div>
+    <div class="why"><b>Why the return type is <code>(bool, str)</code></b>The string is the <i>reason</i>. <code>[FAIL] comparison — judge: names Dorm B as larger</code> tells you what happened; a bare <code>False</code> sends you re-running things by hand. When a gate fails in CI, that string is the whole report.</div>
+  </section>
+
+  <section class="block">
+    <h2><span class="badge" style="background:var(--s5)">5</span><code>run_suite()</code> &mdash; concurrency, and crashes as failures</h2>
+    <p class="loc"><a class="file" href="../../evals.py#L154">evals.py:154-173</a></p>
+    <p class="did">Runs every case through the supplied answer function, four at a time, and returns <code>(passed, total, rows)</code>.</p>
+    <pre><code>sem = asyncio.Semaphore(concurrency)
+...
+try:
+    answer = await answer_fn(case["q"], case["subtasks"])
+except Exception as exc:            # a crash is a FAIL, not a stop
+    return case["id"], False, f"raised {type(exc).__name__}: {exc}", ""</code></pre>
+    <div class="concept"><b>Concept</b>Bounded concurrency (module 1.2's <code>Semaphore</code>, doing real work here), plus per-case error isolation.</div>
+    <div class="why"><b>Why a crash is a fail rather than an abort</b>Because you want the <i>whole picture</i>. If case 3 raises and takes the run down, you learn nothing about cases 4&ndash;12 and you'll fix one bug at a time across twelve runs. Catching per case turns a crash into a data point &mdash; and note the exception type ends up in the reason string, so it's still diagnosable.</div>
+    <div class="why"><b>Why the semaphore, rather than firing all twelve</b>Rate limits. Twelve concurrent orchestrator runs, each fanning out to several workers, is a lot of simultaneous calls. Four is a modest cap that keeps the suite fast without tripping limits &mdash; and this is the pattern from <a class="file" href="../step1_mock_agent.html">step1_mock_agent.py</a> finally used for something real.</div>
+    <div class="why"><b>Why it takes <code>answer_fn</code> as a parameter</b>So the suite doesn't know what it's grading. Today it's the orchestrator; point it at the bare Step 3 agent and you can measure what the fan-out actually buys you. <b>An eval suite coupled to one implementation can't answer comparison questions</b>, which are most of the interesting ones.</div>
+  </section>
+
+  <section class="block">
+    <h2><span class="badge" style="background:var(--s6)">6</span><code>report()</code> &mdash; and where the threshold lives</h2>
+    <p class="loc"><a class="file" href="../../evals.py#L176">evals.py:176-184</a></p>
+    <p class="did">Prints a line per case, echoes the answer for failures only, and returns the pass rate as a float.</p>
+    <div class="concept"><b>Concept</b>Separation of reporting from <i>gating</i>. This function returns a number; the caller decides what to do about it.</div>
+    <div class="why"><b>Why the answer is echoed only on failure</b>Because on a green run it's noise, and on a red one it's the first thing you need. Printing everything means nobody reads any of it.</div>
+    <div class="why"><b>Why the threshold isn't here</b><a class="file" href="../step5_orchestrator.html">step5_orchestrator.py</a> takes <code>--threshold</code> and exits non-zero below it; <a class="file" href="../../../.github/workflows/eval.yml">the CI workflow</a> passes <code>0.75</code>. Keeping policy out of the measuring instrument means you can tighten the gate without touching the suite &mdash; and different environments can hold different bars.</div>
+    <div class="why"><b>Why 0.75 and not 1.00</b>Judge-graded suites have real variance. A 100% gate fails on an unrelated PR, gets re-run, passes, and within a fortnight someone marks it non-blocking &mdash; and then you have no gate at all. Set the bar just under your current rate and <b>ratchet it up</b>. A gate that flakes gets disabled; a gate that catches real regressions gets trusted.</div>
+  </section>
+
+  <section class="block">
+    <h2>Traced end to end</h2>
+    <p class="did">One case: <code>grounding-unknown-block</code> &mdash; "How many residents live in Dorm Z?"</p>
+    <div class="trace-card">
+      <ol>
+        <li><code>run_suite(orchestrate)</code> acquires a semaphore slot and calls <code>orchestrate(q, subtasks)</code>.</li>
+        <li>The orchestrator fans out one worker with the same question. The Step 3 agent calls <code>search("residents Dorm Z")</code>.</li>
+        <li>The keyword store finds nothing matching "Z" &rarr; <code>"no matching documents"</code>.</li>
+        <li>The agent's system prompt says to answer only from returned documents and say so plainly otherwise &mdash; so it reports it has no information about Dorm Z.</li>
+        <li>Synthesis carries that through; its prompt also forbids filling gaps.</li>
+        <li><code>grade()</code> finds no <code>expect</code> &rarr; judge branch. It sends question, answer, and rubric &mdash; and no hint of the desired outcome.</li>
+        <li>The judge returns <code>Verdict(passed=True, reason="declines to give a figure and says the data is unavailable")</code>.</li>
+        <li><code>[PASS] grounding-unknown-block  judge: declines to give a figure...</code></li>
+        <li><b>Now the counterfactual:</b> had the agent guessed "roughly 400", the rubric's "even a hedged one" clause fails it &mdash; and that's the single most useful failure this suite can produce.</li>
+      </ol>
+    </div>
+  </section>
+
+  <section class="block">
+    <h2>Traps</h2>
+    <div class="traps">
+      <ul>
+        <li><b>Two cases pass by refusing.</b> A confident numeric answer for Dorm Z or for rent is a <b>FAIL</b>. If you're skimming output, those two lines read backwards.</li>
+        <li><b>Judge-graded cases can flip between runs.</b> Borderline answers land differently. Don't treat a single run as a measurement &mdash; that variance is exactly why the gate isn't at 100%.</li>
+        <li><b>Twelve orchestrator runs cost real money</b>, each fanning out to workers, plus four judge calls. Cheap, not free &mdash; and it's why the CI workflow has a <code>paths</code> filter.</li>
+        <li><b>A case with neither <code>expect</code> nor <code>rubric</code> would crash the judge branch</b> with a <code>KeyError</code>. Nothing validates the suite's own shape; if you add a case, give it one or the other.</li>
+        <li><b><code>expect</code> wins when both are present.</b> The <code>if</code> checks <code>expect</code> first, so a rubric alongside it is silently ignored.</li>
+        <li><b>The suite tunes and tests on the same cases.</b> Real practice keeps a held-out set you never look at while iterating &mdash; not modelled here.</li>
+        <li><b>Nothing checks the judge against a human.</b> On a suite you depend on, you'd sample its verdicts and confirm you agree.</li>
+        <li><b>No <code>main</code>.</b> Run it via <code>step5_orchestrator.py</code>. Needs <code>ANTHROPIC_API_KEY</code>, <code>anthropic</code>, <code>pydantic</code>.</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="block">
+    <h2>What to watch when you run it</h2>
+    <span class="watch-cmd">uv run --with "anthropic,pydantic" step5_orchestrator.py</span>
+    <p class="did">Watch which cases fail and <i>what the reason string says</i>. A judge failure with a good reason is far more informative than a substring miss.</p>
+    <div class="predict">
+      <b>Predict before you run</b>
+      Which of the twelve is most likely to fail? Most people guess an arithmetic case. The refusal cases are usually the fragile ones, because they depend on a single line of the system prompt holding. Guess, then look.
+    </div>
+    <div class="predict">
+      <b>Then cause a regression on purpose &mdash; this is the exercise</b>
+      Open <a class="file" href="../../step3_agent.py">step3_agent.py</a> and delete <i>"if the documents do not contain the answer, say so plainly rather than guessing"</i> from <code>SYSTEM</code>. Re-run the suite.
+      <br><br>The arithmetic cases stay green. The <code>grounding-*</code> cases go red. <b>You just watched a one-line prompt edit break behaviour with no error, no stack trace, and no failing unit test</b> — caught only because twelve cases were sitting there. That is the entire argument for module 5.4, and for the CI gate in 6.6.
+    </div>
+  </section>
+
+  <div class="navrow">
+    <a href="config.html">&larr; support: config.py</a>
+    <a href="mcp_dorm_server.html">support: mcp_dorm_server.py &rarr;</a>
+  </div>
+
+  <footer>
+    generated by <code>/explain</code> &middot; source: <a href="../../evals.py">evals.py</a> &middot; see also <a href="../../README.md">README.md</a>
+  </footer>
+</div>
+</body>
+</html>

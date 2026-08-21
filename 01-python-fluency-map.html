@@ -1,0 +1,445 @@
+<title>Step 1 · Python Fluency for AI Agents</title>
+<style>
+  :root {
+    --bg: #eaeff4; --surface: #ffffff; --surface-2: #f3f7fb;
+    --ink: #16202b; --muted: #5a6b7b; --faint: #8496a6; --line: #d5dfe8;
+    --accent: #2f7cb0; --accent-soft: #dcecf6;
+    --amber: #c07a15; --amber-soft: #f6e8cf;
+    --good: #2f8f5b; --good-soft: #d9efe1; --next: #6b52b8;
+    --shadow: 0 1px 2px rgba(22,32,43,.06), 0 8px 24px rgba(22,32,43,.06);
+    --mono: ui-monospace, "Cascadia Code", "SF Mono", Menlo, Consolas, monospace;
+    --sans: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0c141c; --surface: #141f2a; --surface-2: #1a2734;
+      --ink: #e6edf3; --muted: #97a8b8; --faint: #6f8394; --line: #26333f;
+      --accent: #58a9dc; --accent-soft: #16303f;
+      --amber: #e0a94e; --amber-soft: #352a16;
+      --good: #4fb37e; --good-soft: #163326; --next: #a390e6;
+      --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 24px rgba(0,0,0,.35);
+    }
+  }
+  :root[data-theme="light"] {
+    --bg: #eaeff4; --surface: #ffffff; --surface-2: #f3f7fb;
+    --ink: #16202b; --muted: #5a6b7b; --faint: #8496a6; --line: #d5dfe8;
+    --accent: #2f7cb0; --accent-soft: #dcecf6; --amber: #c07a15; --amber-soft: #f6e8cf;
+    --good: #2f8f5b; --good-soft: #d9efe1; --next: #6b52b8;
+    --shadow: 0 1px 2px rgba(22,32,43,.06), 0 8px 24px rgba(22,32,43,.06);
+  }
+  :root[data-theme="dark"] {
+    --bg: #0c141c; --surface: #141f2a; --surface-2: #1a2734;
+    --ink: #e6edf3; --muted: #97a8b8; --faint: #6f8394; --line: #26333f;
+    --accent: #58a9dc; --accent-soft: #16303f; --amber: #e0a94e; --amber-soft: #352a16;
+    --good: #4fb37e; --good-soft: #163326; --next: #a390e6;
+    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 24px rgba(0,0,0,.35);
+  }
+
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--sans); line-height: 1.6; -webkit-font-smoothing: antialiased; }
+  .wrap { max-width: 1080px; margin: 0 auto; padding: clamp(22px, 5vw, 56px) clamp(18px, 4vw, 40px); }
+  code { font-family: var(--mono); font-size: .87em; background: var(--surface-2); padding: 1px 5px; border-radius: 4px; }
+
+  /* track nav */
+  .track { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 34px; }
+  .track a, .track span { font-family: var(--mono); font-size: 12px; padding: 7px 12px; border-radius: 8px; border: 1px solid var(--line); display: inline-flex; align-items: center; gap: 8px; text-decoration: none; }
+  .track .s-n { font-weight: 700; opacity: .55; }
+  .track .current { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+  .track .current .s-n { opacity: .8; }
+  .track a.link { color: var(--accent); background: var(--surface); }
+  .track a.link:hover { border-color: var(--accent); }
+  .track a.link:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .track .future { color: var(--faint); background: transparent; }
+
+  .eyebrow { font-family: var(--mono); font-size: 12px; letter-spacing: .12em; text-transform: uppercase; color: var(--accent); font-weight: 600; display: flex; align-items: center; gap: 10px; margin: 0 0 14px; }
+  .eyebrow::before { content: ""; width: 28px; height: 2px; background: var(--accent); display: inline-block; }
+  h1 { font-size: clamp(30px, 6vw, 52px); line-height: 1.05; margin: 0 0 14px; letter-spacing: -.02em; text-wrap: balance; font-weight: 800; }
+  .lede { font-size: clamp(16px, 2.2vw, 19px); color: var(--muted); max-width: 62ch; margin: 0 0 22px; }
+  .meta-row { display: flex; flex-wrap: wrap; gap: 10px; }
+  .pill { font-family: var(--mono); font-size: 12px; padding: 6px 12px; border-radius: 999px; background: var(--surface); border: 1px solid var(--line); color: var(--muted); display: inline-flex; align-items: center; gap: 7px; }
+  .dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+  .section-label { font-family: var(--mono); font-size: 12px; letter-spacing: .1em; text-transform: uppercase; color: var(--faint); margin: 56px 0 20px; padding-bottom: 10px; border-bottom: 1px solid var(--line); font-weight: 600; }
+
+  /* mind map */
+  .map { display: flex; flex-direction: column; align-items: center; }
+  .hub { background: var(--ink); color: var(--bg); padding: 16px 26px; border-radius: 14px; font-family: var(--mono); font-weight: 700; font-size: clamp(15px,2.4vw,18px); text-align: center; box-shadow: var(--shadow); letter-spacing: -.01em; }
+  .hub small { display: block; font-size: 11px; font-weight: 500; opacity: .7; letter-spacing: .08em; margin-top: 3px; }
+  .connector { width: 2px; height: 26px; background: var(--line); }
+  .tier { width: 100%; display: flex; flex-direction: column; align-items: center; }
+  .tier-tag { font-family: var(--mono); font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); margin-bottom: 12px; padding: 3px 10px; border-radius: 6px; background: var(--surface-2); border: 1px solid var(--line); }
+  .backbone { display: flex; align-items: stretch; flex-wrap: wrap; justify-content: center; }
+  .arrow { display: flex; align-items: center; color: var(--accent); font-size: 22px; padding: 0 6px; font-weight: 700; }
+  .node { background: var(--surface); border: 1px solid var(--line); border-top: 3px solid var(--accent); border-radius: 12px; padding: 14px 18px; min-width: 168px; box-shadow: var(--shadow); text-align: left; }
+  .node .n-id { font-family: var(--mono); font-size: 11px; color: var(--accent); font-weight: 700; }
+  .node .n-name { font-weight: 700; font-size: 15px; margin: 2px 0 3px; }
+  .node .n-sub { font-size: 12.5px; color: var(--muted); line-height: 1.4; }
+  .support-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; width: 100%; }
+  .node.support { border-top-color: var(--amber); }
+  .node.support .n-id { color: var(--amber); }
+  .node.capstone { border-top-color: var(--good); text-align: center; min-width: 280px; }
+  .node.capstone .n-id { color: var(--good); }
+  .node.next { border-top-color: var(--next); text-align: center; min-width: 240px; background: var(--surface-2); }
+  .node.next .n-id { color: var(--next); }
+  .node.next a { color: var(--next); text-decoration: none; font-weight: 700; }
+  .node.next a:hover { text-decoration: underline; }
+  @media (max-width: 640px) {
+    .backbone { flex-direction: column; align-items: center; }
+    .arrow { transform: rotate(90deg); padding: 4px 0; }
+    .support-grid { grid-template-columns: repeat(2, 1fr); }
+    .node { width: 100%; min-width: 0; }
+  }
+
+  /* detail cards */
+  .cards { display: grid; grid-template-columns: repeat(2, 1fr); gap: 18px; }
+  @media (max-width: 720px) { .cards { grid-template-columns: 1fr; } }
+  .card { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 22px; box-shadow: var(--shadow); display: flex; flex-direction: column; gap: 12px; }
+  .card.span { grid-column: 1 / -1; }
+  .card-head { display: flex; align-items: baseline; gap: 10px; }
+  .card-id { font-family: var(--mono); font-weight: 700; font-size: 13px; color: var(--surface); background: var(--accent); padding: 3px 8px; border-radius: 6px; flex: none; }
+  .card.amber .card-id { background: var(--amber); }
+  .card h3 { margin: 0; font-size: 18px; letter-spacing: -.01em; }
+  .card .role { font-family: var(--mono); font-size: 11px; color: var(--faint); text-transform: uppercase; letter-spacing: .08em; }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chip { font-family: var(--mono); font-size: 11.5px; padding: 4px 9px; border-radius: 6px; background: var(--surface-2); border: 1px solid var(--line); color: var(--ink); }
+  .model { font-size: 13.5px; color: var(--ink); background: var(--surface-2); border-radius: 8px; padding: 9px 12px; }
+  .model b { font-family: var(--mono); font-size: 10.5px; text-transform: uppercase; letter-spacing: .08em; color: var(--accent); display: block; margin-bottom: 2px; }
+  .card.amber .model b { color: var(--amber); }
+  .why { font-size: 14px; color: var(--muted); margin: 0; }
+  .why b { color: var(--ink); font-weight: 600; }
+  .snippet { background: var(--surface-2); border: 1px solid var(--line); border-radius: 9px; padding: 13px; overflow-x: auto; font-family: var(--mono); font-size: 12px; line-height: 1.6; margin: 0; color: var(--ink); }
+  .drill { font-size: 13.5px; background: var(--accent-soft); border-radius: 9px; padding: 11px 13px; border-left: 3px solid var(--accent); color: var(--ink); }
+  .card.amber .drill { background: var(--amber-soft); border-left-color: var(--amber); }
+  .drill b { font-family: var(--mono); font-size: 11px; text-transform: uppercase; letter-spacing: .08em; display: block; margin-bottom: 3px; opacity: .8; }
+  .gotchas-label { font-family: var(--mono); font-size: 10.5px; text-transform: uppercase; letter-spacing: .08em; color: var(--faint); margin-bottom: 4px; }
+  .gotchas { font-size: 13px; color: var(--muted); margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 5px; }
+  .gotchas li { padding-left: 20px; position: relative; }
+  .gotchas li::before { content: "!"; position: absolute; left: 3px; top: 0; font-family: var(--mono); font-weight: 700; color: var(--amber); }
+  .links { display: flex; flex-direction: column; gap: 2px; margin-top: 2px; }
+  .links a { color: var(--accent); text-decoration: none; font-size: 13.5px; font-weight: 500; display: inline-flex; align-items: center; gap: 7px; padding: 3px 0; width: fit-content; border-bottom: 1px solid transparent; transition: border-color .15s; }
+  .links a:hover { border-bottom-color: var(--accent); }
+  .links a:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 3px; }
+  .links a .src { font-family: var(--mono); font-size: 10.5px; color: var(--faint); flex: none; }
+
+  .callout { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 26px; box-shadow: var(--shadow); border-left: 4px solid var(--good); }
+  .callout h3 { margin: 0 0 8px; font-size: 20px; }
+  .callout pre { background: var(--surface-2); border: 1px solid var(--line); border-radius: 10px; padding: 16px; overflow-x: auto; font-family: var(--mono); font-size: 12.5px; line-height: 1.65; color: var(--ink); margin: 14px 0 0; }
+  .callout .verdict { margin: 14px 0 0; font-size: 14px; color: var(--muted); }
+  .skip { background: transparent; border: 1px dashed var(--line); border-radius: 12px; padding: 18px 20px; }
+  .skip ul { margin: 0; padding-left: 18px; color: var(--muted); font-size: 14px; columns: 2; column-gap: 30px; }
+  @media (max-width: 560px) { .skip ul { columns: 1; } }
+
+  footer { margin-top: 56px; padding-top: 22px; border-top: 1px solid var(--line); display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; color: var(--faint); font-family: var(--mono); font-size: 12px; }
+  .next-link { color: var(--next); font-weight: 700; text-decoration: none; padding: 9px 14px; border: 1px solid var(--next); border-radius: 9px; }
+  .next-link:hover { background: var(--next); color: var(--surface); }
+</style>
+
+<div class="wrap">
+
+  <nav class="track">
+    <span class="current"><span class="s-n">01</span> Python Fluency</span>
+    <a class="link" href="02-llm-fundamentals-map.html"><span class="s-n">02</span> LLM Fundamentals</a>
+    <a class="link" href="03-agent-building-blocks-map.html"><span class="s-n">03</span> Agent Building Blocks</a>
+    <a class="link" href="04-frameworks-map.html"><span class="s-n">04</span> Frameworks</a>
+    <a class="link" href="05-multi-agent-mcp-map.html"><span class="s-n">05</span> Multi-Agent &amp; MCP</a>
+    <a class="link" href="06-production-map.html"><span class="s-n">06</span> Production</a>
+  </nav>
+
+  <p class="eyebrow">Step 1 of 6 · AI Agent / AI Engineer Track</p>
+  <h1>Python Fluency</h1>
+  <p class="lede">The exact subset of Python that AI agent &amp; LLM engineering demands — not "learn Python," but the reflexes every agent framework assumes you already have. Work the backbone in order, pick up the supporting modules as you build.</p>
+
+  <div class="meta-row">
+    <span class="pill"><span class="dot" style="background:var(--accent)"></span>Backbone · learn in order</span>
+    <span class="pill"><span class="dot" style="background:var(--amber)"></span>Supporting · learn as needed</span>
+    <span class="pill"><span class="dot" style="background:var(--good)"></span>Capstone · proves readiness</span>
+    <span class="pill">⏱ Full-time 5–7 days · Evenings 2–3 weeks</span>
+  </div>
+
+  <div style="margin:6px 0 2px;background:var(--surface);border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:12px;padding:14px 18px;box-shadow:var(--shadow);font-size:13.5px;color:var(--muted)">
+    <span style="font-family:var(--mono);font-size:10.5px;text-transform:uppercase;letter-spacing:.08em;color:var(--accent);font-weight:700;display:block;margin-bottom:5px">⇄ Coming from .NET?</span>
+    <span style="color:var(--ink)"><code>async</code>/<code>await</code> ≈ .NET's Task-based async (nearly identical). Pydantic ≈ DataAnnotations / FluentValidation. Decorators ≈ attributes / middleware. <code>uv</code> ≈ the <code>dotnet</code> CLI + SDK manager. Dependency injection maps 1:1.</span>
+    <span style="display:block;margin-top:8px;font-size:12px;color:var(--faint)">Link 404s? Docs move — search the link's title text at its site.</span>
+  </div>
+  <!-- MIND MAP -->
+  <div class="section-label">The map — how the pieces relate</div>
+  <div class="map">
+    <div class="hub">PYTHON FLUENCY<small>FOR AI AGENTS</small></div>
+    <div class="connector"></div>
+    <div class="tier">
+      <span class="tier-tag">Backbone — must be reflexive, sequential</span>
+      <div class="backbone">
+        <div class="node"><div class="n-id">1.1</div><div class="n-name">Core Mechanics</div><div class="n-sub">comprehensions, closures, decorators, dataclasses</div></div>
+        <div class="arrow">→</div>
+        <div class="node"><div class="n-id">1.2</div><div class="n-name">Async / Await</div><div class="n-sub">event loop, gather, semaphore, streaming</div></div>
+        <div class="arrow">→</div>
+        <div class="node"><div class="n-id">1.3</div><div class="n-name">Types + Pydantic</div><div class="n-sub">models → JSON schema → tool calling</div></div>
+      </div>
+    </div>
+    <div class="connector"></div>
+    <div class="tier">
+      <span class="tier-tag">Supporting — learn alongside the capstone</span>
+      <div class="support-grid">
+        <div class="node support"><div class="n-id">1.4</div><div class="n-name">JSON &amp; Data</div><div class="n-sub">parse messy LLM output</div></div>
+        <div class="node support"><div class="n-id">1.5</div><div class="n-name">Errors &amp; Retry</div><div class="n-sub">backoff, custom exceptions</div></div>
+        <div class="node support"><div class="n-id">1.6</div><div class="n-name">HTTP &amp; APIs</div><div class="n-sub">httpx, auth, secrets</div></div>
+        <div class="node support"><div class="n-id">1.7</div><div class="n-name">Env &amp; Packaging</div><div class="n-sub">uv, pyproject, venv</div></div>
+      </div>
+    </div>
+    <div class="connector"></div>
+    <div class="node capstone"><div class="n-id">CAPSTONE</div><div class="n-name">Mock async agent loop</div><div class="n-sub">every module in one script — swap the mock for a real LLM and you have an agent</div></div>
+    <div class="connector"></div>
+    <div class="node next"><div class="n-id">UNLOCKS</div><div class="n-name"><a href="02-llm-fundamentals-map.html">Step 2 · LLM Fundamentals →</a></div></div>
+  </div>
+
+  <!-- DETAIL CARDS -->
+  <div class="section-label">Module detail — what, why, gotchas &amp; where to learn</div>
+  <div class="cards">
+
+    <!-- 1.1 -->
+    <div class="card span">
+      <div class="card-head"><span class="card-id">1.1</span><div><h3>Core Language Mechanics</h3><div class="role">Backbone</div></div></div>
+      <div class="chips"><span class="chip">comprehensions</span><span class="chip">*args / **kwargs</span><span class="chip">closures</span><span class="chip">decorators</span><span class="chip">functools.wraps</span><span class="chip">dataclasses</span><span class="chip">Enum / StrEnum</span></div>
+      <div class="model"><b>Mental model</b>Everything an agent touches is either a dict you reshape or a function you pass around.</div>
+      <p class="why">Agent state, messages, and tool I/O are all <b>nested JSON-shaped dicts</b>. A tool registry maps names → functions, and <b>decorators</b> (<code>@tool</code>, <code>@retry</code>, <code>@cache</code>) wrap behavior everywhere. This is the fabric all higher layers are woven from.</p>
+      <pre class="snippet">TOOLS = {}
+
+def register_tool(fn):
+    TOOLS[fn.__name__] = fn          # name -> callable
+    return fn
+
+@register_tool
+def get_weather(city: str) -> str:
+    return f"sunny in {city}"
+
+# an agent dispatches a tool by its STRING name + a kwargs dict:
+result = TOOLS["get_weather"](**{"city": "Singapore"})</pre>
+      <div class="drill"><b>Drill</b>Extend the registry above so <code>@register_tool</code> also captures each function's docstring &amp; signature (via <code>inspect</code>) into a schema dict — the seed of a tool definition.</div>
+      <div>
+        <div class="gotchas-label">Common mistakes</div>
+        <ul class="gotchas">
+          <li>Mutable default args (<code>def f(items=[])</code>) share state across calls — default to <code>None</code>.</li>
+          <li>Decorators without <code>functools.wraps</code> silently lose the wrapped function's name &amp; docstring — which breaks auto-generated tool schemas.</li>
+          <li>Closures capture variables by <b>reference</b> — a loop building lambdas all see the final value (late binding).</li>
+        </ul>
+      </div>
+      <div class="links">
+        <a href="https://docs.python.org/3/tutorial/" target="_blank" rel="noopener">Official Python Tutorial <span class="src">docs.python.org</span></a>
+        <a href="https://realpython.com/primer-on-python-decorators/" target="_blank" rel="noopener">Primer on Decorators <span class="src">Real Python</span></a>
+        <a href="https://realpython.com/list-comprehension-python/" target="_blank" rel="noopener">Comprehensions guide <span class="src">Real Python</span></a>
+        <a href="https://docs.python.org/3/library/dataclasses.html" target="_blank" rel="noopener">dataclasses reference <span class="src">docs.python.org</span></a>
+      </div>
+    </div>
+
+    <!-- 1.2 -->
+    <div class="card span">
+      <div class="card-head"><span class="card-id">1.2</span><div><h3>Async / Await</h3><div class="role">Backbone · the non-negotiable core</div></div></div>
+      <div class="chips"><span class="chip">async def / await</span><span class="chip">event loop</span><span class="chip">asyncio.gather</span><span class="chip">as_completed</span><span class="chip">Semaphore</span><span class="chip">async for</span><span class="chip">async with</span><span class="chip">timeouts</span><span class="chip">Queue</span></div>
+      <div class="model"><b>Mental model</b>Async doesn't make code faster — it stops you wasting wall-clock <i>waiting</i>. Ten API calls that each take 1s finish in ~1s, not 10s.</div>
+      <p class="why">Agents are <b>I/O-bound</b> — almost all wall-clock is spent waiting on API responses. Concurrency is where every bit of your speed comes from, and <b>every serious framework is async-first underneath</b>. One accidental blocking call freezes the entire loop.</p>
+      <pre class="snippet">import asyncio, random
+
+sem = asyncio.Semaphore(3)              # at most 3 calls in flight
+
+async def call(i):
+    async with sem:                     # rate-limit concurrency
+        await asyncio.sleep(random.random())   # NOT time.sleep — that blocks!
+        return i
+
+async def main():
+    tasks = [call(i) for i in range(10)]
+    for coro in asyncio.as_completed(tasks):    # results as they finish
+        print(await coro)
+
+asyncio.run(main())</pre>
+      <div class="drill"><b>Drill</b>Wrap each <code>call()</code> in <code>asyncio.wait_for(..., timeout=2)</code> and collect results with <code>gather(..., return_exceptions=True)</code> so one timeout doesn't kill the batch.</div>
+      <div>
+        <div class="gotchas-label">Common mistakes</div>
+        <ul class="gotchas">
+          <li>A bare <code>time.sleep()</code> or <code>requests.get()</code> inside <code>async def</code> blocks the whole event loop — use <code>asyncio.sleep</code> / <code>httpx.AsyncClient</code>.</li>
+          <li>Forgetting <code>await</code> — the coroutine is created but never runs; you get a "coroutine was never awaited" warning.</li>
+          <li><code>gather()</code> cancels its siblings on the first exception unless you pass <code>return_exceptions=True</code>.</li>
+        </ul>
+      </div>
+      <div class="links">
+        <a href="https://realpython.com/async-io-python/" target="_blank" rel="noopener">Async IO in Python — full walkthrough <span class="src">Real Python</span></a>
+        <a href="https://docs.python.org/3/library/asyncio.html" target="_blank" rel="noopener">asyncio reference <span class="src">docs.python.org</span></a>
+        <a href="https://fastapi.tiangolo.com/async/" target="_blank" rel="noopener">"Concurrency &amp; async" — best plain-English explainer <span class="src">FastAPI docs</span></a>
+      </div>
+    </div>
+
+    <!-- 1.3 -->
+    <div class="card span">
+      <div class="card-head"><span class="card-id">1.3</span><div><h3>Type Hints + Pydantic v2</h3><div class="role">Backbone · highest-leverage library in the whole step</div></div></div>
+      <div class="chips"><span class="chip">list[str] / X | None</span><span class="chip">Literal</span><span class="chip">TypedDict</span><span class="chip">BaseModel</span><span class="chip">Field(description=)</span><span class="chip">field_validator</span><span class="chip">model_dump / validate</span><span class="chip">model_json_schema()</span><span class="chip">ValidationError</span></div>
+      <div class="model"><b>Mental model</b>A Pydantic model <i>is</i> the contract between your code and the LLM — the same class defines the tool schema going out and validates the data coming back.</div>
+      <p class="why"><b>Pydantic is the bridge between Python and tool use.</b> The JSON Schema an LLM sees for a tool is frequently auto-generated from a Pydantic model via <code>model_json_schema()</code>. Structured outputs, tool arguments, and config objects are all Pydantic models in modern stacks. If you learn one library deeply before frameworks, make it this one.</p>
+      <pre class="snippet">from pydantic import BaseModel, Field
+from typing import Literal
+
+class WeatherQuery(BaseModel):
+    city: str = Field(description="City name")   # description is SENT to the LLM
+    units: Literal["c", "f"] = "c"
+
+schema = WeatherQuery.model_json_schema()        # <- this is the tool's input schema
+q = WeatherQuery.model_validate_json('{"city": "Tokyo", "units": "c"}')  # parse + validate</pre>
+      <div class="drill"><b>Drill</b>Print the <code>model_json_schema()</code> above, then feed <code>model_validate_json</code> a string with a bad <code>units</code> value and handle the <code>ValidationError</code> cleanly — this is exactly how you'll guard real tool calls.</div>
+      <div>
+        <div class="gotchas-label">Common mistakes</div>
+        <ul class="gotchas">
+          <li>Pydantic v1 vs v2 APIs differ (<code>.dict()</code>→<code>.model_dump()</code>, <code>.parse_raw()</code>→<code>.model_validate_json()</code>) — tutorials mix them; use v2.</li>
+          <li><code>Field(description=...)</code> text goes <b>to the model</b> — write it as an instruction, not a code comment.</li>
+          <li><code>Any</code>-typed fields skip validation entirely — avoid them in tool schemas.</li>
+        </ul>
+      </div>
+      <div class="links">
+        <a href="https://docs.pydantic.dev/latest/" target="_blank" rel="noopener">Pydantic v2 official docs <span class="src">pydantic.dev</span></a>
+        <a href="https://realpython.com/python-pydantic/" target="_blank" rel="noopener">Pydantic: data validation made simple <span class="src">Real Python</span></a>
+        <a href="https://docs.python.org/3/library/typing.html" target="_blank" rel="noopener">typing module reference <span class="src">docs.python.org</span></a>
+        <a href="https://mypy.readthedocs.io/en/stable/" target="_blank" rel="noopener">mypy — static type checker <span class="src">mypy docs</span></a>
+      </div>
+    </div>
+
+    <!-- 1.4 -->
+    <div class="card amber">
+      <div class="card-head"><span class="card-id">1.4</span><div><h3>JSON &amp; Structured Data</h3><div class="role">Supporting</div></div></div>
+      <div class="chips"><span class="chip">json.dumps/loads</span><span class="chip">default=str</span><span class="chip">safe .get() chains</span><span class="chip">repair malformed JSON</span></div>
+      <div class="model"><b>Mental model</b>Treat the model's text output as <i>almost</i>-JSON, never quite — always parse defensively.</div>
+      <p class="why"><b>LLMs wrap JSON in prose or code fences</b> and occasionally emit broken JSON. You'll write extraction &amp; repair logic constantly and traverse deeply nested payloads without it becoming spaghetti.</p>
+      <div class="drill"><b>Drill</b>Write <code>extract_json(text)</code> that finds &amp; parses the first balanced <code>{…}</code> block in a string surrounded by prose, raising a clean custom error if none parses.</div>
+      <div>
+        <div class="gotchas-label">Common mistakes</div>
+        <ul class="gotchas">
+          <li>Models love ```` ```json ```` fences — strip them before <code>json.loads</code>.</li>
+          <li>Trailing commas &amp; single quotes break <code>json.loads</code> — prefer the model's native structured-output mode over regex-scraping.</li>
+        </ul>
+      </div>
+      <div class="links">
+        <a href="https://docs.python.org/3/library/json.html" target="_blank" rel="noopener">json module reference <span class="src">docs.python.org</span></a>
+        <a href="https://realpython.com/python-json/" target="_blank" rel="noopener">Working With JSON Data <span class="src">Real Python</span></a>
+      </div>
+    </div>
+
+    <!-- 1.5 -->
+    <div class="card amber">
+      <div class="card-head"><span class="card-id">1.5</span><div><h3>Error Handling &amp; Retries</h3><div class="role">Supporting</div></div></div>
+      <div class="chips"><span class="chip">try/except/else/finally</span><span class="chip">custom exceptions</span><span class="chip">exponential backoff + jitter</span><span class="chip">tenacity</span><span class="chip">idempotency</span></div>
+      <div class="model"><b>Mental model</b>On every failure ask one question: <i>can the agent recover from this, or must the loop stop?</i></div>
+      <p class="why">APIs return 429s (rate limit), 529s (overloaded), and timeouts. Distinguishing <b>recoverable</b> ("feed the error back, let the agent retry") from <b>fatal</b> ("stop the loop") is the difference between a demo and something that runs unattended overnight.</p>
+      <div class="drill"><b>Drill</b>Hand-write a retry decorator (no library) that retries an async fn 4× with backoff (1,2,4,8s + random jitter), only on <code>RetryableError</code>, re-raising <code>FatalError</code> immediately.</div>
+      <div>
+        <div class="gotchas-label">Common mistakes</div>
+        <ul class="gotchas">
+          <li>Retrying non-idempotent calls (a create/charge) can duplicate side effects.</li>
+          <li>Retrying 4xx client errors is pointless — only 429 &amp; 5xx are worth a retry.</li>
+          <li>No jitter → synchronized clients retry in lockstep (thundering herd).</li>
+        </ul>
+      </div>
+      <div class="links">
+        <a href="https://docs.python.org/3/tutorial/errors.html" target="_blank" rel="noopener">Errors &amp; Exceptions tutorial <span class="src">docs.python.org</span></a>
+        <a href="https://tenacity.readthedocs.io/en/latest/" target="_blank" rel="noopener">tenacity — retry library <span class="src">tenacity docs</span></a>
+      </div>
+    </div>
+
+    <!-- 1.6 -->
+    <div class="card amber">
+      <div class="card-head"><span class="card-id">1.6</span><div><h3>HTTP &amp; External APIs</h3><div class="role">Supporting</div></div></div>
+      <div class="chips"><span class="chip">httpx.AsyncClient</span><span class="chip">requests</span><span class="chip">bearer auth</span><span class="chip">timeouts</span><span class="chip">os.environ</span><span class="chip">python-dotenv</span></div>
+      <div class="model"><b>Mental model</b>Every LLM call is just one HTTP POST with a JSON body and an auth header.</div>
+      <p class="why">Reuse a single async client across many requests for connection pooling, always set timeouts, handle non-200s, and <b>never hardcode API keys</b> — load them from env vars with <code>.env</code> in <code>.gitignore</code>.</p>
+      <div class="drill"><b>Drill</b>Use <code>httpx.AsyncClient</code> to POST a JSON body with an auth header + timeout to <code>httpbin.org/anything</code>, then parse the echoed response.</div>
+      <div>
+        <div class="gotchas-label">Common mistakes</div>
+        <ul class="gotchas">
+          <li>Creating a fresh client per request throws away connection pooling.</li>
+          <li>No timeout = a hung request stalls the whole agent forever.</li>
+          <li>Logging the full request → leaking API keys into logs (mask them).</li>
+        </ul>
+      </div>
+      <div class="links">
+        <a href="https://www.python-httpx.org/" target="_blank" rel="noopener">HTTPX — async HTTP client <span class="src">python-httpx.org</span></a>
+        <a href="https://requests.readthedocs.io/en/latest/" target="_blank" rel="noopener">Requests — sync HTTP <span class="src">requests docs</span></a>
+        <a href="https://pypi.org/project/python-dotenv/" target="_blank" rel="noopener">python-dotenv <span class="src">PyPI</span></a>
+      </div>
+    </div>
+
+    <!-- 1.7 -->
+    <div class="card amber">
+      <div class="card-head"><span class="card-id">1.7</span><div><h3>Environment &amp; Packaging</h3><div class="role">Supporting</div></div></div>
+      <div class="chips"><span class="chip">uv (modern standard)</span><span class="chip">venv</span><span class="chip">pyproject.toml</span><span class="chip">uv add / uv run</span></div>
+      <div class="model"><b>Mental model</b>One project = one isolated environment. Always. No exceptions.</div>
+      <p class="why">Isolation stops dependency conflicts between projects. <b><code>uv</code> is the current fast standard</b> — enough to add a dependency and run a script without breaking your setup.</p>
+      <div class="drill"><b>Drill</b>Create a fresh <code>uv</code> project, run <code>uv add httpx pydantic</code>, and <code>uv run</code> a one-file script inside it.</div>
+      <div>
+        <div class="gotchas-label">Common mistakes</div>
+        <ul class="gotchas">
+          <li>Installing into global Python (<code>pip install</code> with no venv) — pollutes every project.</li>
+          <li>Committing <code>.env</code> or a populated venv folder to git.</li>
+          <li>Mixing hand-run <code>pip install</code> with uv-managed deps — let one tool own the lockfile.</li>
+        </ul>
+      </div>
+      <div class="links">
+        <a href="https://docs.astral.sh/uv/" target="_blank" rel="noopener">uv — official docs <span class="src">astral.sh</span></a>
+        <a href="https://docs.python.org/3/library/venv.html" target="_blank" rel="noopener">venv reference <span class="src">docs.python.org</span></a>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- CAPSTONE -->
+  <div class="section-label">The capstone — proof you've cleared Step 1</div>
+  <div class="callout">
+    <h3>One script that combines every module</h3>
+    <p class="why">No real LLM yet — mock it. If you can write this <b>without googling every line</b>, you're fluent enough to move on.</p>
+    <pre>An async "agent loop" that:
+  • defines 2 tools as Pydantic models              (1.3)
+  • registers them via a decorator                  (1.1)
+  • loops: pick a tool → validate args into model   (1.3)
+  • calls a mock async "API"                         (1.2, 1.6)
+  • wraps the call in retry-with-backoff             (1.5)
+  • caps parallel tool calls with a Semaphore        (1.2)
+  • parses possibly-messy JSON responses             (1.4)
+  • reads a config value from an env var             (1.6)
+  • runs inside a uv-managed environment             (1.7)</pre>
+    <p class="verdict">The only new thing in Step 2 is swapping the mock API for a real LLM call — <b>the entire shape of agent code already lives in this capstone.</b></p>
+  </div>
+
+  <!-- SKIP -->
+  <div class="section-label">Skip for now — not central to agent work</div>
+  <div class="skip">
+    <ul>
+      <li>Deep OOP / design patterns, metaclasses, descriptors</li>
+      <li>Django / Flask depth (FastAPI comes later, only for serving)</li>
+      <li>C extensions &amp; interpreter internals</li>
+      <li>Threading / multiprocessing (async covers I/O-bound needs)</li>
+      <li>GUI toolkits</li>
+      <li>pandas / numpy (unless your agents crunch data)</li>
+    </ul>
+  </div>
+
+  <!-- COURSES -->
+  <div class="section-label">If you want a full guided course first</div>
+  <div class="cards">
+    <div class="card">
+      <div class="card-head"><div><h3>Structured courses</h3><div class="role">Ground-up, if Python is new</div></div></div>
+      <div class="links">
+        <a href="https://cs50.harvard.edu/python/" target="_blank" rel="noopener">CS50's Introduction to Programming with Python <span class="src">Harvard · free</span></a>
+        <a href="https://www.freecodecamp.org/learn/scientific-computing-with-python/" target="_blank" rel="noopener">Scientific Computing with Python <span class="src">freeCodeCamp · free</span></a>
+        <a href="https://realpython.com/learning-paths/" target="_blank" rel="noopener">Curated learning paths <span class="src">Real Python</span></a>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-head"><div><h3>The bridge to Step 2</h3><div class="role">Where the mock becomes real</div></div></div>
+      <p class="why">Once the capstone works, Step 2 is where the "mock API" becomes a real LLM call — and your Pydantic models map straight onto tool schemas.</p>
+      <div class="links">
+        <a href="02-llm-fundamentals-map.html">→ Continue to Step 2 · LLM Fundamentals <span class="src">next in track</span></a>
+        <a href="https://docs.claude.com/en/docs/build-with-claude/tool-use/overview" target="_blank" rel="noopener">Claude — Tool use overview <span class="src">docs.claude.com</span></a>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    <span>Step 1 · Python Fluency</span>
+    <a class="next-link" href="02-llm-fundamentals-map.html">Next → Step 2 · LLM Fundamentals</a>
+  </footer>
+
+</div>

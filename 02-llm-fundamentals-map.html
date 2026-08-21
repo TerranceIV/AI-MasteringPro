@@ -1,0 +1,505 @@
+<title>Step 2 · LLM Fundamentals for AI Agents</title>
+<style>
+  :root {
+    --bg: #eaeff4; --surface: #ffffff; --surface-2: #f3f7fb;
+    --ink: #16202b; --muted: #5a6b7b; --faint: #8496a6; --line: #d5dfe8;
+    --accent: #7a4fb0; --accent-soft: #e7ddf3;      /* step 2 owns a violet accent */
+    --amber: #b8791a; --amber-soft: #f4e7cf;
+    --good: #2f8f5b; --good-soft: #d9efe1; --prev: #2f7cb0;
+    --shadow: 0 1px 2px rgba(22,32,43,.06), 0 8px 24px rgba(22,32,43,.06);
+    --mono: ui-monospace, "Cascadia Code", "SF Mono", Menlo, Consolas, monospace;
+    --sans: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0c141c; --surface: #141f2a; --surface-2: #1a2734;
+      --ink: #e6edf3; --muted: #97a8b8; --faint: #6f8394; --line: #26333f;
+      --accent: #b48fe0; --accent-soft: #241a35;
+      --amber: #e0a94e; --amber-soft: #352a16;
+      --good: #4fb37e; --good-soft: #163326; --prev: #58a9dc;
+      --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 24px rgba(0,0,0,.35);
+    }
+  }
+  :root[data-theme="light"] {
+    --bg: #eaeff4; --surface: #ffffff; --surface-2: #f3f7fb;
+    --ink: #16202b; --muted: #5a6b7b; --faint: #8496a6; --line: #d5dfe8;
+    --accent: #7a4fb0; --accent-soft: #e7ddf3; --amber: #b8791a; --amber-soft: #f4e7cf;
+    --good: #2f8f5b; --good-soft: #d9efe1; --prev: #2f7cb0;
+    --shadow: 0 1px 2px rgba(22,32,43,.06), 0 8px 24px rgba(22,32,43,.06);
+  }
+  :root[data-theme="dark"] {
+    --bg: #0c141c; --surface: #141f2a; --surface-2: #1a2734;
+    --ink: #e6edf3; --muted: #97a8b8; --faint: #6f8394; --line: #26333f;
+    --accent: #b48fe0; --accent-soft: #241a35; --amber: #e0a94e; --amber-soft: #352a16;
+    --good: #4fb37e; --good-soft: #163326; --prev: #58a9dc;
+    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 24px rgba(0,0,0,.35);
+  }
+
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--sans); line-height: 1.6; -webkit-font-smoothing: antialiased; }
+  .wrap { max-width: 1080px; margin: 0 auto; padding: clamp(22px, 5vw, 56px) clamp(18px, 4vw, 40px); }
+  code { font-family: var(--mono); font-size: .87em; background: var(--surface-2); padding: 1px 5px; border-radius: 4px; }
+
+  .track { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 34px; }
+  .track a, .track span { font-family: var(--mono); font-size: 12px; padding: 7px 12px; border-radius: 8px; border: 1px solid var(--line); display: inline-flex; align-items: center; gap: 8px; text-decoration: none; }
+  .track .s-n { font-weight: 700; opacity: .55; }
+  .track .current { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+  .track .current .s-n { opacity: .8; }
+  .track a.link { color: var(--prev); background: var(--surface); }
+  .track a.link:hover { border-color: var(--prev); }
+  .track a.link:focus-visible { outline: 2px solid var(--prev); outline-offset: 2px; }
+  .track .future { color: var(--faint); background: transparent; }
+
+  .eyebrow { font-family: var(--mono); font-size: 12px; letter-spacing: .12em; text-transform: uppercase; color: var(--accent); font-weight: 600; display: flex; align-items: center; gap: 10px; margin: 0 0 14px; }
+  .eyebrow::before { content: ""; width: 28px; height: 2px; background: var(--accent); display: inline-block; }
+  h1 { font-size: clamp(30px, 6vw, 52px); line-height: 1.05; margin: 0 0 14px; letter-spacing: -.02em; text-wrap: balance; font-weight: 800; }
+  .lede { font-size: clamp(16px, 2.2vw, 19px); color: var(--muted); max-width: 62ch; margin: 0 0 22px; }
+  .meta-row { display: flex; flex-wrap: wrap; gap: 10px; }
+  .pill { font-family: var(--mono); font-size: 12px; padding: 6px 12px; border-radius: 999px; background: var(--surface); border: 1px solid var(--line); color: var(--muted); display: inline-flex; align-items: center; gap: 7px; }
+  .dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+  .section-label { font-family: var(--mono); font-size: 12px; letter-spacing: .1em; text-transform: uppercase; color: var(--faint); margin: 56px 0 20px; padding-bottom: 10px; border-bottom: 1px solid var(--line); font-weight: 600; }
+
+  .map { display: flex; flex-direction: column; align-items: center; }
+  .hub { background: var(--ink); color: var(--bg); padding: 16px 26px; border-radius: 14px; font-family: var(--mono); font-weight: 700; font-size: clamp(15px,2.4vw,18px); text-align: center; box-shadow: var(--shadow); letter-spacing: -.01em; }
+  .hub small { display: block; font-size: 11px; font-weight: 500; opacity: .7; letter-spacing: .08em; margin-top: 3px; }
+  .connector { width: 2px; height: 26px; background: var(--line); }
+  .tier { width: 100%; display: flex; flex-direction: column; align-items: center; }
+  .tier-tag { font-family: var(--mono); font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); margin-bottom: 12px; padding: 3px 10px; border-radius: 6px; background: var(--surface-2); border: 1px solid var(--line); }
+  .backbone { display: flex; align-items: stretch; flex-wrap: wrap; justify-content: center; }
+  .arrow { display: flex; align-items: center; color: var(--accent); font-size: 22px; padding: 0 5px; font-weight: 700; }
+  .node { background: var(--surface); border: 1px solid var(--line); border-top: 3px solid var(--accent); border-radius: 12px; padding: 13px 16px; min-width: 150px; box-shadow: var(--shadow); text-align: left; }
+  .node .n-id { font-family: var(--mono); font-size: 11px; color: var(--accent); font-weight: 700; }
+  .node .n-name { font-weight: 700; font-size: 14px; margin: 2px 0 3px; }
+  .node .n-sub { font-size: 12px; color: var(--muted); line-height: 1.4; }
+  .support-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; width: 100%; }
+  .node.support { border-top-color: var(--amber); }
+  .node.support .n-id { color: var(--amber); }
+  .node.capstone { border-top-color: var(--good); text-align: center; min-width: 300px; }
+  .node.capstone .n-id { color: var(--good); }
+  .node.next { border-top-color: var(--faint); text-align: center; min-width: 240px; background: var(--surface-2); }
+  .node.next .n-id { color: var(--faint); }
+  @media (max-width: 640px) {
+    .backbone { flex-direction: column; align-items: center; }
+    .arrow { transform: rotate(90deg); padding: 4px 0; }
+    .support-grid { grid-template-columns: 1fr; }
+    .node { width: 100%; min-width: 0; }
+  }
+
+  .cards { display: grid; grid-template-columns: repeat(2, 1fr); gap: 18px; }
+  @media (max-width: 720px) { .cards { grid-template-columns: 1fr; } }
+  .card { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 22px; box-shadow: var(--shadow); display: flex; flex-direction: column; gap: 12px; }
+  .card.span { grid-column: 1 / -1; }
+  .card-head { display: flex; align-items: baseline; gap: 10px; }
+  .card-id { font-family: var(--mono); font-weight: 700; font-size: 13px; color: var(--surface); background: var(--accent); padding: 3px 8px; border-radius: 6px; flex: none; }
+  .card.amber .card-id { background: var(--amber); }
+  .card h3 { margin: 0; font-size: 18px; letter-spacing: -.01em; }
+  .card .role { font-family: var(--mono); font-size: 11px; color: var(--faint); text-transform: uppercase; letter-spacing: .08em; }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chip { font-family: var(--mono); font-size: 11.5px; padding: 4px 9px; border-radius: 6px; background: var(--surface-2); border: 1px solid var(--line); color: var(--ink); }
+  .model { font-size: 13.5px; color: var(--ink); background: var(--surface-2); border-radius: 8px; padding: 9px 12px; }
+  .model b { font-family: var(--mono); font-size: 10.5px; text-transform: uppercase; letter-spacing: .08em; color: var(--accent); display: block; margin-bottom: 2px; }
+  .card.amber .model b { color: var(--amber); }
+  .why { font-size: 14px; color: var(--muted); margin: 0; }
+  .why b { color: var(--ink); font-weight: 600; }
+  .snippet { background: var(--surface-2); border: 1px solid var(--line); border-radius: 9px; padding: 13px; overflow-x: auto; font-family: var(--mono); font-size: 12px; line-height: 1.6; margin: 0; color: var(--ink); }
+  .drill { font-size: 13.5px; background: var(--accent-soft); border-radius: 9px; padding: 11px 13px; border-left: 3px solid var(--accent); color: var(--ink); }
+  .card.amber .drill { background: var(--amber-soft); border-left-color: var(--amber); }
+  .drill b { font-family: var(--mono); font-size: 11px; text-transform: uppercase; letter-spacing: .08em; display: block; margin-bottom: 3px; opacity: .8; }
+  .builds { font-family: var(--mono); font-size: 11px; color: var(--prev); background: transparent; border: 1px dashed var(--prev); padding: 4px 9px; border-radius: 6px; width: fit-content; text-decoration: none; }
+  .builds:hover { background: var(--prev); color: var(--surface); }
+  .gotchas-label { font-family: var(--mono); font-size: 10.5px; text-transform: uppercase; letter-spacing: .08em; color: var(--faint); margin-bottom: 4px; }
+  .gotchas { font-size: 13px; color: var(--muted); margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 5px; }
+  .gotchas li { padding-left: 20px; position: relative; }
+  .gotchas li::before { content: "!"; position: absolute; left: 3px; top: 0; font-family: var(--mono); font-weight: 700; color: var(--amber); }
+  .links { display: flex; flex-direction: column; gap: 2px; margin-top: 2px; }
+  .links a { color: var(--accent); text-decoration: none; font-size: 13.5px; font-weight: 500; display: inline-flex; align-items: center; gap: 7px; padding: 3px 0; width: fit-content; border-bottom: 1px solid transparent; transition: border-color .15s; }
+  .links a:hover { border-bottom-color: var(--accent); }
+  .links a:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 3px; }
+  .links a .src { font-family: var(--mono); font-size: 10.5px; color: var(--faint); flex: none; }
+
+  .callout { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 26px; box-shadow: var(--shadow); border-left: 4px solid var(--good); }
+  .callout h3 { margin: 0 0 8px; font-size: 20px; }
+  .callout pre { background: var(--surface-2); border: 1px solid var(--line); border-radius: 10px; padding: 16px; overflow-x: auto; font-family: var(--mono); font-size: 12.5px; line-height: 1.65; color: var(--ink); margin: 14px 0 0; }
+  .callout .verdict { margin: 14px 0 0; font-size: 14px; color: var(--muted); }
+
+  footer { margin-top: 56px; padding-top: 22px; border-top: 1px solid var(--line); display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; color: var(--faint); font-family: var(--mono); font-size: 12px; }
+  .nav-link { font-weight: 700; text-decoration: none; padding: 9px 14px; border-radius: 9px; border: 1px solid; }
+  .prev-link { color: var(--prev); border-color: var(--prev); }
+  .prev-link:hover { background: var(--prev); color: var(--surface); }
+  .next-link { color: var(--accent); border-color: var(--accent); }
+  .next-link:hover { background: var(--accent); color: var(--surface); }
+</style>
+
+<div class="wrap">
+
+  <nav class="track">
+    <a class="link" href="01-python-fluency-map.html"><span class="s-n">01</span> Python Fluency</a>
+    <span class="current"><span class="s-n">02</span> LLM Fundamentals</span>
+    <a class="link" href="03-agent-building-blocks-map.html"><span class="s-n">03</span> Agent Building Blocks</a>
+    <a class="link" href="04-frameworks-map.html"><span class="s-n">04</span> Frameworks</a>
+    <a class="link" href="05-multi-agent-mcp-map.html"><span class="s-n">05</span> Multi-Agent &amp; MCP</a>
+    <a class="link" href="06-production-map.html"><span class="s-n">06</span> Production</a>
+  </nav>
+
+  <p class="eyebrow">Step 2 of 6 · AI Agent / AI Engineer Track</p>
+  <h1>LLM Fundamentals</h1>
+  <p class="lede">Understand the model as a black box before you wire it into an agent. Everything here is <i>steering a very good autocomplete</i> — get the mental model right and prompts, tools, and streaming stop feeling like magic. This is where the mock API from Step 1's capstone becomes a real LLM call.</p>
+  <p class="lede" style="font-size:14.5px"><b style="color:var(--amber)">⚠ Read 2.4 before you copy code from anywhere else.</b> Three things every pre-2026 tutorial does — <code>temperature=0</code>, <code>budget_tokens</code>, assistant prefill — now return a <b>400 error</b> on current models. This is the step where stale advice costs you an afternoon.</p>
+
+  <div class="meta-row">
+    <span class="pill"><span class="dot" style="background:var(--accent)"></span>Backbone · the mental model</span>
+    <span class="pill"><span class="dot" style="background:var(--amber)"></span>Applied · how you actually use it</span>
+    <span class="pill"><span class="dot" style="background:var(--good)"></span>Capstone · one real feature</span>
+    <span class="pill">⏱ Full-time 5–6 days · Evenings 2–3 weeks</span>
+  </div>
+
+  <div style="margin:6px 0 2px;background:var(--surface);border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:12px;padding:14px 18px;box-shadow:var(--shadow);font-size:13.5px;color:var(--muted)">
+    <span style="font-family:var(--mono);font-size:10.5px;text-transform:uppercase;letter-spacing:.08em;color:var(--accent);font-weight:700;display:block;margin-bottom:5px">⇄ Coming from .NET?</span>
+    <span style="color:var(--ink)">An LLM call is just an <code>HttpClient</code> POST with a JSON body. Streaming ≈ <code>IAsyncEnumerable&lt;T&gt;</code> over SSE. You can do all of this from C# with <b>Microsoft.Extensions.AI</b> (<code>IChatClient</code>).</span>
+    <span style="display:block;margin-top:8px;font-size:12px;color:var(--faint)">Link 404s? Docs move — search the link's title text at its site.</span>
+  </div>
+  <!-- MIND MAP -->
+  <div class="section-label">The map — how the pieces relate</div>
+  <div class="map">
+    <div class="hub">HOW LLMs ACTUALLY WORK<small>THE BLACK BOX</small></div>
+    <div class="connector"></div>
+    <div class="tier">
+      <span class="tier-tag">Backbone — the mental model, in order</span>
+      <div class="backbone">
+        <div class="node"><div class="n-id">2.1</div><div class="n-name">What an LLM Is</div><div class="n-sub">next-token, stateless, context window</div></div>
+        <div class="arrow">→</div>
+        <div class="node"><div class="n-id">2.2</div><div class="n-name">Tokens</div><div class="n-sub">cost &amp; memory budget</div></div>
+        <div class="arrow">→</div>
+        <div class="node"><div class="n-id">2.3</div><div class="n-name">Messages API</div><div class="n-sub">roles, multi-turn, stop_reason</div></div>
+        <div class="arrow">→</div>
+        <div class="node"><div class="n-id">2.4</div><div class="n-name">Effort &amp; Thinking</div><div class="n-sub">the dial that replaced temperature</div></div>
+      </div>
+    </div>
+    <div class="connector"></div>
+    <div class="tier">
+      <span class="tier-tag">Applied — how you actually drive it</span>
+      <div class="support-grid">
+        <div class="node support"><div class="n-id">2.5</div><div class="n-name">Prompt Engineering</div><div class="n-sub">system, few-shot, chain-of-thought</div></div>
+        <div class="node support"><div class="n-id">2.6</div><div class="n-name">Structured Output</div><div class="n-sub">tool use · builds on 1.3</div></div>
+        <div class="node support"><div class="n-id">2.7</div><div class="n-name">Streaming</div><div class="n-sub">async for · builds on 1.2</div></div>
+        <div class="node support"><div class="n-id">2.8</div><div class="n-name">Providers &amp; Model Choice</div><div class="n-sub">same call, any platform</div></div>
+        <div class="node support"><div class="n-id">2.9</div><div class="n-name">Documents &amp; Images</div><div class="n-sub">PDFs in, structured data out</div></div>
+      </div>
+    </div>
+    <div class="connector"></div>
+    <div class="node capstone"><div class="n-id">CAPSTONE</div><div class="n-name">One real LLM feature</div><div class="n-sub">structured + streamed single-shot call, plus a document extractor — Step 3 wraps it in a loop with tools = an agent</div></div>
+    <div class="connector"></div>
+    <div class="node next"><div class="n-id">UNLOCKS</div><div class="n-name">Step 3 · Agent Building Blocks</div></div>
+  </div>
+
+  <!-- DETAIL CARDS -->
+  <div class="section-label">Module detail — what, why, gotchas &amp; where to learn</div>
+  <div class="cards">
+
+    <!-- 2.1 -->
+    <div class="card span">
+      <div class="card-head"><span class="card-id">2.1</span><div><h3>What an LLM Actually Is</h3><div class="role">Backbone</div></div></div>
+      <div class="chips"><span class="chip">next-token prediction</span><span class="chip">statelessness</span><span class="chip">context window</span><span class="chip">knowledge cutoff</span><span class="chip">hallucination</span></div>
+      <div class="model"><b>Mental model</b>A very good autocomplete you steer entirely through what you put in the context. It has no memory and no live knowledge — only the text in front of it, right now.</div>
+      <p class="why">Given text, the model predicts the most likely next <b>token</b>, appends it, and repeats. Three consequences drive <i>everything</i> in agent design: it's <b>stateless</b> (you resend the whole conversation every call to fake memory), it has a finite <b>context window</b> (input + output tokens it can consider at once), and it will <b>hallucinate confidently</b> past its knowledge cutoff. Agents exist largely to feed the right context in and check the output.</p>
+      <div>
+        <div class="gotchas-label">Misconceptions to unlearn</div>
+        <ul class="gotchas">
+          <li>"It remembers our chat" — no; your app resends the history every call.</li>
+          <li>"It knows today's news" — only up to its training cutoff, unless you supply the data (that's what RAG &amp; tools are for, Step 3).</li>
+          <li>"A confident answer is a correct one" — fluency ≠ accuracy; always verify facts it asserts.</li>
+        </ul>
+      </div>
+      <div class="links">
+        <a href="https://www.youtube.com/watch?v=zjkBMFhNj_g" target="_blank" rel="noopener">[1hr] Intro to Large Language Models — Karpathy <span class="src">YouTube · free</span></a>
+        <a href="https://docs.claude.com/en/docs/intro-to-claude" target="_blank" rel="noopener">Intro to Claude <span class="src">docs.claude.com</span></a>
+        <a href="https://docs.claude.com/en/docs/build-with-claude/context-windows" target="_blank" rel="noopener">Context windows explained <span class="src">docs.claude.com</span></a>
+      </div>
+    </div>
+
+    <!-- 2.2 -->
+    <div class="card">
+      <div class="card-head"><span class="card-id">2.2</span><div><h3>Tokens</h3><div class="role">Backbone</div></div></div>
+      <div class="chips"><span class="chip">sub-word chunks</span><span class="chip">~4 chars / token</span><span class="chip">input + output pricing</span><span class="chip">token counting</span></div>
+      <div class="model"><b>Mental model</b>Tokens are the model's currency <i>and</i> its memory budget — you pay per token and the context window is measured in them.</div>
+      <p class="why">Tokens are sub-word chunks (~4 English chars, ~0.75 words). You're billed per input + output token, and every limit is in tokens. This governs <b>cost</b>, <b>context budgeting</b>, and later your <b>chunking strategy for RAG</b>.</p>
+      <div>
+        <div class="gotchas-label">Common mistakes</div>
+        <ul class="gotchas">
+          <li>Non-English text &amp; code tokenize less efficiently — more tokens per character.</li>
+          <li>A long system prompt is re-billed on <b>every</b> call — trim it or use prompt caching (2.8-ish, Step 6).</li>
+          <li>Guessing length by characters — count tokens before sending to stay within limits.</li>
+        </ul>
+      </div>
+      <div class="links">
+        <a href="https://docs.claude.com/en/docs/build-with-claude/token-counting" target="_blank" rel="noopener">Token counting <span class="src">docs.claude.com</span></a>
+        <a href="https://platform.openai.com/tokenizer" target="_blank" rel="noopener">Interactive tokenizer (see it live) <span class="src">OpenAI</span></a>
+      </div>
+    </div>
+
+    <!-- 2.3 -->
+    <div class="card">
+      <div class="card-head"><span class="card-id">2.3</span><div><h3>The Messages API</h3><div class="role">Backbone</div></div></div>
+      <div class="chips"><span class="chip">system / user / assistant</span><span class="chip">multi-turn</span><span class="chip">stop_reason</span><span class="chip">content blocks</span></div>
+      <div class="model"><b>Mental model</b>A conversation is just an array you keep appending to and resending — the API call itself is stateless.</div>
+      <p class="why">Three roles: <b>system</b> (instructions/persona), <b>user</b>, <b>assistant</b>. A multi-turn chat is a list of messages you resend each call. Read <code>stop_reason</code> to know why it stopped (end turn, max tokens, tool call). A message's <code>content</code> is a <b>list of blocks</b>, not a string — text, tool calls, thinking, images and documents all arrive as typed blocks, so always check <code>block.type</code> before reading <code>.text</code>.</p>
+      <pre class="snippet">from anthropic import Anthropic
+client = Anthropic()                       # reads ANTHROPIC_API_KEY from env (1.6)
+
+msg = client.messages.create(
+    model="claude-sonnet-5",
+    max_tokens=4096,                       # room for thinking AND the answer
+    system="You are a terse assistant.",   # system is separate on Anthropic
+    messages=[{"role": "user", "content": "Name 3 primes."}],
+)
+# content is a LIST of blocks -- never assume content[0] is text
+print("".join(b.text for b in msg.content if b.type == "text"))</pre>
+      <div>
+        <div class="gotchas-label">Common mistakes</div>
+        <ul class="gotchas">
+          <li>On Anthropic the <code>system</code> prompt is a top-level param, not a message in the list.</li>
+          <li>Reading <code>msg.content[0].text</code> blindly — with thinking on, block 0 is often a <code>thinking</code> block and this raises.</li>
+          <li>Forgetting to append the assistant's reply before the next user turn drops the "memory".</li>
+          <li><b>Assistant prefill is gone.</b> Putting a partial assistant turn last to force a format returns a <b>400</b> on current models — use structured output (2.6) or a system instruction instead.</li>
+        </ul>
+      </div>
+      <div class="links">
+        <a href="https://docs.claude.com/en/api/messages" target="_blank" rel="noopener">Messages API reference <span class="src">docs.claude.com</span></a>
+        <a href="https://docs.claude.com/en/docs/get-started" target="_blank" rel="noopener">Get started / first call <span class="src">docs.claude.com</span></a>
+      </div>
+    </div>
+
+    <!-- 2.4 -->
+    <div class="card">
+      <div class="card-head"><span class="card-id">2.4</span><div><h3>Effort &amp; Thinking <span style="font-size:.7em;color:var(--amber)">· rewritten 2026</span></h3><div class="role">Backbone · the most out-of-date topic online</div></div></div>
+      <div class="chips"><span class="chip">effort: low→max</span><span class="chip">adaptive thinking</span><span class="chip">max_tokens</span><span class="chip">stop_sequences</span><span class="chip">✗ temperature</span><span class="chip">✗ top_p</span><span class="chip">✗ budget_tokens</span></div>
+      <div class="model"><b>Mental model</b>You no longer tune <i>randomness</i>. You tune <i>how hard the model thinks</i> — and you steer style with the prompt, not with a dial.</div>
+      <p class="why"><b>This module is the single most stale topic in every LLM tutorial online, and getting it wrong is a hard error, not a quality issue.</b> Current models (Sonnet 5, Opus 5, Opus 4.7/4.8) <b>return a 400</b> if you set <code>temperature</code>, <code>top_p</code>, or <code>top_k</code> to a non-default value. The replacement is <code>effort</code>: <code>low</code> / <code>medium</code> / <code>high</code> / <code>xhigh</code> / <code>max</code>, passed inside <code>output_config</code>. It controls how much the model reasons before answering — which is the knob that actually moves quality now.</p>
+      <p class="why"><b>Adaptive thinking is on by default.</b> That has a consequence people trip over constantly: <code>max_tokens</code> caps thinking <i>and</i> the answer <b>together</b>, so a budget copied from an older tutorial silently truncates your output mid-sentence.</p>
+      <pre class="snippet"># WRONG on current models -- this raises a 400
+msg = client.messages.create(model="claude-sonnet-5", temperature=0, ...)
+
+# RIGHT
+msg = client.messages.create(
+    model="claude-sonnet-5",
+    max_tokens=4096,                          # thinking + answer share this
+    output_config={"effort": "high"},         # low | medium | high | xhigh | max
+    messages=[...],
+)</pre>
+      <div class="drill"><b>Drill</b>Run <code>step2_first_call.py</code>, then add <code>temperature=0</code> back to the <code>classify()</code> call and run it again. Read the 400 carefully — that error message is the one you'll hit every time you paste code from an older blog post.</div>
+      <div>
+        <div class="gotchas-label">Common mistakes</div>
+        <ul class="gotchas">
+          <li>Copying <code>temperature=0</code> from any pre-2026 tutorial — <b>400</b>. Just delete the argument.</li>
+          <li>Using <code>thinking={"type":"enabled","budget_tokens":N}</code> — also <b>400</b>. Use <code>{"type":"adaptive"}</code>.</li>
+          <li><code>max_tokens=1024</code> carried over from an older model — now truncates, because thinking eats the same budget.</li>
+          <li>Reaching for <code>effort:"max"</code> everywhere. <code>high</code> is the default and usually the sweet spot; <code>low</code> is right for cheap subagents and rerankers.</li>
+          <li>Expecting reproducibility. <code>temperature=0</code> never actually guaranteed identical output — if you need determinism, pin it with structured output and evals, not a sampling knob.</li>
+        </ul>
+      </div>
+      <div class="links">
+        <a href="https://docs.claude.com/en/api/messages" target="_blank" rel="noopener">Messages API parameters <span class="src">docs.claude.com</span></a>
+        <a href="https://docs.claude.com/en/docs/build-with-claude/extended-thinking" target="_blank" rel="noopener">Extended / adaptive thinking <span class="src">docs.claude.com</span></a>
+      </div>
+    </div>
+
+    <!-- 2.5 -->
+    <div class="card amber span">
+      <div class="card-head"><span class="card-id">2.5</span><div><h3>Prompt Engineering</h3><div class="role">Applied · the highest-ROI skill here</div></div></div>
+      <div class="chips"><span class="chip">system prompts</span><span class="chip">few-shot examples</span><span class="chip">chain-of-thought</span><span class="chip">XML tags</span><span class="chip">be specific</span><span class="chip">give it an "out"</span></div>
+      <div class="model"><b>Mental model</b>You're not commanding the model — you're arranging the context so the answer you want is the <i>most likely continuation</i>.</div>
+      <p class="why">The core levers: a clear <b>system prompt</b> (role, rules, tone); <b>few-shot examples</b> (show, don't just tell); <b>chain-of-thought</b> ("think step by step" before answering hard problems); and <b>XML tags</b> to delimit input for Claude (<code>&lt;document&gt;…&lt;/document&gt;</code>). Be specific, and give the model a legitimate "I don't know" path so it doesn't invent one.</p>
+      <div class="drill"><b>Drill</b>Take one vague prompt ("summarize this") and rewrite it with a role, 2 few-shot examples, an explicit output format, and an XML-tagged input block. Compare the two outputs side by side.</div>
+      <div>
+        <div class="gotchas-label">Common mistakes</div>
+        <ul class="gotchas">
+          <li>Vague asks → vague output; specificity beats politeness.</li>
+          <li>Negative-only instructions ("don't be verbose") work worse than positive ("reply in ≤3 bullets").</li>
+          <li>Examples that contradict your instructions confuse the model more than no examples.</li>
+        </ul>
+      </div>
+      <div class="links">
+        <a href="https://docs.claude.com/en/docs/build-with-claude/prompt-engineering/overview" target="_blank" rel="noopener">Prompt engineering overview <span class="src">docs.claude.com</span></a>
+        <a href="https://github.com/anthropics/prompt-eng-interactive-tutorial" target="_blank" rel="noopener">Interactive prompt-engineering tutorial <span class="src">GitHub · Anthropic · free</span></a>
+        <a href="https://docs.claude.com/en/resources/prompt-library/library" target="_blank" rel="noopener">Prompt library (worked examples) <span class="src">docs.claude.com</span></a>
+      </div>
+    </div>
+
+    <!-- 2.6 -->
+    <div class="card amber">
+      <div class="card-head"><span class="card-id">2.6</span><div><h3>Structured Output</h3><div class="role">Applied</div></div></div>
+      <div class="chips"><span class="chip">tool use / function calling</span><span class="chip">JSON mode</span><span class="chip">input_schema</span><span class="chip">validate the result</span></div>
+      <a class="builds" href="01-python-fluency-map.html">↩ builds on 1.3 · Pydantic</a>
+      <div class="model"><b>Mental model</b>Don't parse prose — force the model to fill a schema, then validate it right back into your Pydantic model.</div>
+      <p class="why">Reliable JSON comes from <b>tool use</b>: you pass a schema, the model returns input matching it. This is the exact seam that connects to Step 1 — your Pydantic <code>model_json_schema()</code> becomes the tool's <code>input_schema</code>, and the response validates straight back with <code>model_validate</code>.</p>
+      <pre class="snippet"># reuse WeatherQuery from Step 1.3:
+tools = [{
+    "name": "save_weather",
+    "description": "Store a weather query",
+    "input_schema": WeatherQuery.model_json_schema(),   # 1.3 -> tool schema
+}]
+# ...model replies with a tool_use block; validate its input straight back:
+q = WeatherQuery.model_validate(block.input)            # typed + guaranteed valid</pre>
+      <div>
+        <div class="gotchas-label">Common mistakes</div>
+        <ul class="gotchas">
+          <li>Asking for JSON in prose instead of using tool/structured mode — far less reliable.</li>
+          <li>Trusting the returned JSON without validating it (1.3, 1.4).</li>
+          <li>Schema too loose (<code>Any</code> fields) → the model fills them with junk.</li>
+        </ul>
+      </div>
+      <div class="links">
+        <a href="https://docs.claude.com/en/docs/build-with-claude/tool-use/overview" target="_blank" rel="noopener">Tool use overview <span class="src">docs.claude.com</span></a>
+      </div>
+    </div>
+
+    <!-- 2.7 -->
+    <div class="card amber">
+      <div class="card-head"><span class="card-id">2.7</span><div><h3>Streaming</h3><div class="role">Applied</div></div></div>
+      <div class="chips"><span class="chip">SSE</span><span class="chip">token-by-token</span><span class="chip">deltas</span><span class="chip">async for</span></div>
+      <a class="builds" href="01-python-fluency-map.html">↩ builds on 1.2 · Async</a>
+      <div class="model"><b>Mental model</b>Consume the response as an async stream of events, not one blob — this is where Step 1's <code>async for</code> pays off.</div>
+      <p class="why">Streaming sends the response token-by-token over SSE, so users see output immediately instead of waiting for the full generation. You accumulate <b>deltas</b> into the final text — and later, into partial tool-call JSON.</p>
+      <pre class="snippet">aclient = AsyncAnthropic()                 # the ASYNC client -- 1.2 for real
+
+async with aclient.messages.stream(
+    model="claude-sonnet-5",
+    max_tokens=4096,
+    messages=[{"role": "user", "content": "Write a haiku about latency."}],
+) as stream:
+    async for text in stream.text_stream:  # 1.2: consume incrementally
+        print(text, end="", flush=True)
+    final = await stream.get_final_message()   # usage/stop_reason live here</pre>
+      <div>
+        <div class="gotchas-label">Common mistakes</div>
+        <ul class="gotchas">
+          <li>Streaming from the <b>sync</b> client and calling it async practice. If it isn't <code>async with</code> / <code>async for</code>, you're still blocking a worker for the whole response.</li>
+          <li>Tool-call arguments arrive as partial JSON while streaming — accumulate before parsing.</li>
+          <li>No error handling mid-stream — and note you <b>cannot</b> turn a mid-stream failure into a 500, because the headers are already sent. Failures must be delivered <i>inside</i> the stream (see <code>step6_service.py</code>).</li>
+          <li>With thinking on, the default is to stream <i>empty</i> thinking blocks — to a UI that looks like a long pause. Pass <code>display:"summarized"</code> if you show reasoning.</li>
+        </ul>
+      </div>
+      <div class="links">
+        <a href="https://docs.claude.com/en/docs/build-with-claude/streaming" target="_blank" rel="noopener">Streaming messages <span class="src">docs.claude.com</span></a>
+      </div>
+    </div>
+
+    <!-- 2.8 -->
+    <div class="card amber span">
+      <div class="card-head"><span class="card-id">2.8</span><div><h3>Providers &amp; Model Choice <span style="font-size:.7em;color:var(--good)">· new</span></h3><div class="role">Applied · portability + the interview question</div></div></div>
+      <div class="chips"><span class="chip">Bedrock</span><span class="chip">Vertex AI</span><span class="chip">Foundry</span><span class="chip">gateway / LiteLLM</span><span class="chip">model tiers</span><span class="chip">cost per 1M</span><span class="chip">data residency</span></div>
+      <div class="model"><b>Mental model</b>The model is a <i>dependency</i>, not a fact of nature. Centralise which one you call and where you call it, exactly like a database connection string.</div>
+      <p class="why">The same Claude model is reachable through Anthropic's API, <b>Amazon Bedrock</b>, <b>Google Vertex AI</b>, and <b>Microsoft Foundry</b>. The request body is essentially identical; only the client constructor and the credential source change. This matters far more than it looks: <b>enterprise and government work almost never calls <code>api.anthropic.com</code> directly</b> — it consumes AI through a procured platform, inside a chosen region, under an existing contract. If your only skill is one vendor's SDK, you are not portable to the jobs that exist.</p>
+      <p class="why">The other half is <b>choosing</b> a model, which every interviewer asks. There is no "best" — there is a cost/latency/quality triangle. Right-sizing is the biggest cost lever you have: a cheap model for routing, classification and reranking, a mid model for the workhorse path, a top model only where correctness genuinely pays for itself.</p>
+      <pre class="snippet"># samples/config.py -- one place, so a platform move is a one-line edit
+PROVIDER = os.environ.get("AI_PROVIDER", "anthropic")
+
+if PROVIDER == "anthropic":  return anthropic.AsyncAnthropic()
+if PROVIDER == "bedrock":    return anthropic.AnthropicBedrockMantle(aws_region=...)
+if PROVIDER == "vertex":     return anthropic.AnthropicVertex(project_id=..., region=...)
+# ...every one of these exposes the SAME .messages.create() surface</pre>
+      <div class="drill"><b>Drill</b>Open <code>samples/config.py</code>. Compute the cost of a 50-turn agent conversation at each of the three price tiers in <code>PRICES</code>, then decide which tier each of the samples in this repo should actually use. That arithmetic is most of "cost engineering."</div>
+      <div>
+        <div class="gotchas-label">Common mistakes</div>
+        <ul class="gotchas">
+          <li>Hardcoding a model string across dozens of files. When it's renamed — and they are renamed — you're grepping under pressure.</li>
+          <li>Assuming model ids are portable: Bedrock prefixes them (<code>anthropic.claude-sonnet-5</code>), Vertex uses bare or <code>@</code>-versioned ids.</li>
+          <li>Assuming <i>features</i> are portable. Newer capabilities land on the first-party API first; check availability before designing around one.</li>
+          <li>Comparing token counts across model generations — tokenizers change. Re-count against the model you're actually shipping.</li>
+          <li>Defaulting to the biggest model "to be safe." That's a 5–10× bill for work a cheaper tier does identically.</li>
+        </ul>
+      </div>
+      <div class="links">
+        <a href="https://docs.claude.com/en/docs/about-claude/models/overview" target="_blank" rel="noopener">Models overview &amp; comparison <span class="src">docs.claude.com</span></a>
+        <a href="https://docs.claude.com/en/api/claude-on-amazon-bedrock" target="_blank" rel="noopener">Claude on Amazon Bedrock <span class="src">docs.claude.com</span></a>
+        <a href="https://docs.claude.com/en/api/claude-on-vertex-ai" target="_blank" rel="noopener">Claude on Vertex AI <span class="src">docs.claude.com</span></a>
+        <a href="https://www.anthropic.com/pricing" target="_blank" rel="noopener">Current pricing <span class="src">anthropic.com</span></a>
+      </div>
+    </div>
+
+    <!-- 2.9 -->
+    <div class="card amber span">
+      <div class="card-head"><span class="card-id">2.9</span><div><h3>Documents &amp; Images <span style="font-size:.7em;color:var(--good)">· new</span></h3><div class="role">Applied · the highest-volume real workload</div></div></div>
+      <div class="chips"><span class="chip">document block</span><span class="chip">image block</span><span class="chip">base64</span><span class="chip">Files API</span><span class="chip">citations</span><span class="chip">confidence gate</span></div>
+      <div class="model"><b>Mental model</b>A PDF is just another content block. Document AI is not a separate discipline — it is structured output (2.6) with a file glued to the front of the message.</div>
+      <p class="why">If you ship one useful AI thing at work, it will probably be this: <b>"read these thousands of forms and give me structured data."</b> Scanned submissions, invoices, certificates, screenshots — this is the bulk of real enterprise AI demand, and it is genuinely easy. You put a <code>document</code> block (PDF) or <code>image</code> block before your text instruction and validate the result into a Pydantic model. No OCR pipeline, no layout parser.</p>
+      <p class="why">The engineering is not in the call — it's in <b>knowing when not to trust it</b>. The model will always return a confident-looking object. Ask it for a <code>confidence</code> field and route anything low to a human. That one branch is the entire difference between a demo and a system people are allowed to rely on.</p>
+      <pre class="snippet">file_block = {"type": "document",          # "image" for png/jpg
+              "source": {"type": "base64",
+                         "media_type": "application/pdf",
+                         "data": base64.standard_b64encode(pdf_bytes).decode()}}
+
+r = client.messages.parse(                 # constrains AND validates
+    model=MODEL, max_tokens=4096,
+    output_format=InspectionRecord,        # a Pydantic model (1.3)
+    messages=[{"role": "user", "content": [file_block, {"type": "text",
+               "text": "Extract this form. Do not infer missing values."}]}],
+)
+record = r.parsed_output                   # already an InspectionRecord</pre>
+      <div class="drill"><b>Drill</b>Run <code>step2b_document_extract.py</code>, then point it at a real PDF of your own: <code>uv run step2b_document_extract.py my_form.pdf</code>. Now deliberately feed it a document that's missing a field and watch what <code>confidence</code> does — that behaviour is the thing you're actually building on.</div>
+      <div>
+        <div class="gotchas-label">Common mistakes</div>
+        <ul class="gotchas">
+          <li>Putting the instruction <i>before</i> the file. Models follow the instruction better once they've seen the data.</li>
+          <li>Trusting the output because it's well-formed. Schema-valid and factually right are different properties — that's what the confidence gate is for.</li>
+          <li>Base64-ing a huge scan on every call. Use the Files API to upload once and reference by id across requests.</li>
+          <li>Downsampling away the detail you need — or the opposite, sending needless high-res pages and paying ~3× the image tokens.</li>
+          <li>Forgetting a document is <b>untrusted input</b>. Text inside a PDF can carry a prompt injection straight past your input guardrail (6.4).</li>
+        </ul>
+      </div>
+      <div class="links">
+        <a href="https://docs.claude.com/en/docs/build-with-claude/pdf-support" target="_blank" rel="noopener">PDF support <span class="src">docs.claude.com</span></a>
+        <a href="https://docs.claude.com/en/docs/build-with-claude/vision" target="_blank" rel="noopener">Vision / images <span class="src">docs.claude.com</span></a>
+        <a href="https://docs.claude.com/en/docs/build-with-claude/citations" target="_blank" rel="noopener">Citations — cite the source page <span class="src">docs.claude.com</span></a>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- CAPSTONE -->
+  <div class="section-label">The capstone — proof you've cleared Step 2</div>
+  <div class="callout">
+    <h3>One real, single-shot LLM feature</h3>
+    <p class="why">No agent loop yet — just one great call that exercises the whole step end to end.</p>
+    <pre>A script that makes ONE real API call and:
+  • sends a system + user message                        (2.3)
+  • with effort + max_tokens set deliberately            (2.4)
+  • using a few-shot + chain-of-thought prompt            (2.5)
+  • returns structured JSON via a tool schema built
+    from a Pydantic model, validated on return    (2.6 ↔ 1.3)
+  • streamed with async for, on the async client   (2.7 ↔ 1.2)
+  • prints token count + estimated cost before & after    (2.2)
+  • reads its model + provider from one config file       (2.8)
+
+Then a SECOND script that:
+  • sends a PDF or image as a content block               (2.9)
+  • returns a validated record, not prose          (2.9 ↔ 2.6)
+  • routes low-confidence documents to a human           (6.3)</pre>
+    <p class="verdict">That's a working, production-shaped LLM feature. <b>Step 3 wraps this single call in a loop and hands the model tools — and that loop is an agent.</b></p>
+  </div>
+
+  <!-- BRIDGE -->
+  <div class="section-label">What Step 3 adds</div>
+  <div class="cards">
+    <div class="card">
+      <div class="card-head"><div><h3>From one call → an agent</h3><div class="role">Step 3 · Agent Building Blocks</div></div></div>
+      <p class="why">Step 3 turns this single call into a loop: <b>tool use</b> (act on the world), <b>RAG</b> (feed in real knowledge past the cutoff), <b>memory</b> (manage the growing context), and the <b>plan → act → observe</b> loop with retries.</p>
+      <div class="chips"><span class="chip">tool-calling loop</span><span class="chip">RAG + embeddings</span><span class="chip">memory</span><span class="chip">agent loop</span></div>
+    </div>
+    <div class="card">
+      <div class="card-head"><div><h3>Keep these open while you build</h3><div class="role">Reference</div></div></div>
+      <div class="links">
+        <a href="https://docs.claude.com/en/docs/build-with-claude/tool-use/overview" target="_blank" rel="noopener">Tool use overview <span class="src">docs.claude.com</span></a>
+        <a href="https://docs.claude.com/en/docs/build-with-claude/prompt-engineering/overview" target="_blank" rel="noopener">Prompt engineering <span class="src">docs.claude.com</span></a>
+        <a href="https://github.com/anthropics/anthropic-cookbook" target="_blank" rel="noopener">Anthropic Cookbook (runnable recipes) <span class="src">GitHub · free</span></a>
+        <a href="01-python-fluency-map.html">← Back to Step 1 · Python Fluency <span class="src">in track</span></a>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    <a class="nav-link prev-link" href="01-python-fluency-map.html">← Step 1 · Python Fluency</a>
+    <a class="nav-link next-link" href="03-agent-building-blocks-map.html">Step 3 · Agent Building Blocks →</a>
+  </footer>
+
+</div>

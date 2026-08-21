@@ -1,0 +1,289 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Explained · step5b_mcp_client.py</title>
+<style>
+  :root {
+    --bg:#eef1ee; --surface:#ffffff; --surface-2:#f3f6f2; --ink:#182019; --muted:#586459; --faint:#8a968b; --line:#dbe2db;
+    --accent:#2f8f5b; --accent-2:#1f7d6b; --accent-soft:#dcefe2; --warn:#b8791a; --warn-soft:#f7ecd9;
+    --shadow:0 1px 2px rgba(24,32,25,.05),0 10px 30px rgba(24,32,25,.07);
+    --mono:ui-monospace,"Cascadia Code","SF Mono",Menlo,Consolas,monospace;
+    --sans:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+    --s1:#2f7cb0; --s2:#7a4fb0; --s3:#12897a; --s4:#c2610f; --s5:#a83a6a; --s6:#3f5bb0;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{ --bg:#0c110d; --surface:#141a15; --surface-2:#19211a; --ink:#e7eee8; --muted:#98a89b; --faint:#6c7a6e; --line:#232d25;
+      --accent:#4fb37e; --accent-2:#46c2ab; --accent-soft:#14301f; --warn:#e0a94e; --warn-soft:#2b230f;
+      --s1:#58a9dc; --s2:#b48fe0; --s3:#4ec6b1; --s4:#e8944a; --s5:#e07aa6; --s6:#8b9ff0;
+      --shadow:0 1px 2px rgba(0,0,0,.35),0 10px 30px rgba(0,0,0,.45); }
+  }
+  :root[data-theme="light"]{ --bg:#eef1ee; --surface:#ffffff; --surface-2:#f3f6f2; --ink:#182019; --muted:#586459; --faint:#8a968b; --line:#dbe2db; --accent:#2f8f5b; --accent-2:#1f7d6b; --accent-soft:#dcefe2; --warn:#b8791a; --warn-soft:#f7ecd9; --s1:#2f7cb0; --s2:#7a4fb0; --s3:#12897a; --s4:#c2610f; --s5:#a83a6a; --s6:#3f5bb0; --shadow:0 1px 2px rgba(24,32,25,.05),0 10px 30px rgba(24,32,25,.07); }
+  :root[data-theme="dark"]{ --bg:#0c110d; --surface:#141a15; --surface-2:#19211a; --ink:#e7eee8; --muted:#98a89b; --faint:#6c7a6e; --line:#232d25; --accent:#4fb37e; --accent-2:#46c2ab; --accent-soft:#14301f; --warn:#e0a94e; --warn-soft:#2b230f; --s1:#58a9dc; --s2:#b48fe0; --s3:#4ec6b1; --s4:#e8944a; --s5:#e07aa6; --s6:#8b9ff0; --shadow:0 1px 2px rgba(0,0,0,.35),0 10px 30px rgba(0,0,0,.45); }
+
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink); font-family:var(--sans); line-height:1.65; -webkit-font-smoothing:antialiased; }
+  .wrap { max-width:840px; margin:0 auto; padding:clamp(24px,5vw,56px) clamp(18px,4vw,36px); }
+
+  code { font-family:var(--mono); font-size:.85em; background:var(--surface-2); padding:2px 6px; border-radius:5px; word-break:break-word; }
+  a { color:var(--accent-2); }
+  a.file { text-decoration:none; font-family:var(--mono); font-size:.85em; font-weight:600; }
+  a.file:hover { text-decoration:underline; }
+
+  .kicker { font-family:var(--mono); font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--accent); font-weight:700; margin:0 0 12px; }
+  h1 { font-size:clamp(26px,5.5vw,38px); line-height:1.1; margin:0 0 16px; letter-spacing:-.02em; text-wrap:balance; font-weight:800; }
+  .intro { font-size:clamp(15.5px,2.2vw,17px); color:var(--muted); margin:0 0 6px; }
+  .intro b { color:var(--ink); }
+
+  .orient { background:var(--surface); border:1px solid var(--line); border-radius:14px; padding:18px 20px; margin:22px 0 8px; box-shadow:var(--shadow); }
+  .orient p { margin:0 0 10px; font-size:14.5px; }
+  .orient p:last-child { margin-bottom:0; }
+  .orient .label { font-family:var(--mono); font-size:11px; letter-spacing:.08em; text-transform:uppercase; color:var(--accent); font-weight:700; display:block; margin-bottom:3px; }
+
+  section.block { margin:42px 0; }
+  h2 { font-size:clamp(18px,3vw,21px); margin:0 0 4px; letter-spacing:-.01em; display:flex; align-items:center; gap:10px; }
+  h2 .badge { font-family:var(--mono); font-size:12px; font-weight:700; color:#fff; width:26px; height:26px; border-radius:8px; display:inline-flex; align-items:center; justify-content:center; flex:none; }
+  .loc { font-family:var(--mono); font-size:12.5px; margin:0 0 14px; }
+  .did { font-size:15px; margin:0 0 14px; }
+
+  pre { background:var(--surface-2); border:1px solid var(--line); border-radius:10px; padding:12px 14px; overflow-x:auto; margin:0 0 14px; }
+  pre code { background:none; padding:0; font-size:13px; }
+
+  .concept, .why, .trace, .trap, .predict {
+    border-radius:12px; padding:14px 16px; margin:0 0 12px; font-size:14px; border:1px solid var(--line);
+  }
+  .concept { background:var(--accent-soft); border-left:4px solid var(--accent); }
+  .why { background:var(--surface); box-shadow:var(--shadow); }
+  .concept b, .why b { color:var(--ink); font-family:var(--mono); font-size:11.5px; letter-spacing:.06em; text-transform:uppercase; display:block; margin-bottom:5px; color:var(--accent-2); }
+
+  .trace-card { background:var(--surface); border:1px solid var(--line); border-radius:14px; padding:18px 20px; box-shadow:var(--shadow); }
+  .trace-card ol { margin:0; padding-left:22px; }
+  .trace-card li { margin-bottom:10px; font-size:14.5px; }
+  .trace-card li:last-child { margin-bottom:0; }
+
+  .traps { background:var(--warn-soft); border:1px solid var(--line); border-left:4px solid var(--warn); border-radius:12px; padding:16px 20px; }
+  .traps ul { margin:0; padding-left:20px; }
+  .traps li { margin-bottom:9px; font-size:14.5px; }
+  .traps li:last-child { margin-bottom:0; }
+
+  .predict { background:var(--surface); box-shadow:var(--shadow); }
+  .predict b { display:block; color:var(--ink); font-size:14.5px; margin-bottom:6px; }
+
+  .watch-cmd { display:block; font-family:var(--mono); font-size:13.5px; background:var(--surface-2); border:1px solid var(--line); border-radius:8px; padding:10px 14px; margin:14px 0; color:var(--ink); }
+
+  .diagram { background:var(--surface); border:1px solid var(--line); border-radius:14px; padding:20px; margin:22px 0 36px; box-shadow:var(--shadow); overflow-x:auto; }
+  .diagram .dg-title { font-family:var(--mono); font-size:11px; letter-spacing:.08em; text-transform:uppercase; color:var(--accent); font-weight:700; margin:0 0 6px; }
+  .diagram .dg-note { margin:0 0 16px; font-size:12.5px; color:var(--muted); }
+  .diagram svg { width:100%; height:auto; display:block; min-width:560px; }
+  .dg-box { fill:var(--surface-2); stroke:var(--line); stroke-width:1.5; }
+  .dg-box-accent { fill:var(--accent-soft); stroke:var(--accent); stroke-width:1.5; }
+  .dg-box-warn { fill:var(--warn-soft); stroke:var(--warn); stroke-width:1.5; }
+  .dg-box-dashed { fill:none; stroke:var(--faint); stroke-width:1.5; stroke-dasharray:6 5; }
+  .dg-text { fill:var(--ink); font-family:var(--sans); font-size:12.5px; font-weight:600; }
+  .dg-sub { fill:var(--muted); font-family:var(--sans); font-size:10.8px; }
+  .dg-label { fill:var(--faint); font-family:var(--mono); font-size:10px; text-transform:uppercase; letter-spacing:.03em; }
+  .dg-lane { fill:var(--accent-2); font-family:var(--mono); font-size:11px; font-weight:700; }
+  .dg-arrow { stroke:var(--faint); stroke-width:1.6; fill:none; }
+  .dg-arrowhead { fill:var(--faint); }
+
+  .navrow { display:flex; justify-content:space-between; gap:12px; margin-top:8px; font-family:var(--mono); font-size:12.5px; }
+  .navrow a { text-decoration:none; font-weight:600; }
+  .navrow a:hover { text-decoration:underline; }
+
+  footer { margin-top:52px; padding-top:20px; border-top:1px solid var(--line); color:var(--faint); font-family:var(--mono); font-size:12px; text-align:center; }
+  footer a { color:var(--faint); }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <p class="kicker">/explain &middot; step 5b</p>
+  <h1>step5b_mcp_client.py</h1>
+  <p class="intro"><b>An agent that gains tools it was never coded against.</b> This client hardcodes no tool schemas at all &mdash; it asks a server what it can do, and hands the answer to the model. That's the entire payoff of a protocol.</p>
+
+  <div class="orient">
+    <p><span class="label">What happens when you run it</span> It launches <a class="file" href="../mcp_dorm_server.py">mcp_dorm_server.py</a> as a background subprocess, prints the tools that server advertises, then answers a question using them &mdash; showing each <code>[mcp]</code> tool call as it happens.</p>
+    <p><span class="label">The one idea it teaches</span> <b>Runtime discovery.</b> Nothing below the <code>SERVER</code> constant knows what tools exist. Point it at a different server and the client works unchanged.</p>
+    <p><span class="label">What it deliberately leaves out</span> Auth, remote transport, and any trust boundary. It spawns a local script it already trusts. A real client talking to a third-party server has to worry about credentials, and about the fact that <b>tool descriptions from that server land in your prompt</b>.</p>
+  </div>
+
+  <div class="diagram">
+    <p class="dg-title">two processes, one protocol</p>
+    <p class="dg-note">The dashed box is the part you'd normally hand-write per integration. Here it arrives over a pipe.</p>
+    <svg viewBox="0 0 760 300" role="img" aria-label="The client spawns the server as a subprocess over stdio, calls initialize then list_tools to discover two tools, converts them with async_mcp_tool, and passes them to the SDK tool runner which loops with the model.">
+      <defs>
+        <marker id="dgArrow5b" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path class="dg-arrowhead" d="M0,0 L10,5 L0,10 z"/>
+        </marker>
+      </defs>
+
+      <path class="dg-arrow" marker-end="url(#dgArrow5b)" d="M240,74 L300,74"/>
+      <path class="dg-arrow" marker-end="url(#dgArrow5b)" d="M300,104 L240,104"/>
+      <text class="dg-label" x="246" y="66">spawn + initialize</text>
+      <text class="dg-label" x="246" y="124">list_tools() &rarr; 2 tools</text>
+
+      <text class="dg-lane" x="20" y="32">your process</text>
+      <g>
+        <rect class="dg-box-accent" x="20" y="46" width="220" height="76" rx="10"/>
+        <text class="dg-text" x="130" y="76" text-anchor="middle">step5b_mcp_client.py</text>
+        <text class="dg-sub" x="130" y="96" text-anchor="middle">zero tool schemas written</text>
+      </g>
+
+      <text class="dg-lane" x="300" y="32">a separate process</text>
+      <g>
+        <rect class="dg-box-dashed" x="300" y="46" width="230" height="76" rx="10"/>
+        <text class="dg-text" x="415" y="76" text-anchor="middle">mcp_dorm_server.py</text>
+        <text class="dg-sub" x="415" y="96" text-anchor="middle">stdio &mdash; could be anyone's</text>
+      </g>
+
+      <path class="dg-arrow" marker-end="url(#dgArrow5b)" d="M130,130 L130,178"/>
+      <g>
+        <rect class="dg-box" x="20" y="178" width="220" height="66" rx="10"/>
+        <text class="dg-text" x="130" y="204" text-anchor="middle">async_mcp_tool()</text>
+        <text class="dg-sub" x="130" y="224" text-anchor="middle">MCP tool &rarr; API tool</text>
+      </g>
+
+      <path class="dg-arrow" marker-end="url(#dgArrow5b)" d="M244,211 L300,211"/>
+      <g>
+        <rect class="dg-box" x="300" y="178" width="230" height="66" rx="10"/>
+        <text class="dg-text" x="415" y="204" text-anchor="middle">tool_runner</text>
+        <text class="dg-sub" x="415" y="224" text-anchor="middle">the Step 3 loop, supplied</text>
+      </g>
+
+      <path class="dg-arrow" marker-end="url(#dgArrow5b)" d="M534,211 L590,211"/>
+      <g>
+        <rect class="dg-box-accent" x="590" y="178" width="140" height="66" rx="10"/>
+        <text class="dg-text" x="660" y="211" text-anchor="middle">the model</text>
+      </g>
+    </svg>
+  </div>
+
+  <section class="block">
+    <h2><span class="badge" style="background:var(--s1)">1</span>The imports tell you the shape</h2>
+    <p class="loc"><a class="file" href="../step5b_mcp_client.py#L22">step5b_mcp_client.py:22-26</a></p>
+    <pre><code>from anthropic.lib.tools.mcp import async_mcp_tool
+from mcp import ClientSession
+from mcp.client.stdio import StdioServerParameters, stdio_client</code></pre>
+    <div class="concept"><b>Concept</b>Two separate projects. <code>mcp</code> is the protocol SDK, maintained independently of Anthropic. <code>anthropic.lib.tools.mcp</code> is a small adapter that turns MCP's tool objects into the shape the Messages API wants.</div>
+    <div class="why"><b>Why that split matters</b>MCP is an <i>open</i> standard, not an Anthropic feature &mdash; the same server works with other clients and other models. The adapter is the only Anthropic-specific line here. Needs <code>anthropic[mcp]</code> and Python 3.10+.</div>
+  </section>
+
+  <section class="block">
+    <h2><span class="badge" style="background:var(--s2)">2</span><code>SERVER</code> &mdash; the only line that knows anything</h2>
+    <p class="loc"><a class="file" href="../step5b_mcp_client.py#L35">step5b_mcp_client.py:35-38</a></p>
+    <pre><code>SERVER = StdioServerParameters(
+    command=sys.executable,           # the same Python that's running us
+    args=["mcp_dorm_server.py"],
+)</code></pre>
+    <div class="concept"><b>Concept</b>stdio transport. The client <b>launches</b> the server as a child process and talks to it over the pipes &mdash; the same mechanism a shell uses.</div>
+    <div class="why"><b>Why <code>sys.executable</code> rather than <code>"python"</code></b>Under <code>uv run</code> the interpreter with your dependencies installed is not necessarily the <code>python</code> on PATH. <code>sys.executable</code> is whichever interpreter is running this file, so the child gets the same environment. This is the sort of one-line detail that produces a baffling ModuleNotFoundError from a subprocess.</div>
+    <div class="why"><b>This is the whole configuration surface</b>Swap these two values for <code>uvx mcp-server-fetch</code>, or a vendor's server, or your own, and <b>nothing else in the file changes</b>. That is the claim MCP makes, and this constant is where you can check it.</div>
+  </section>
+
+  <section class="block">
+    <h2><span class="badge" style="background:var(--s3)">3</span>Discovery &mdash; the part worth watching</h2>
+    <p class="loc"><a class="file" href="../step5b_mcp_client.py#L42">step5b_mcp_client.py:42-57</a></p>
+    <p class="did">Opens the connection, handshakes, asks for the tool list, and prints it.</p>
+    <pre><code>async with stdio_client(SERVER) as (read, write):
+    async with ClientSession(read, write) as session:
+        await session.initialize()
+        listed = await session.list_tools()      # 5.3 we did NOT hardcode these</code></pre>
+    <div class="concept"><b>Concept</b>Capability negotiation. <code>initialize()</code> is the handshake; <code>list_tools()</code> is the client asking "what can you do?"</div>
+    <div class="why"><b>Why the two nested <code>async with</code> blocks</b>The outer one owns the subprocess &mdash; leaving it kills the server. The inner one owns the protocol session. Nesting them means a crash anywhere cleans up both, in order, with no orphaned Python process left running. This is plumbing, but it's the kind whose absence you discover via Task Manager.</div>
+    <div class="why"><b>Why printing the tool list is the point of the sample</b>Compare with <a class="file" href="../step3_agent.py#L67">step3_agent.py's <code>TOOL_SCHEMAS</code></a>: forty lines of hand-written JSON Schema, which must be kept in sync with the Python functions by hand. Here that list <i>arrives</i>. Add a tool to the server and re-run the client with no edits &mdash; it will use the new tool. <b>That gap is the entire argument for a protocol boundary</b>, and it's why the track rates <i>consuming</i> MCP as worth an hour of your life.</div>
+  </section>
+
+  <section class="block">
+    <h2><span class="badge" style="background:var(--s4)">4</span><code>async_mcp_tool()</code> + <code>tool_runner</code> &mdash; borrowed loop</h2>
+    <p class="loc"><a class="file" href="../step5b_mcp_client.py#L60">step5b_mcp_client.py:60-77</a></p>
+    <p class="did">Converts each discovered tool, then lets the SDK drive the call/dispatch/feed-back cycle.</p>
+    <pre><code>tools = [async_mcp_tool(t, session) for t in listed.tools]
+
+runner = client.beta.messages.tool_runner(
+    model=MODEL, max_tokens=4096, tools=tools,
+    messages=[{"role": "user", "content": question}],
+)
+async for message in runner:      # the loop you wrote by hand in Step 3</code></pre>
+    <div class="concept"><b>Concept</b>The SDK's built-in agent loop. <code>async_mcp_tool</code> bundles the schema <i>and</i> a callable that forwards execution back over the MCP session.</div>
+    <div class="why"><b>Why it's safe to let the SDK do it here</b>Because you already wrote this loop. <code>tool_runner</code> is doing exactly what <a class="file" href="../step3_agent.py#L100">step3_agent.py</a> does: call the model, check for tool requests, run them, append results, repeat until it stops asking. You can predict its behaviour and debug it when it misbehaves. <b>That's the only reason to use it &mdash; and it's why Step 3 comes before Step 4.</b></div>
+    <div class="why"><b>What it costs you</b>The step cap is now the SDK's business, not yours. If a model loops on a tool, you have less direct control than the plain <code>for _ in range(MAX_STEPS)</code> you wrote yourself. Fine for a demo; something to check before production.</div>
+    <div class="why"><b>The <code>[mcp]</code> print is deliberate</b>Iterating the runner is the only window you get into a loop you didn't write. Printing each <code>tool_use</code> block as it passes is a poor man's trace &mdash; and a reminder that with a framework, observability stops being free.</div>
+  </section>
+
+  <section class="block">
+    <h2><span class="badge" style="background:var(--s5)">5</span>The server side, in one glance</h2>
+    <p class="loc"><a class="file" href="../mcp_dorm_server.py#L31">mcp_dorm_server.py:31-52</a></p>
+    <p class="did">Two functions with a decorator, and <code>mcp.run()</code>.</p>
+    <pre><code>@mcp.tool()
+def search_dorm_facts(query: str) -> str:
+    """Search the dormitory knowledge base for facts about blocks and rules.
+
+    Args:
+        query: Words to look for, e.g. "Dorm A residents" or "quiet hours".
+    """</code></pre>
+    <div class="concept"><b>Concept</b>Signature and docstring become the schema. The type hints produce the JSON Schema; the docstring becomes the description the model reads.</div>
+    <div class="why"><b>Why this looks familiar</b>It's module 1.3's Pydantic-model-as-contract, standardised across an ecosystem. The decorator does what you built by hand in <a class="file" href="../step1_mock_agent.py">step1_mock_agent.py</a>'s <code>register_tool</code> &mdash; which is why that Step 1 drill about capturing docstrings via <code>inspect</code> was pointing here all along.</div>
+    <div class="why"><b>Read this file once, then don't write one for a while</b>The track's position: <b>consuming servers is ★★, authoring them is ○ until you have something specific to expose.</b> The API is small and you'll learn it in an afternoon on the day you need it. Your realistic ratio is many servers consumed per one written &mdash; and if nothing else will ever consume it, a protocol boundary is pure overhead over a plain function.</div>
+  </section>
+
+  <section class="block">
+    <h2>Traced end to end</h2>
+    <p class="did">Question: <code>"How many residents are in Dorm A and Dorm B in total?"</code></p>
+    <div class="trace-card">
+      <ol>
+        <li><code>stdio_client</code> spawns <code>python mcp_dorm_server.py</code>. The server starts and waits on stdin &mdash; it prints nothing you'll see.</li>
+        <li><code>initialize()</code> exchanges protocol versions and capabilities.</li>
+        <li><code>list_tools()</code> returns two entries. The client prints <code>search_dorm_facts</code> and <code>list_blocks</code> with their descriptions &mdash; <b>the first proof that discovery worked.</b></li>
+        <li>Each is wrapped by <code>async_mcp_tool</code> into something with a schema and an executor.</li>
+        <li>The runner sends the question plus both tool definitions. The model asks for <code>search_dorm_facts(query="Dorm A Dorm B residents")</code>.</li>
+        <li>The client prints <code>[mcp] search_dorm_facts({'query': ...})</code>, and the call travels <b>over the pipe</b> to the other process, which keyword-matches its own <code>DOCS</code> and returns both dorm lines.</li>
+        <li>The result comes back as a <code>tool_result</code>; the runner appends it and re-calls the model.</li>
+        <li>The model has 480 and 320. Note there is <b>no calculator tool here</b> &mdash; it adds them itself and answers 800. Fewer tools than Step 3, so it does the arithmetic in its head.</li>
+        <li>The loop ends; the final text prints. Leaving the <code>async with</code> blocks shuts the subprocess down.</li>
+      </ol>
+    </div>
+  </section>
+
+  <section class="block">
+    <h2>Traps</h2>
+    <div class="traps">
+      <ul>
+        <li><b>Must be run from inside <code>samples/</code>.</b> <code>args=["mcp_dorm_server.py"]</code> is a relative path; from elsewhere the subprocess dies and you get a connection error rather than a clear "file not found".</li>
+        <li><b>Needs the full dependency string:</b> <code>uv run --with "anthropic[mcp],mcp" step5b_mcp_client.py</code>. Plain <code>--with anthropic</code> gives you <code>No module named 'mcp'</code>.</li>
+        <li><b>Python 3.10+.</b> The MCP SDK requires it.</li>
+        <li><b>The server prints nothing on success.</b> Silence from it is correct &mdash; it's speaking a protocol on stdout, not logging. Anything it printed to stdout would <i>corrupt</i> that stream.</li>
+        <li><b>Never run <code>mcp_dorm_server.py</code> expecting output.</b> It waits for a client on stdin and looks hung. That's not a bug.</li>
+        <li><b>The model does its own arithmetic here.</b> With no calculator tool, the total is computed by the model &mdash; fine for 480+320, not something to rely on generally.</li>
+        <li><b>No trust boundary at all.</b> This spawns a local file you wrote. A third-party server sees every argument you send it, and its tool <i>descriptions</i> go into your prompt &mdash; a hostile server is an injection vector (module 6.4).</li>
+        <li><b>Needs <code>ANTHROPIC_API_KEY</code>.</b></li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="block">
+    <h2>What to watch when you run it</h2>
+    <span class="watch-cmd">uv run --with "anthropic[mcp],mcp" step5b_mcp_client.py</span>
+    <span class="watch-cmd">uv run --with "anthropic[mcp],mcp" step5b_mcp_client.py "list every block on record"</span>
+    <p class="did">Watch the discovered-tools list first, then which tool the model picks. The second command should make it choose <code>list_blocks</code> instead &mdash; a choice nothing in the client code influences.</p>
+    <div class="predict">
+      <b>Predict before you run</b>
+      There is no calculator tool. Will the model refuse to total the two numbers, call <code>search_dorm_facts</code> twice, or just add them itself? Guess, then look at the <code>[mcp]</code> lines.
+    </div>
+    <div class="predict">
+      <b>Then prove the protocol claim</b>
+      Add a third tool to <code>mcp_dorm_server.py</code> &mdash; say <code>count_residents(block: str) -> int</code> &mdash; and re-run the client <b>without editing it</b>. It will appear in the discovered list and the model will use it. Compare that against what adding a tool to <a class="file" href="../step3_agent.py">step3_agent.py</a> costs you: a function, a registry entry, <i>and</i> a hand-written JSON schema kept in sync. That difference is the whole value proposition, and now you've measured it rather than read about it.
+    </div>
+  </section>
+
+  <div class="navrow">
+    <a href="step5_orchestrator.html">&larr; step 5: orchestrator + eval suite</a>
+    <a href="step6_service.html">step 6: the agent behind FastAPI &rarr;</a>
+  </div>
+
+  <footer>
+    generated by <code>/explain</code> &middot; source: <a href="../step5b_mcp_client.py">step5b_mcp_client.py</a>, <a href="../mcp_dorm_server.py">mcp_dorm_server.py</a> &middot; see also <a href="../README.md">README.md</a>
+  </footer>
+</div>
+</body>
+</html>

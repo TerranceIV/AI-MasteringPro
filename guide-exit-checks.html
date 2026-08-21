@@ -1,0 +1,394 @@
+<title>Exit Checks</title>
+<style>
+  :root {
+    --bg:#eef1ee; --surface:#ffffff; --surface-2:#f3f6f2; --ink:#182019; --muted:#586459; --faint:#8a968b; --line:#dbe2db;
+    --accent:#2f8f5b; --accent-2:#1f7d6b; --accent-soft:#dcefe2; --warn:#b8791a; --warn-soft:#f8efdc;
+    --shadow:0 1px 2px rgba(24,32,25,.05),0 10px 30px rgba(24,32,25,.07);
+    --mono:ui-monospace,"Cascadia Code","SF Mono",Menlo,Consolas,monospace;
+    --sans:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+    --s1:#2f7cb0; --s2:#7a4fb0; --s3:#12897a; --s4:#c2610f; --s5:#a83a6a; --s6:#3f5bb0;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{ --bg:#0c110d; --surface:#141a15; --surface-2:#19211a; --ink:#e7eee8; --muted:#98a89b; --faint:#6c7a6e; --line:#232d25;
+      --accent:#4fb37e; --accent-2:#46c2ab; --accent-soft:#14301f; --warn:#e0a94e; --warn-soft:#332714;
+      --s1:#58a9dc; --s2:#b48fe0; --s3:#4ec6b1; --s4:#e8944a; --s5:#e07aa6; --s6:#8b9ff0;
+      --shadow:0 1px 2px rgba(0,0,0,.35),0 10px 30px rgba(0,0,0,.45); }
+  }
+  :root[data-theme="light"]{ --bg:#eef1ee; --surface:#ffffff; --surface-2:#f3f6f2; --ink:#182019; --muted:#586459; --faint:#8a968b; --line:#dbe2db; --accent:#2f8f5b; --accent-2:#1f7d6b; --accent-soft:#dcefe2; --warn:#b8791a; --warn-soft:#f8efdc; --s1:#2f7cb0; --s2:#7a4fb0; --s3:#12897a; --s4:#c2610f; --s5:#a83a6a; --s6:#3f5bb0; --shadow:0 1px 2px rgba(24,32,25,.05),0 10px 30px rgba(24,32,25,.07); }
+  :root[data-theme="dark"]{ --bg:#0c110d; --surface:#141a15; --surface-2:#19211a; --ink:#e7eee8; --muted:#98a89b; --faint:#6c7a6e; --line:#232d25; --accent:#4fb37e; --accent-2:#46c2ab; --accent-soft:#14301f; --warn:#e0a94e; --warn-soft:#332714; --s1:#58a9dc; --s2:#b48fe0; --s3:#4ec6b1; --s4:#e8944a; --s5:#e07aa6; --s6:#8b9ff0; --shadow:0 1px 2px rgba(0,0,0,.35),0 10px 30px rgba(0,0,0,.45); }
+
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink); font-family:var(--sans); line-height:1.62; -webkit-font-smoothing:antialiased; }
+  .wrap { max-width:960px; margin:0 auto; padding:clamp(24px,5vw,56px) clamp(18px,4vw,36px); }
+  code { font-family:var(--mono); font-size:.85em; background:var(--surface-2); padding:2px 6px; border-radius:5px; word-break:break-word; }
+  a { color:var(--accent-2); }
+  pre { font-family:var(--mono); font-size:12.5px; line-height:1.7; background:var(--surface-2); border:1px solid var(--line); border-radius:9px; padding:13px 15px; overflow-x:auto; margin:10px 0; }
+
+  .backlink { font-family:var(--mono); font-size:12px; color:var(--faint); text-decoration:none; display:inline-block; margin-bottom:22px; }
+  .backlink:hover { color:var(--ink); }
+  .kicker { font-family:var(--mono); font-size:12px; letter-spacing:.13em; text-transform:uppercase; color:var(--accent); font-weight:700; margin:0 0 12px; }
+  h1 { font-size:clamp(30px,6vw,46px); line-height:1.05; margin:0 0 14px; letter-spacing:-.025em; text-wrap:balance; font-weight:800; }
+  .lede { font-size:clamp(15.5px,2.2vw,18px); color:var(--muted); max-width:70ch; margin:0 0 6px; }
+  .lede b { color:var(--ink); }
+
+  .callout { background:var(--accent-soft); border:1px solid var(--line); border-left:4px solid var(--accent); border-radius:12px; padding:16px 18px; margin:22px 0; font-size:14.6px; }
+  .callout b { color:var(--ink); }
+  .warnbox { background:var(--warn-soft); border:1px solid var(--line); border-left:4px solid var(--warn); border-radius:12px; padding:16px 18px; margin:22px 0; font-size:14.6px; }
+
+  h2 { font-size:clamp(19px,3vw,24px); margin:48px 0 4px; letter-spacing:-.015em; display:flex; align-items:center; gap:11px; flex-wrap:wrap; }
+  h2 .sn { font-family:var(--mono); font-size:12px; font-weight:800; color:#fff; background:var(--c); padding:4px 9px; border-radius:7px; }
+  .sub { color:var(--muted); margin:0 0 16px; font-size:14.3px; }
+
+  .q { background:var(--surface); border:1px solid var(--line); border-radius:12px; padding:15px 17px; box-shadow:var(--shadow); margin-bottom:11px; }
+  .q > .qt { font-weight:600; font-size:14.8px; display:flex; gap:10px; }
+  .q > .qt .num { font-family:var(--mono); color:var(--c); font-weight:800; flex:none; }
+  details { margin-top:10px; }
+  details > summary { font-family:var(--mono); font-size:11.5px; text-transform:uppercase; letter-spacing:.07em; color:var(--accent); font-weight:700; cursor:pointer; padding:5px 0; list-style:none; }
+  details > summary::-webkit-details-marker { display:none; }
+  details > summary::before { content:"▸ show answer"; }
+  details[open] > summary::before { content:"▾ answer"; }
+  details > summary:hover { color:var(--ink); }
+  .ans { font-size:14.2px; color:var(--muted); border-left:3px solid var(--line); padding-left:13px; margin-top:6px; }
+  .ans b { color:var(--ink); }
+  .ans .why { display:block; margin-top:7px; font-size:13.6px; }
+
+  .drill { background:var(--surface); border:1px solid var(--line); border-top:3px solid var(--accent); border-radius:13px; padding:20px 22px; box-shadow:var(--shadow); margin-bottom:14px; }
+  .drill h3 { margin:0 0 8px; font-size:17.5px; letter-spacing:-.01em; }
+  .drill p { margin:0 0 10px; font-size:14.3px; color:var(--muted); }
+  .drill p:last-child { margin-bottom:0; }
+  .drill b { color:var(--ink); }
+  .drill ol { margin:0 0 10px; padding-left:20px; font-size:14.2px; color:var(--muted); display:flex; flex-direction:column; gap:7px; }
+  .drill ol b { color:var(--ink); }
+
+  footer { margin-top:54px; padding-top:20px; border-top:1px solid var(--line); display:flex; justify-content:space-between; gap:14px; flex-wrap:wrap; color:var(--faint); font-family:var(--mono); font-size:12px; }
+  footer a { color:var(--accent); text-decoration:none; font-weight:700; }
+</style>
+
+<div class="wrap">
+
+  <a class="backlink" href="00-START-HERE.html">← Back to Start Here</a>
+
+  <p class="kicker">Assessment · 6 exit checks + 2 rebuild drills</p>
+  <h1>Exit Checks</h1>
+  <p class="lede">Every other page in this track is <b>input</b>. This one is the only <b>output</b>. Five questions per step, answers hidden until you commit to a guess — plus the two drills that actually decide whether you learned it.</p>
+
+  <div class="warnbox">
+    <b>Why this page exists.</b> Reading code you understand feels <i>identical</i> to being able to write it — right up until the moment you can't. That illusion is the single biggest failure mode in self-taught engineering, and ticking a checkbox does nothing to break it. Every question below is "predict what this does" rather than "define this term", because recall of a definition is not the skill you're building.
+    <span style="display:block;margin-top:8px"><b>Guess out loud before you open the answer.</b> A wrong guess you committed to teaches you far more than a right answer you read.</span>
+  </div>
+
+  <div class="callout">
+    <b>Scoring:</b> 4 out of 5 to move on. Under that, don't re-read the map — <b>go run the sample and break it on purpose</b>. Every question here corresponds to something you can make happen in <code>samples/</code> in under two minutes.
+  </div>
+
+  <!-- ============ STEP 1 ============ -->
+  <h2 style="--c:var(--s1)"><span class="sn">01</span> Python Fluency</h2>
+  <p class="sub">All five are things that will silently break an agent rather than raise an obvious error.</p>
+
+  <div class="q" style="--c:var(--s1)">
+    <div class="qt"><span class="num">1</span><span>What does the second call print?<pre>def add(item, bucket=[]):
+    bucket.append(item)
+    return bucket
+
+print(add("a"))
+print(add("b"))</pre></span></div>
+    <details><summary></summary><div class="ans">
+      <code>['a']</code> then <code>['a', 'b']</code> — not <code>['b']</code>.
+      <span class="why"><b>Why:</b> the default list is created <i>once</i>, when the function is defined, and shared by every call that doesn't pass one. In agent code this shows up as conversation history from one request leaking into the next. Default to <code>None</code> and build the list inside.</span>
+    </div></details>
+  </div>
+
+  <div class="q" style="--c:var(--s1)">
+    <div class="qt"><span class="num">2</span><span>What does this print?<pre>fns = [lambda: i for i in range(3)]
+print([f() for f in fns])</pre></span></div>
+    <details><summary></summary><div class="ans">
+      <code>[2, 2, 2]</code>.
+      <span class="why"><b>Why:</b> closures capture the <i>variable</i>, not its value at creation time — so all three lambdas see the final <code>i</code>. This bites when you build a tool registry in a loop and every entry ends up pointing at the last tool. Fix with a default argument: <code>lambda i=i: i</code>.</span>
+    </div></details>
+  </div>
+
+  <div class="q" style="--c:var(--s1)">
+    <div class="qt"><span class="num">3</span><span>Three tool calls run under <code>asyncio.gather()</code>. The second raises. What happens to the first and third?</span></div>
+    <details><summary></summary><div class="ans">
+      They're <b>cancelled</b>, and <code>gather</code> re-raises the exception — you lose the results of work that succeeded.
+      <span class="why"><b>Why it matters:</b> one flaky tool takes down the whole turn. Pass <code>return_exceptions=True</code> and you get a list where failures are exception <i>objects</i> you can inspect and feed back to the model as <code>tool_result</code> with <code>is_error</code>. That's the difference between an agent that recovers and one that dies.</span>
+    </div></details>
+  </div>
+
+  <div class="q" style="--c:var(--s1)">
+    <div class="qt"><span class="num">4</span><span>Why does <code>time.sleep(1)</code> inside an <code>async def</code> make ten concurrent calls take ten seconds instead of one?</span></div>
+    <details><summary></summary><div class="ans">
+      Because <code>time.sleep</code> blocks the <b>event loop thread</b>. Nothing else can run — not the other nine coroutines, not the web server, nothing.
+      <span class="why"><b>Why it matters:</b> this is the #1 async bug, and it produces no error — just mysteriously serial performance. The same trap applies to <code>requests.get()</code> inside async code. Use <code>asyncio.sleep</code> and an async HTTP client. An <code>await</code> is the <i>only</i> place the loop can switch tasks.</span>
+    </div></details>
+  </div>
+
+  <div class="q" style="--c:var(--s1)">
+    <div class="qt"><span class="num">5</span><span>You have <code>class Q(BaseModel): units: Literal["c","f"]</code>. The model sends <code>{"units": "x"}</code>. What happens, and why is that <i>good</i>?</span></div>
+    <details><summary></summary><div class="ans">
+      <code>model_validate</code> raises <code>ValidationError</code> — before your tool function ever runs.
+      <span class="why"><b>Why it's good:</b> the model <i>will</i> occasionally send arguments outside your schema, and you want that caught at the boundary rather than deep inside your tool. Catch it, format it as a <code>tool_result</code> with <code>is_error=True</code>, and the model usually corrects itself on the next turn. <code>step1_mock_agent.py</code> does this on purpose — that <code>ERROR: bad args</code> line is the lesson, not a bug.</span>
+    </div></details>
+  </div>
+
+  <!-- ============ STEP 2 ============ -->
+  <h2 style="--c:var(--s2)"><span class="sn">02</span> LLM Fundamentals</h2>
+  <p class="sub">Questions 1–3 are the ones that will actually cost you an afternoon.</p>
+
+  <div class="q" style="--c:var(--s2)">
+    <div class="qt"><span class="num">1</span><span>You copy a snippet from a 2024 blog post and run it against <code>claude-sonnet-5</code>:<pre>client.messages.create(model=MODEL, temperature=0, ...)</pre>What happens?</span></div>
+    <details><summary></summary><div class="ans">
+      A <b>400 error</b>. Current models reject <code>temperature</code>, <code>top_p</code> and <code>top_k</code> when set to a non-default value.
+      <span class="why"><b>What to do instead:</b> delete the argument. Steer with the prompt, and control reasoning depth with <code>output_config={"effort": "..."}</code>. This is the single most common breakage when following older tutorials — and note it's a <i>hard error</i>, not degraded output, so at least it tells you.</span>
+    </div></details>
+  </div>
+
+  <div class="q" style="--c:var(--s2)">
+    <div class="qt"><span class="num">2</span><span>Why can <code>print(msg.content[0].text)</code> raise <code>AttributeError</code>?</span></div>
+    <details><summary></summary><div class="ans">
+      Because <code>content</code> is a list of <b>typed blocks</b>, and with thinking enabled block 0 is often a <code>thinking</code> block, which has no <code>.text</code>.
+      <span class="why"><b>The habit:</b> always filter by type — <code>"".join(b.text for b in msg.content if b.type == "text")</code>. Tool calls, images and documents arrive the same way. Indexing into <code>content</code> is a bug waiting for the day thinking gets switched on.</span>
+    </div></details>
+  </div>
+
+  <div class="q" style="--c:var(--s2)">
+    <div class="qt"><span class="num">3</span><span>Your extraction worked fine on an older model. You switch to a current one, keep <code>max_tokens=1024</code>, and now answers get cut off mid-sentence. Why?</span></div>
+    <details><summary></summary><div class="ans">
+      Adaptive thinking is <b>on by default</b>, and <code>max_tokens</code> caps thinking <b>+</b> answer together. The model spends part of your 1024 tokens reasoning and runs out mid-answer.
+      <span class="why"><b>Check for it:</b> <code>stop_reason == "max_tokens"</code>. Fix by raising the budget (these samples use 4096). Turning thinking off is usually the wrong fix — on current models it also makes them noticeably less willing to reach for tools, which is fatal in an agent loop.</span>
+    </div></details>
+  </div>
+
+  <div class="q" style="--c:var(--s2)">
+    <div class="qt"><span class="num">4</span><span>You send the identical request twice. Are the two responses identical?</span></div>
+    <details><summary></summary><div class="ans">
+      <b>No</b>, and you can't make them so.
+      <span class="why"><b>Why it matters:</b> people used to reach for <code>temperature=0</code> for "determinism" — it never guaranteed identical output, and it isn't available now anyway. If you need stability, get it from <b>structure</b> (constrain the output to a schema so the <i>shape</i> is guaranteed) and from <b>evals</b> (assert on the facts you care about, not on an exact string). Never write a test that compares model output to a golden string.</span>
+    </div></details>
+  </div>
+
+  <div class="q" style="--c:var(--s2)">
+    <div class="qt"><span class="num">5</span><span>You counted a prompt at 1,000 tokens last year and sized your context budget around it. Why re-count today?</span></div>
+    <details><summary></summary><div class="ans">
+      <b>Tokenizers change between model generations.</b> The same text can produce ~30% more tokens on a current model than on the previous one.
+      <span class="why"><b>Consequences:</b> your context window holds less text than you think, a <code>max_tokens</code> tuned earlier may truncate, and your cost-per-request baseline shifts even when the per-token price hasn't moved. Always run <code>count_tokens</code> against the model you're actually shipping — never reuse a number measured elsewhere.</span>
+    </div></details>
+  </div>
+
+  <!-- ============ STEP 3 ============ -->
+  <h2 style="--c:var(--s3)"><span class="sn">03</span> Agent Building Blocks</h2>
+  <p class="sub">The keystone step. If you get fewer than 4 here, go back — everything after this assumes it.</p>
+
+  <div class="q" style="--c:var(--s3)">
+    <div class="qt"><span class="num">1</span><span>In the loop, you run the tool and append the <code>tool_result</code> — but forget to append the <b>assistant</b> message containing the <code>tool_use</code> block. What happens?</span></div>
+    <details><summary></summary><div class="ans">
+      The API rejects it: a <code>tool_result</code> must reference a <code>tool_use</code> that exists in the conversation. Its <code>tool_use_id</code> now points at nothing.
+      <span class="why"><b>The mental model:</b> the API is <b>stateless</b>. It has no memory of the turn it just produced — the conversation exists only in the array you resend. If you don't append it, it didn't happen.</span>
+    </div></details>
+  </div>
+
+  <div class="q" style="--c:var(--s3)">
+    <div class="qt"><span class="num">2</span><span>The model requests two tools in one turn. You send back two <i>separate</i> user messages, one result each. It's accepted — so what's the problem?</span></div>
+    <details><summary></summary><div class="ans">
+      You've quietly taught the model to <b>stop making parallel tool calls</b>. It sees a history where simultaneous requests weren't answered simultaneously, and it degrades to one tool at a time.
+      <span class="why"><b>Why it's nasty:</b> no error, no warning — just an agent that gets slower and more expensive over long conversations, for reasons that don't show up anywhere. Always return every <code>tool_result</code> from one assistant turn in a <b>single</b> user message.</span>
+    </div></details>
+  </div>
+
+  <div class="q" style="--c:var(--s3)">
+    <div class="qt"><span class="num">3</span><span><code>MAX_STEPS</code> is 6 and the loop exhausts it. What does the caller get, and what should it get?</span></div>
+    <details><summary></summary><div class="ans">
+      In <code>step3_agent.py</code> it returns the string <code>"stopped: hit MAX_STEPS without a final answer"</code> — a <b>successful</b> return carrying a failure.
+      <span class="why"><b>Why that's a problem in production:</b> the caller can't distinguish "the agent answered" from "the agent gave up" without string-matching. Real systems raise, or return a typed result with a status field, so the failure is visible to monitoring. And you <i>must</i> cap the loop regardless — an uncapped agent loop is an uncapped bill.</span>
+    </div></details>
+  </div>
+
+  <div class="q" style="--c:var(--s3)">
+    <div class="qt"><span class="num">4</span><span>Your tool raises. You catch it and return the message as a normal <code>tool_result</code> without setting <code>is_error</code>. What does the model do?</span></div>
+    <details><summary></summary><div class="ans">
+      It may treat your error string as <b>data</b> — and reason about, or report, <code>"ERROR: division by zero"</code> as though it were a legitimate result.
+      <span class="why"><b>The distinction:</b> <code>is_error=True</code> tells the model the call failed so it can retry differently or explain the limitation. And the broader judgement call from module 1.5 sits here: some failures are recoverable (feed them back) and some are fatal (stop the loop). Feeding back a fatal error just burns tokens on six doomed retries.</span>
+    </div></details>
+  </div>
+
+  <div class="q" style="--c:var(--s3)">
+    <div class="qt"><span class="num">5</span><span>You add <code>cache_control</code> to the system prompt, run the agent, and <code>cache_read_input_tokens</code> is <code>0</code> on every turn. Is caching broken?</span></div>
+    <details><summary></summary><div class="ans">
+      No — the prefix is almost certainly <b>too short</b>. Caching needs roughly 1024+ tokens before it engages, and it fails <i>silently</i> below that.
+      <span class="why"><b>The real lesson:</b> that counter is how you <i>verify</i> caching instead of assuming it. If it's zero on a genuinely large prefix, hunt for a silent invalidator — a timestamp or UUID in the system prompt, unsorted <code>json.dumps</code>, or a tool list whose order varies. Caching is a <b>prefix</b> match: one changed byte early invalidates everything after it.</span>
+    </div></details>
+  </div>
+
+  <!-- ============ STEP 4 ============ -->
+  <h2 style="--c:var(--s4)"><span class="sn">04</span> Frameworks</h2>
+  <p class="sub">The lightest step. These are judgement questions, not trivia — there's no syntax to memorise here.</p>
+
+  <div class="q" style="--c:var(--s4)">
+    <div class="qt"><span class="num">1</span><span>Name four things <code>create_react_agent</code> does that you wrote by hand in Step 3.</span></div>
+    <details><summary></summary><div class="ans">
+      The while-loop and its step cap; tool dispatch and <code>tool_result</code> plumbing; <code>stop_reason</code> handling; and message-history bookkeeping.
+      <span class="why"><b>Why the order matters:</b> you can only evaluate what a framework hides once you've written it. That's the entire reason Step 3 comes before Step 4 — otherwise the framework isn't an abstraction, it's a black box you're superstitious about.</span>
+    </div></details>
+  </div>
+
+  <div class="q" style="--c:var(--s4)">
+    <div class="qt"><span class="num">2</span><span><code>step4_langgraph_agent.py</code> passes <code>max_tokens=4096</code>, not <code>1024</code>. Why won't the framework tell you that matters?</span></div>
+    <details><summary></summary><div class="ans">
+      Because it's a fact about the <b>model</b> (thinking shares the token budget), not about the framework. The abstraction has no opinion on it and passes your value straight through.
+      <span class="why"><b>The general lesson:</b> frameworks abstract <i>plumbing</i>, never <i>model behaviour</i>. Truncation, refusals, injection, cost, tokenizer changes — all still yours. This is the class of bug that abstraction hides rather than solves, and it's why Step 2 isn't optional.</span>
+    </div></details>
+  </div>
+
+  <div class="q" style="--c:var(--s4)">
+    <div class="qt"><span class="num">3</span><span>A framework release changes its agent API and breaks your app. What limits the damage?</span></div>
+    <details><summary></summary><div class="ans">
+      That you can <b>drop back to the raw loop</b> — plus keeping the framework at the edges of your system rather than letting its types spread through your domain code.
+      <span class="why"><b>The posture:</b> learn one framework well enough to ship, don't invest your identity in it. "I understand the loop" survives version churn; "I'm a LangChain developer" doesn't. Your prompts, tool schemas and eval set are the durable assets — none of them are framework-specific.</span>
+    </div></details>
+  </div>
+
+  <div class="q" style="--c:var(--s4)">
+    <div class="qt"><span class="num">4</span><span>When is a framework the <i>wrong</i> choice?</span></div>
+    <details><summary></summary><div class="ans">
+      When your control flow is simple enough that the framework is most of your complexity; when you need behaviour it doesn't expose; when you can't afford to debug through its abstraction; or when its dependency footprint is a problem — a security-reviewed environment being the obvious case.
+      <span class="why"><b>Worth noticing:</b> <code>step3_agent.py</code> is a complete, production-shaped agent in about 60 lines with one dependency. That's often the right answer, and it's a genuinely legitimate architectural position — not laziness.</span>
+    </div></details>
+  </div>
+
+  <div class="q" style="--c:var(--s4)">
+    <div class="qt"><span class="num">5</span><span>Your framework-built agent gives a wrong answer. Where do you look first?</span></div>
+    <details><summary></summary><div class="ans">
+      The <b>trace</b> — the actual sequence of model calls, tool calls and results. Not the framework's source, and not the prompt.
+      <span class="why"><b>Why:</b> agent failures are nearly always visible in the trace as a specific wrong step: a tool that returned nothing, a retrieval that missed, a truncated turn. This is why observability (6.1) is a <i>debugging</i> tool first and a monitoring tool second — and why "my agent is bad" is not a diagnosis.</span>
+    </div></details>
+  </div>
+
+  <!-- ============ STEP 5 ============ -->
+  <h2 style="--c:var(--s5)"><span class="sn">05</span> Multi-Agent &amp; Evaluation</h2>
+  <p class="sub">Questions 2–5 are about eval, because that's where the value in this step is.</p>
+
+  <div class="q" style="--c:var(--s5)">
+    <div class="qt"><span class="num">1</span><span>Three workers, each taking ~3 seconds, run under <code>asyncio.gather()</code>. Total wall-clock? And if the worker were synchronous?</span></div>
+    <details><summary></summary><div class="ans">
+      About <b>3 seconds</b> concurrently; about <b>9</b> if the worker blocks.
+      <span class="why"><b>The connection to Step 3:</b> this only works because the agent loop is <code>async</code> all the way down. Make it synchronous and you either serialise, or you paper over it with <code>asyncio.to_thread</code> — which works but caps you at the thread pool and hides a design flaw. Async at the bottom is what makes fan-out free at the top.</span>
+    </div></details>
+  </div>
+
+  <div class="q" style="--c:var(--s5)">
+    <div class="qt"><span class="num">2</span><span>Eval case: <i>"Which block has more residents, Dorm A or Dorm B?"</i> Why is <code>"Dorm A" in answer</code> a bad grader?</span></div>
+    <details><summary></summary><div class="ans">
+      Because <b>"Dorm B has more residents than Dorm A"</b> contains the string <code>"Dorm A"</code> and passes. The grader can't tell the right answer from the exactly-wrong one.
+      <span class="why"><b>The rule:</b> substring checks are perfect for a specific <i>fact</i> ("800") and useless for a <i>relation</i>. When the answer's correctness depends on structure rather than a token, use a judge with an explicit rubric. That's precisely why this case in <code>evals.py</code> has a rubric and no <code>expect</code>.</span>
+    </div></details>
+  </div>
+
+  <div class="q" style="--c:var(--s5)">
+    <div class="qt"><span class="num">3</span><span>You want to test that the agent <b>refuses</b> to invent a resident count for a block that isn't in the knowledge base. Why can't an assertion do this?</span></div>
+    <details><summary></summary><div class="ans">
+      Because you'd have to assert on the <b>absence</b> of every possible fabricated number, phrased any number of ways. There's no string to match.
+      <span class="why"><b>Why these are the most valuable cases you'll write:</b> an agent's real reliability lives in what it declines to say, and refusal cases are the first thing a careful interviewer probes. They're also the cases most likely to silently regress when someone "improves" a prompt — which is exactly what the CI gate is for.</span>
+    </div></details>
+  </div>
+
+  <div class="q" style="--c:var(--s5)">
+    <div class="qt"><span class="num">4</span><span>Eight of the twelve cases in <code>evals.py</code> use a free substring check rather than the judge. Why not judge everything?</span></div>
+    <details><summary></summary><div class="ans">
+      Because the judge costs a call, adds latency, and introduces <b>variance into your measuring instrument</b>.
+      <span class="why"><b>The principle:</b> use the cheapest grader that can do the job. A mostly-deterministic suite runs in seconds, never flakes, and therefore actually gets run — which is the only property that matters. A slow, expensive, flaky suite gets disabled within a fortnight, and then you have no gate at all.</span>
+    </div></details>
+  </div>
+
+  <div class="q" style="--c:var(--s5)">
+    <div class="qt"><span class="num">5</span><span>You set the CI gate at a 100% pass rate. Predict the next month.</span></div>
+    <details><summary></summary><div class="ans">
+      It fails on an unrelated PR because a judge-graded case flipped. Someone re-runs it and it passes. That happens twice more, and then the gate gets marked non-blocking — <b>and now you have no gate</b>.
+      <span class="why"><b>The fix:</b> set the bar just under your current pass rate and <b>ratchet it up</b> as the agent improves. A gate that flakes gets disabled; a gate that catches real regressions gets trusted. Judge-graded suites have irreducible variance — design for it instead of pretending otherwise.</span>
+    </div></details>
+  </div>
+
+  <!-- ============ STEP 6 ============ -->
+  <h2 style="--c:var(--s6)"><span class="sn">06</span> Production &amp; Governance</h2>
+  <p class="sub">The employable layer. Questions 4 and 5 are the ones that distinguish you in a regulated environment.</p>
+
+  <div class="q" style="--c:var(--s6)">
+    <div class="qt"><span class="num">1</span><span>One user asks one question. Your trace line reports <code>model_calls: 4</code>. Bug?</span></div>
+    <details><summary></summary><div class="ans">
+      <b>No — that's the loop.</b> Every iteration is a separate billable call, and each one re-sends the entire history.
+      <span class="why"><b>The consequence people miss:</b> cost grows super-linearly with conversation length, because turn 5 pays for turns 1–4 again. That's why the right unit is <b>cost per question</b>, not cost per call — and why prompt caching on the stable prefix is the highest-leverage optimisation in an agent.</span>
+    </div></details>
+  </div>
+
+  <div class="q" style="--c:var(--s6)">
+    <div class="qt"><span class="num">2</span><span>Your SSE endpoint has streamed 200 tokens when the upstream call fails. Can you return a 500?</span></div>
+    <details><summary></summary><div class="ans">
+      <b>No.</b> The status line and headers were sent before the first token. The response is already a 200.
+      <span class="why"><b>What to do:</b> deliver the failure <i>inside</i> the stream — emit an error event and let the client render it. This is the mistake that turns a streaming endpoint into a client-side hang: the client sees a stream that simply stops and waits forever for a completion signal that never arrives.</span>
+    </div></details>
+  </div>
+
+  <div class="q" style="--c:var(--s6)">
+    <div class="qt"><span class="num">3</span><span>Your agent endpoint has no authentication. Beyond "unauthorised use", what specifically happens?</span></div>
+    <details><summary></summary><div class="ans">
+      Anyone who finds the URL spends <b>your</b> API budget, at your rate limits — and each request runs a multi-call loop, so the cost per abusive request is high. It's the LLM equivalent of an open mail relay.
+      <span class="why"><b>And worse:</b> they also get whatever your tools can reach. An unauthenticated endpoint over a retrieval store is an anonymous read API for your documents. One header check is the cheapest security control in the whole track.</span>
+    </div></details>
+  </div>
+
+  <div class="q" style="--c:var(--s6)">
+    <div class="qt"><span class="num">4</span><span>Someone edits one field in the middle of <code>audit-log.jsonl</code>. How is it detected — and what if they delete a whole line instead?</span></div>
+    <details><summary></summary><div class="ans">
+      Each entry stores the hash of the previous one. Recomputing the chain fails at the edited line (<i>entry was modified</i>), and a deletion breaks the <code>prev_hash</code> link at the following line (<i>chain break</i>). Either way you get the exact line number.
+      <span class="why"><b>Why this is the point:</b> it's about twenty lines of code, and it upgrades your logs from "records" to "evidence". Note the detail that makes it work: hashing over <b>sorted</b> JSON. Hash unordered output and the chain can't be recomputed — and a chain you can't verify proves nothing at all.</span>
+    </div></details>
+  </div>
+
+  <div class="q" style="--c:var(--s6)">
+    <div class="qt"><span class="num">5</span><span>An approval token for a write action gets submitted twice. What must happen, and why is redaction-before-the-call better than redaction-in-the-logs?</span></div>
+    <details><summary></summary><div class="ans">
+      The second submission must be <b>rejected and recorded</b> — tokens are single-use, or a replay becomes a second write. And the approval must be persisted in the same transaction as the write, or you get an "approved but never applied" state nobody notices.
+      <span class="why"><b>On redaction:</b> stripping PII <i>before</i> the model call means the answer to "what personal data left our boundary?" is <b>none</b> — provably, by construction. Redacting only in your logs still sent it to a third party; you've just made it harder to audit. The strongest control is the one that makes the data never exist in that path.</span>
+    </div></details>
+  </div>
+
+  <!-- ============ DRILLS ============ -->
+  <h2 style="--c:var(--accent)"><span class="sn">★</span> The two drills that actually count</h2>
+  <p class="sub">The questions above test understanding. These test <b>ability</b> — and they are the only things on this page that can't be passed by recognition.</p>
+
+  <div class="drill">
+    <h3>Drill A · Rebuild the agent from a blank file <span style="font-family:var(--mono);font-size:12px;color:var(--faint);font-weight:400">— after Step 3</span></h3>
+    <p><b>Do this the day after you finish Step 3, not the same day.</b></p>
+    <ol>
+      <li>Move <code>step3_agent.py</code> somewhere you can't see it. Close the map.</li>
+      <li>Open an empty file. Set a <b>45-minute</b> timer.</li>
+      <li>Write an async agent: two tools with schemas, the loop, concurrent tool dispatch, all results in one user message, a step cap, and errors fed back with <code>is_error</code>.</li>
+      <li>Run it. Fix it until it answers <i>"Total residents across Dorm A and B?"</i> correctly.</li>
+      <li><b>Only then</b> diff yours against the original.</li>
+    </ol>
+    <p><b>Pass:</b> it works, and the diff is style rather than substance. <b>Partial:</b> you needed to peek once or twice — note exactly what for, that's your weak spot. <b>Fail:</b> you couldn't start. That's not a disaster, it's information: you had recognition, not recall. Re-run the sample, change things, break it, then retry the drill in three days.</p>
+    <p style="color:var(--ink)"><b>Why 45 minutes and why from blank:</b> nothing else discriminates between "I've read this" and "I can build this." If you can produce the agent loop from nothing, every framework, every orchestration pattern and every job interview in this field becomes vocabulary on top of something you own.</p>
+  </div>
+
+  <div class="drill">
+    <h3>Drill B · Rebuild the service layer <span style="font-family:var(--mono);font-size:12px;color:var(--faint);font-weight:400">— after Step 6</span></h3>
+    <p>Same rules, <b>60 minutes</b>, starting from a working Step 3 agent you may keep.</p>
+    <ol>
+      <li>An authenticated <code>POST /ask</code> that rejects a missing or wrong key.</li>
+      <li>A trace per request: request id, model-call count, tokens, and <b>dollars</b>.</li>
+      <li>A timeout, so a stuck agent can't hold the connection open.</li>
+      <li>An SSE endpoint that streams deltas <i>and</i> delivers a mid-stream failure inside the stream.</li>
+      <li>An audit line per request that stores a <b>hash</b> of the question, never the text.</li>
+    </ol>
+    <p><b>Pass:</b> you can curl all of it, and <code>docker build</code> succeeds. If you can do this from memory you can put "I ship agent services" in writing and defend it — because most people claiming that have never done point 2 or point 5.</p>
+  </div>
+
+  <div class="callout" style="margin-top:26px">
+    <b>One honest caveat about this whole page.</b> These checks only test what someone already thought to ask. They can't find the failure mode nobody anticipated — which is exactly the limitation of an eval suite, and the reason module 6.6 says every real production failure should come back as a new test case. <b>Treat this page the same way:</b> when something breaks for you that isn't covered here, add a question. A check-list that never grows is a check-list going stale.
+  </div>
+
+  <footer>
+    <span>Exit checks · 30 questions + 2 drills</span>
+    <span><a href="00-START-HERE.html">← Start Here</a> &nbsp;·&nbsp; <a href="guide-critical-path.html">Critical Path</a> &nbsp;·&nbsp; <a href="guide-plan-audit.html">Plan Audit</a></span>
+  </footer>
+
+</div>

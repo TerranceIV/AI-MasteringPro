@@ -1,0 +1,292 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Explained · step6b_governance.py</title>
+<style>
+  :root {
+    --bg:#eef1ee; --surface:#ffffff; --surface-2:#f3f6f2; --ink:#182019; --muted:#586459; --faint:#8a968b; --line:#dbe2db;
+    --accent:#2f8f5b; --accent-2:#1f7d6b; --accent-soft:#dcefe2; --warn:#b8791a; --warn-soft:#f7ecd9;
+    --shadow:0 1px 2px rgba(24,32,25,.05),0 10px 30px rgba(24,32,25,.07);
+    --mono:ui-monospace,"Cascadia Code","SF Mono",Menlo,Consolas,monospace;
+    --sans:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+    --s1:#2f7cb0; --s2:#7a4fb0; --s3:#12897a; --s4:#c2610f; --s5:#a83a6a; --s6:#3f5bb0;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{ --bg:#0c110d; --surface:#141a15; --surface-2:#19211a; --ink:#e7eee8; --muted:#98a89b; --faint:#6c7a6e; --line:#232d25;
+      --accent:#4fb37e; --accent-2:#46c2ab; --accent-soft:#14301f; --warn:#e0a94e; --warn-soft:#2b230f;
+      --s1:#58a9dc; --s2:#b48fe0; --s3:#4ec6b1; --s4:#e8944a; --s5:#e07aa6; --s6:#8b9ff0;
+      --shadow:0 1px 2px rgba(0,0,0,.35),0 10px 30px rgba(0,0,0,.45); }
+  }
+  :root[data-theme="light"]{ --bg:#eef1ee; --surface:#ffffff; --surface-2:#f3f6f2; --ink:#182019; --muted:#586459; --faint:#8a968b; --line:#dbe2db; --accent:#2f8f5b; --accent-2:#1f7d6b; --accent-soft:#dcefe2; --warn:#b8791a; --warn-soft:#f7ecd9; --s1:#2f7cb0; --s2:#7a4fb0; --s3:#12897a; --s4:#c2610f; --s5:#a83a6a; --s6:#3f5bb0; --shadow:0 1px 2px rgba(24,32,25,.05),0 10px 30px rgba(24,32,25,.07); }
+  :root[data-theme="dark"]{ --bg:#0c110d; --surface:#141a15; --surface-2:#19211a; --ink:#e7eee8; --muted:#98a89b; --faint:#6c7a6e; --line:#232d25; --accent:#4fb37e; --accent-2:#46c2ab; --accent-soft:#14301f; --warn:#e0a94e; --warn-soft:#2b230f; --s1:#58a9dc; --s2:#b48fe0; --s3:#4ec6b1; --s4:#e8944a; --s5:#e07aa6; --s6:#8b9ff0; --shadow:0 1px 2px rgba(0,0,0,.35),0 10px 30px rgba(0,0,0,.45); }
+
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink); font-family:var(--sans); line-height:1.65; -webkit-font-smoothing:antialiased; }
+  .wrap { max-width:840px; margin:0 auto; padding:clamp(24px,5vw,56px) clamp(18px,4vw,36px); }
+
+  code { font-family:var(--mono); font-size:.85em; background:var(--surface-2); padding:2px 6px; border-radius:5px; word-break:break-word; }
+  a { color:var(--accent-2); }
+  a.file { text-decoration:none; font-family:var(--mono); font-size:.85em; font-weight:600; }
+  a.file:hover { text-decoration:underline; }
+
+  .kicker { font-family:var(--mono); font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--accent); font-weight:700; margin:0 0 12px; }
+  h1 { font-size:clamp(26px,5.5vw,38px); line-height:1.1; margin:0 0 16px; letter-spacing:-.02em; text-wrap:balance; font-weight:800; }
+  .intro { font-size:clamp(15.5px,2.2vw,17px); color:var(--muted); margin:0 0 6px; }
+  .intro b { color:var(--ink); }
+
+  .orient { background:var(--surface); border:1px solid var(--line); border-radius:14px; padding:18px 20px; margin:22px 0 8px; box-shadow:var(--shadow); }
+  .orient p { margin:0 0 10px; font-size:14.5px; }
+  .orient p:last-child { margin-bottom:0; }
+  .orient .label { font-family:var(--mono); font-size:11px; letter-spacing:.08em; text-transform:uppercase; color:var(--accent); font-weight:700; display:block; margin-bottom:3px; }
+
+  section.block { margin:42px 0; }
+  h2 { font-size:clamp(18px,3vw,21px); margin:0 0 4px; letter-spacing:-.01em; display:flex; align-items:center; gap:10px; }
+  h2 .badge { font-family:var(--mono); font-size:12px; font-weight:700; color:#fff; width:26px; height:26px; border-radius:8px; display:inline-flex; align-items:center; justify-content:center; flex:none; }
+  .loc { font-family:var(--mono); font-size:12.5px; margin:0 0 14px; }
+  .did { font-size:15px; margin:0 0 14px; }
+
+  pre { background:var(--surface-2); border:1px solid var(--line); border-radius:10px; padding:12px 14px; overflow-x:auto; margin:0 0 14px; }
+  pre code { background:none; padding:0; font-size:13px; }
+
+  .concept, .why, .trace, .trap, .predict {
+    border-radius:12px; padding:14px 16px; margin:0 0 12px; font-size:14px; border:1px solid var(--line);
+  }
+  .concept { background:var(--accent-soft); border-left:4px solid var(--accent); }
+  .why { background:var(--surface); box-shadow:var(--shadow); }
+  .concept b, .why b { color:var(--ink); font-family:var(--mono); font-size:11.5px; letter-spacing:.06em; text-transform:uppercase; display:block; margin-bottom:5px; color:var(--accent-2); }
+
+  .trace-card { background:var(--surface); border:1px solid var(--line); border-radius:14px; padding:18px 20px; box-shadow:var(--shadow); }
+  .trace-card ol { margin:0; padding-left:22px; }
+  .trace-card li { margin-bottom:10px; font-size:14.5px; }
+  .trace-card li:last-child { margin-bottom:0; }
+
+  .traps { background:var(--warn-soft); border:1px solid var(--line); border-left:4px solid var(--warn); border-radius:12px; padding:16px 20px; }
+  .traps ul { margin:0; padding-left:20px; }
+  .traps li { margin-bottom:9px; font-size:14.5px; }
+  .traps li:last-child { margin-bottom:0; }
+
+  .predict { background:var(--surface); box-shadow:var(--shadow); }
+  .predict b { display:block; color:var(--ink); font-size:14.5px; margin-bottom:6px; }
+
+  .watch-cmd { display:block; font-family:var(--mono); font-size:13.5px; background:var(--surface-2); border:1px solid var(--line); border-radius:8px; padding:10px 14px; margin:14px 0; color:var(--ink); }
+
+  .diagram { background:var(--surface); border:1px solid var(--line); border-radius:14px; padding:20px; margin:22px 0 36px; box-shadow:var(--shadow); overflow-x:auto; }
+  .diagram .dg-title { font-family:var(--mono); font-size:11px; letter-spacing:.08em; text-transform:uppercase; color:var(--accent); font-weight:700; margin:0 0 6px; }
+  .diagram .dg-note { margin:0 0 16px; font-size:12.5px; color:var(--muted); }
+  .diagram svg { width:100%; height:auto; display:block; min-width:560px; }
+  .dg-box { fill:var(--surface-2); stroke:var(--line); stroke-width:1.5; }
+  .dg-box-accent { fill:var(--accent-soft); stroke:var(--accent); stroke-width:1.5; }
+  .dg-box-warn { fill:var(--warn-soft); stroke:var(--warn); stroke-width:1.5; }
+  .dg-box-dashed { fill:none; stroke:var(--faint); stroke-width:1.5; stroke-dasharray:6 5; }
+  .dg-text { fill:var(--ink); font-family:var(--sans); font-size:12.5px; font-weight:600; }
+  .dg-sub { fill:var(--muted); font-family:var(--sans); font-size:10.8px; }
+  .dg-label { fill:var(--faint); font-family:var(--mono); font-size:10px; text-transform:uppercase; letter-spacing:.03em; }
+  .dg-lane { fill:var(--accent-2); font-family:var(--mono); font-size:11px; font-weight:700; }
+  .dg-arrow { stroke:var(--faint); stroke-width:1.6; fill:none; }
+  .dg-arrowhead { fill:var(--faint); }
+
+  .navrow { display:flex; justify-content:space-between; gap:12px; margin-top:8px; font-family:var(--mono); font-size:12.5px; }
+  .navrow a { text-decoration:none; font-weight:600; }
+  .navrow a:hover { text-decoration:underline; }
+
+  footer { margin-top:52px; padding-top:20px; border-top:1px solid var(--line); color:var(--faint); font-family:var(--mono); font-size:12px; text-align:center; }
+  footer a { color:var(--faint); }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <p class="kicker">/explain &middot; step 6b</p>
+  <h1>step6b_governance.py</h1>
+  <p class="intro"><b>The file that gets an agent <i>approved</i>, not just working.</b> Security asks whether an attacker can break your system. Governance asks whether you can <b>prove what it did</b> &mdash; and in a regulated environment the second question is the one that decides whether you ship.</p>
+
+  <div class="orient">
+    <p><span class="label">What happens when you run it</span> Five numbered sections print in order: a request with its personal data stripped out, a model answer, a write proposal that gets approved and then <i>replayed and blocked</i>, a verified audit chain, and the retention policy. With <code>--offline</code> it uses a canned answer &mdash; no API key, no cost, no network.</p>
+    <p><span class="label">The one idea it teaches</span> None of this is AI knowledge. It's ordinary backend discipline &mdash; validate input, least privilege, audit trails, retention &mdash; applied to a new kind of call. <b>Which is exactly why it's a differentiator:</b> most people learning agents skip it, and most organisations can't deploy without it.</p>
+    <p><span class="label">What it deliberately leaves out</span> The PII regexes are illustrative and <b>will</b> miss things &mdash; names, addresses, anything disclosed in free text. Real deployments use a dedicated detection service. There's also no database, no real write, and no access control on <i>who</i> may approve.</p>
+  </div>
+
+  <div class="diagram">
+    <p class="dg-title">four gates, in the order a request meets them</p>
+    <p class="dg-note">The dashed boundary is what an auditor cares about. Notice what never crosses it.</p>
+    <svg viewBox="0 0 760 330" role="img" aria-label="A request containing personal data is redacted, leaving the mapping in process. The redacted text crosses the trust boundary to the model. The answer returns, a write is proposed and requires human approval, and every step appends a hash-chained audit entry.">
+      <defs>
+        <marker id="dgArrow6b" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path class="dg-arrowhead" d="M0,0 L10,5 L0,10 z"/>
+        </marker>
+      </defs>
+
+      <rect class="dg-box-dashed" x="470" y="20" width="270" height="130" rx="12"/>
+      <text class="dg-label" x="486" y="40">outside your boundary</text>
+
+      <path class="dg-arrow" marker-end="url(#dgArrow6b)" d="M200,82 L246,82"/>
+      <path class="dg-arrow" marker-end="url(#dgArrow6b)" d="M424,82 L490,82"/>
+      <path class="dg-arrow" marker-end="url(#dgArrow6b)" d="M330,116 L330,168"/>
+      <path class="dg-arrow" marker-end="url(#dgArrow6b)" d="M200,200 L246,200"/>
+
+      <text class="dg-label" x="20" y="40">1 &middot; as received</text>
+      <g>
+        <rect class="dg-box-warn" x="20" y="54" width="180" height="58" rx="10"/>
+        <text class="dg-text" x="110" y="78" text-anchor="middle">S1234567D</text>
+        <text class="dg-sub" x="110" y="96" text-anchor="middle">email, mobile, NRIC</text>
+      </g>
+
+      <text class="dg-label" x="246" y="40">redact()</text>
+      <g>
+        <rect class="dg-box-accent" x="246" y="54" width="178" height="58" rx="10"/>
+        <text class="dg-text" x="335" y="78" text-anchor="middle">[NRIC_1]</text>
+        <text class="dg-sub" x="335" y="96" text-anchor="middle">placeholders only</text>
+      </g>
+
+      <g>
+        <rect class="dg-box" x="490" y="54" width="230" height="58" rx="10"/>
+        <text class="dg-text" x="605" y="78" text-anchor="middle">2 &middot; the model</text>
+        <text class="dg-sub" x="605" y="96" text-anchor="middle">never sees the real values</text>
+      </g>
+
+      <g>
+        <rect class="dg-box" x="246" y="168" width="178" height="58" rx="10"/>
+        <text class="dg-text" x="335" y="192" text-anchor="middle">mapping</text>
+        <text class="dg-sub" x="335" y="210" text-anchor="middle">in-process, never on disk</text>
+      </g>
+
+      <text class="dg-label" x="20" y="186">3 &middot; write tool</text>
+      <g>
+        <rect class="dg-box-warn" x="20" y="168" width="180" height="58" rx="10"/>
+        <text class="dg-text" x="110" y="192" text-anchor="middle">PENDING</text>
+        <text class="dg-sub" x="110" y="210" text-anchor="middle">a human must approve</text>
+      </g>
+
+      <path class="dg-arrow" marker-end="url(#dgArrow6b)" d="M380,232 L380,266"/>
+      <g>
+        <rect class="dg-box-accent" x="150" y="266" width="460" height="52" rx="10"/>
+        <text class="dg-text" x="380" y="290" text-anchor="middle">4 &middot; audit-log.jsonl &mdash; each entry hashes the one before it</text>
+        <text class="dg-sub" x="380" y="308" text-anchor="middle">hashes and metadata only &mdash; no prompts, no answers, no personal data</text>
+      </g>
+    </svg>
+  </div>
+
+  <section class="block">
+    <h2><span class="badge" style="background:var(--s1)">1</span><code>redact()</code> &mdash; make the answer "none"</h2>
+    <p class="loc"><a class="file" href="../step6b_governance.py#L54">step6b_governance.py:54-78</a></p>
+    <p class="did">Replaces NRIC numbers, emails, phone numbers and card-shaped digit runs with stable placeholders, returning the safe text plus the mapping needed to reverse it.</p>
+    <pre><code>for token, value in mapping.items():   # reuse the same token
+    if value == original:              # for a repeat mention
+        return token</code></pre>
+    <div class="concept"><b>Concept</b>Tokenised redaction. The model reasons over <code>[NRIC_1]</code> and never needs to resolve it, because it doesn't need the real value to answer the question.</div>
+    <div class="why"><b>Why redact <i>before</i> the call and not in the logs</b>Because the auditor's question is "what personal data leaves our boundary?", and the strongest possible answer is <b>none &mdash; provably, by construction</b>. Redacting only in your own logs still sent the data to a third party; you've just made your own records harder to search. <b>The best control is the one that makes the data never exist in that path.</b></div>
+    <div class="why"><b>Why the same value must map to the same token</b>That inner loop looks like a micro-optimisation and isn't. If the same NRIC appeared twice and became <code>[NRIC_1]</code> and <code>[NRIC_2]</code>, the model would think there were two people. Stable tokens preserve the <i>relationships</i> in the text while destroying the identities &mdash; which is what makes redacted text still useful to reason over.</div>
+    <div class="why"><b>The honest warning in the docstring</b>"A redactor that quietly misses things is worse than none, since it manufactures false confidence." Regexes catch structured identifiers. They do not catch <i>"the resident in unit 7-12 whose son attends the primary school nearby"</i> &mdash; which identifies someone perfectly well. Take this block as the <b>shape</b> of the control, not an implementation to ship.</div>
+  </section>
+
+  <section class="block">
+    <h2><span class="badge" style="background:var(--s2)">2</span><code>AuditLog</code> &mdash; logs vs. evidence</h2>
+    <p class="loc"><a class="file" href="../step6b_governance.py#L91">step6b_governance.py:91-157</a></p>
+    <p class="did">Appends JSON lines, each carrying the SHA-256 hash of the entry before it, and can recompute the whole chain to prove nothing was altered.</p>
+    <pre><code>payload = prev + json.dumps(entry, sort_keys=True, separators=(",", ":"))
+return hashlib.sha256(payload.encode("utf-8")).hexdigest()</code></pre>
+    <div class="concept"><b>Concept</b>A hash chain. Each entry commits to its predecessor, so editing or removing any past line breaks every hash after it.</div>
+    <div class="why"><b>Why a plain log isn't enough</b>The question an auditor actually asks is not "do you have logs?" but <b>"could someone have quietly changed them?"</b> An ordinary application log has no answer. This does &mdash; and it's about twenty lines. That ratio of effort to credibility is why this block is worth studying even though there's nothing clever in it.</div>
+    <div class="why"><b><code>sort_keys=True</code> is load-bearing</b>Python dict ordering would otherwise leak into the hash, and a chain you cannot reproduce proves <i>nothing at all</i>. <code>separators</code> pins the formatting for the same reason. Get this wrong and you have a system that looks tamper-evident and isn't &mdash; the worst of both worlds.</div>
+    <div class="why"><b>What is stored, and what deliberately isn't</b>Look at the fields: <code>prompt_hash</code>, <code>response_hash</code>, <code>args_hash</code> &mdash; never the text. That gives you provable "this exact question produced this exact answer" <b>without retaining the personal data</b>. So the log can be kept for seven years without itself becoming the liability. <b>This is the design decision that makes long retention safe</b>, and it's the one most people get backwards.</div>
+    <div class="why"><b><code>verify()</code> returns a line number</b>Not a boolean. "Your audit trail is intact" and "line 3 was modified after writing" are different products, and the second is the one you can act on.</div>
+  </section>
+
+  <section class="block">
+    <h2><span class="badge" style="background:var(--s3)">3</span>The approval gate &mdash; splitting tools by blast radius</h2>
+    <p class="loc"><a class="file" href="../step6b_governance.py#L171">step6b_governance.py:171-200</a></p>
+    <p class="did">Read tools run freely. Write tools return a <code>PENDING APPROVAL</code> string with a single-use token; a separate <code>approve_write()</code> call commits it.</p>
+    <pre><code>READ_TOOLS  = {"search", "calculator"}
+WRITE_TOOLS = {"update_resident_count", "send_notice"}
+...
+pending = _PENDING.pop(token, None)      # pop, not get -- single use</code></pre>
+    <div class="concept"><b>Concept</b>Least privilege for agents, expressed as a distinction the agent cannot cross on its own: it may <b>propose</b>, a human must <b>commit</b>.</div>
+    <div class="why"><b>Why this one distinction is worth more than any guardrail</b>It eliminates an entire <i>category</i> of failure &mdash; "the agent did something irreversible while nobody was watching" &mdash; rather than trying to detect bad instances of it. A blocklist has to anticipate the attack; this doesn't have to. Prompt injection that reaches a read tool is an information problem; the same injection reaching an unguarded write tool is an incident.</div>
+    <div class="why"><b><code>.pop()</code> is the security control</b>Using <code>.get()</code> would let an approval be replayed into a second write. The demo calls <code>approve_write</code> twice on purpose so you can watch the second attempt get rejected <i>and recorded</i> &mdash; note that the rejection also appends an audit entry. <b>A failed attempt is exactly the thing you most want in the log.</b></div>
+    <div class="why"><b>The gap this sample admits to</b>The comment in <code>approve_write</code> says a real system performs the write <i>inside the same transaction</i> that records the approval. Otherwise you can end up "approved but never applied" &mdash; a state nobody monitors and everyone assumes away. Also missing here: any check that <code>approver</code> is <i>allowed</i> to approve, and that they aren't the same person who requested it.</div>
+  </section>
+
+  <section class="block">
+    <h2><span class="badge" style="background:var(--s4)">4</span><code>POLICY</code> &mdash; prose that has to match the code</h2>
+    <p class="loc"><a class="file" href="../step6b_governance.py#L205">step6b_governance.py:205-225</a></p>
+    <p class="did">A retention table, a residency note, and the five questions an auditor will actually ask &mdash; each mapped to the function that answers it.</p>
+    <div class="concept"><b>Concept</b>Policy as a <i>testable</i> artifact rather than a document that drifts.</div>
+    <div class="why"><b>Why it lives in the source file</b>Because a policy in a wiki drifts from the code within a quarter and nobody notices. Here it sits next to the functions it describes, so the mismatch is visible when you change one. Note the strongest line in the table: <code>redaction mapping &mdash; kept 0 seconds &mdash; in-process only, never written to disk</code>. That's a claim you can verify by reading <code>redact()</code>.</div>
+    <div class="why"><b>The residency link back to 2.8</b>"Which country did this inference run in?" should be answerable from <b>configuration</b>, not from faith &mdash; which is why <a class="file" href="../config.py">config.py</a>'s provider factory exists. That question ends procurement conversations, so being able to answer it from a config value is real leverage.</div>
+    <div class="why"><b>Worse than no policy</b>A written policy the code doesn't implement is actively harmful: you've documented a promise you're breaking, in writing, for someone to find later.</div>
+  </section>
+
+  <section class="block">
+    <h2><span class="badge" style="background:var(--s5)">5</span><code>main()</code> and <code>--offline</code></h2>
+    <p class="loc"><a class="file" href="../step6b_governance.py#L237">step6b_governance.py:237-300</a></p>
+    <p class="did">Runs one request through all four gates, printing each stage.</p>
+    <pre><code>if offline:
+    answer = ("Dorm A has 480 residents ...")     # canned
+else:
+    from step3_agent import run as agent          # imported LATE
+    answer = await agent(safe)</code></pre>
+    <div class="why"><b>Why the import is inside the function</b><a class="file" href="../step3_agent.py">step3_agent.py</a> builds a client at import time, which needs an API key. Importing it at the top would make <code>--offline</code> require the very key it exists to avoid. Moving one import inside a branch is what makes the free path actually free.</div>
+    <div class="why"><b>Why an offline mode at all</b>The governance mechanics &mdash; redaction, chaining, approval, verification &mdash; have nothing to do with the model. Making them runnable at zero cost means you can read, break, and re-run this file as many times as you like. <b>The cheapest lesson in the repo is also the most differentiating one.</b></div>
+    <div class="why"><b>Note what the model is asked to do, and refuses</b>The request contains "Please also update the resident count for Dorm A to 481." The agent has no write tool &mdash; so it answers the question and the <i>update</i> becomes a proposal for a human. The agent didn't decide to be careful; the tool surface made carelessness impossible. <b>Design the tool surface, not the prompt.</b></div>
+  </section>
+
+  <section class="block">
+    <h2>Traced end to end</h2>
+    <p class="did">Input: <code>"Resident S1234567D (tan.wei.ming@example.com, mobile 91234567) asked how many residents live in Dorm A and Dorm B in total. Please also update the resident count for Dorm A to 481."</code></p>
+    <div class="trace-card">
+      <ol>
+        <li><code>redact()</code> finds three items &rarr; <code>[NRIC_1]</code>, <code>[EMAIL_1]</code>, <code>[PHONE_1]</code>. The <code>mapping</code> dict holds the originals and is never written anywhere.</li>
+        <li>Audit entry 1: <code>request_received</code>, with <code>prompt_hash</code> of the <b>redacted</b> text and <code>pii_items: 3</code>. <code>prev_hash</code> is 64 zeros &mdash; the genesis entry.</li>
+        <li>The redacted text goes to the model (or the canned answer under <code>--offline</code>). Note the question still <i>makes sense</i> with placeholders &mdash; the identity was never needed to count residents.</li>
+        <li>Audit entry 2: <code>response_produced</code>, with a hash of the answer. Its <code>prev_hash</code> equals entry 1's <code>entry_hash</code>.</li>
+        <li><code>propose_write()</code> mints a token, stashes the pending action, and appends entry 3: <code>write_proposed</code> &mdash; recording an <code>args_hash</code>, not the arguments.</li>
+        <li><code>approve_write(token, "supervisor:lim")</code> pops the token, appends entry 4: <code>write_approved</code>, and reports success.</li>
+        <li>The <b>same token again</b> &rarr; already popped &rarr; entry 5: <code>approval_rejected</code>, reason "unknown or already-used token". Printed as <code>&lt;- replay blocked</code>.</li>
+        <li><code>verify()</code> walks all five lines, recomputing each hash from the previous one: <code>5 entries verified, chain intact</code>.</li>
+      </ol>
+    </div>
+  </section>
+
+  <section class="block">
+    <h2>Traps</h2>
+    <div class="traps">
+      <ul>
+        <li><b>The second "no pending action" line is the demo working.</b> It's the replay being blocked, printed on purpose. Not an error.</li>
+        <li><b><code>audit-log.jsonl</code> appends across runs</b> and is gitignored. Run twice and <code>verify()</code> counts 10 entries &mdash; correct, not a leak. Delete the file to start clean.</li>
+        <li><b>The approval token changes every run</b> (it's a fresh UUID), so it won't match anything you copied from a previous run.</li>
+        <li><b>The PII regexes are Singapore-shaped and illustrative.</b> The NRIC and mobile patterns won't fit other jurisdictions, and none of them catch names or addresses. Read the docstring's warning before reusing any of it.</li>
+        <li><b>The <code>CARD</code> pattern is broad</b> &mdash; any 13-19 digit run. On documents full of reference numbers it will over-redact. Over-redaction is the safer failure, but it's still a failure.</li>
+        <li><b><code>--offline</code> needs no key and makes no network call.</b> Without the flag you need <code>ANTHROPIC_API_KEY</code> and must run from inside <code>samples/</code>.</li>
+        <li><b>Nothing here is a real write.</b> <code>approve_write</code> logs and returns a string; there is no database.</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="block">
+    <h2>What to watch when you run it</h2>
+    <span class="watch-cmd">uv run step6b_governance.py --offline</span>
+    <p class="did">Three things: that the redacted text still reads sensibly, that the write became a proposal rather than an action, and the <code>verify(): OK</code> line.</p>
+    <div class="predict">
+      <b>Predict before you run</b>
+      The request asks to change a resident count. Will the agent do it, refuse it, or something else? And in the audit log, will you find the resident's email address anywhere &mdash; hashed, redacted, or plain? Guess both, then check <code>audit-log.jsonl</code> yourself.
+    </div>
+    <div class="predict">
+      <b>Then break the chain &mdash; do this one, it's the whole point</b>
+      Open <code>audit-log.jsonl</code>, change a single character inside any line (an <code>actor</code> name is easiest), save, and re-run with <code>--offline</code>. <code>verify()</code> names the exact line: <code>line 3: entry was modified after writing</code>. Now instead <b>delete</b> a whole line and re-run &mdash; you get <code>line 2: chain break (prev_hash mismatch)</code>, because deletion breaks the link rather than the content.
+      <br><br>That's tamper-<i>evidence</i>: you cannot stop someone editing a file they can write to, but you can guarantee it is detectable. Twenty lines of code, and it's the difference between records and evidence.
+    </div>
+  </section>
+
+  <div class="navrow">
+    <a href="step6_service.html">&larr; step 6: the agent behind FastAPI</a>
+    <a href="support/config.html">support files: config, evals, MCP server, Dockerfile &rarr;</a>
+  </div>
+
+  <footer>
+    generated by <code>/explain</code> &middot; source: <a href="../step6b_governance.py">step6b_governance.py</a> &middot; see also <a href="../README.md">README.md</a>
+  </footer>
+</div>
+</body>
+</html>

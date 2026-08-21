@@ -1,0 +1,278 @@
+<title>Step 4 · Agent Frameworks</title>
+<style>
+  :root {
+    --bg:#f2efea; --surface:#ffffff; --surface-2:#f7f2ea; --ink:#241c14; --muted:#6b5c4c; --faint:#96856f; --line:#e2d8c9;
+    --accent:#c2610f; --accent-soft:#f6e6d3;      /* step 4 · burnt orange */
+    --amber:#8a6d1a; --amber-soft:#f0e9cf;
+    --good:#2f8f5b; --prev:#2f7cb0;
+    --shadow:0 1px 2px rgba(36,28,20,.06),0 8px 24px rgba(36,28,20,.07);
+    --mono:ui-monospace,"Cascadia Code","SF Mono",Menlo,Consolas,monospace;
+    --sans:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{ --bg:#14100c; --surface:#1e1811; --surface-2:#261e14; --ink:#f0e8de; --muted:#b09a83; --faint:#8a755d; --line:#332818;
+      --accent:#e8944a; --accent-soft:#352410; --amber:#d8b24e; --amber-soft:#302913; --good:#4fb37e; --prev:#58a9dc;
+      --shadow:0 1px 2px rgba(0,0,0,.35),0 8px 24px rgba(0,0,0,.4); }
+  }
+  :root[data-theme="light"]{ --bg:#f2efea; --surface:#ffffff; --surface-2:#f7f2ea; --ink:#241c14; --muted:#6b5c4c; --faint:#96856f; --line:#e2d8c9; --accent:#c2610f; --accent-soft:#f6e6d3; --amber:#8a6d1a; --amber-soft:#f0e9cf; --good:#2f8f5b; --prev:#2f7cb0; --shadow:0 1px 2px rgba(36,28,20,.06),0 8px 24px rgba(36,28,20,.07); }
+  :root[data-theme="dark"]{ --bg:#14100c; --surface:#1e1811; --surface-2:#261e14; --ink:#f0e8de; --muted:#b09a83; --faint:#8a755d; --line:#332818; --accent:#e8944a; --accent-soft:#352410; --amber:#d8b24e; --amber-soft:#302913; --good:#4fb37e; --prev:#58a9dc; --shadow:0 1px 2px rgba(0,0,0,.35),0 8px 24px rgba(0,0,0,.4); }
+
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink); font-family:var(--sans); line-height:1.6; -webkit-font-smoothing:antialiased; }
+  .wrap { max-width:1080px; margin:0 auto; padding:clamp(22px,5vw,56px) clamp(18px,4vw,40px); }
+  code { font-family:var(--mono); font-size:.87em; background:var(--surface-2); padding:1px 5px; border-radius:4px; }
+  .track { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:34px; }
+  .track a, .track span { font-family:var(--mono); font-size:12px; padding:7px 12px; border-radius:8px; border:1px solid var(--line); display:inline-flex; align-items:center; gap:8px; text-decoration:none; }
+  .track .s-n { font-weight:700; opacity:.55; }
+  .track .current { background:var(--ink); color:var(--bg); border-color:var(--ink); }
+  .track .current .s-n { opacity:.8; }
+  .track a.link { color:var(--accent); background:var(--surface); }
+  .track a.link:hover { border-color:var(--accent); }
+  .track a.link:focus-visible { outline:2px solid var(--accent); outline-offset:2px; }
+  .eyebrow { font-family:var(--mono); font-size:12px; letter-spacing:.12em; text-transform:uppercase; color:var(--accent); font-weight:600; display:flex; align-items:center; gap:10px; margin:0 0 14px; }
+  .eyebrow::before { content:""; width:28px; height:2px; background:var(--accent); display:inline-block; }
+  h1 { font-size:clamp(30px,6vw,52px); line-height:1.05; margin:0 0 14px; letter-spacing:-.02em; text-wrap:balance; font-weight:800; }
+  .lede { font-size:clamp(16px,2.2vw,19px); color:var(--muted); max-width:62ch; margin:0 0 22px; }
+  .meta-row { display:flex; flex-wrap:wrap; gap:10px; }
+  .pill { font-family:var(--mono); font-size:12px; padding:6px 12px; border-radius:999px; background:var(--surface); border:1px solid var(--line); color:var(--muted); display:inline-flex; align-items:center; gap:7px; }
+  .dot { width:8px; height:8px; border-radius:50%; display:inline-block; }
+  .section-label { font-family:var(--mono); font-size:12px; letter-spacing:.1em; text-transform:uppercase; color:var(--faint); margin:56px 0 20px; padding-bottom:10px; border-bottom:1px solid var(--line); font-weight:600; }
+  .map { display:flex; flex-direction:column; align-items:center; }
+  .hub { background:var(--ink); color:var(--bg); padding:16px 26px; border-radius:14px; font-family:var(--mono); font-weight:700; font-size:clamp(15px,2.4vw,18px); text-align:center; box-shadow:var(--shadow); letter-spacing:-.01em; }
+  .hub small { display:block; font-size:11px; font-weight:500; opacity:.7; letter-spacing:.08em; margin-top:3px; }
+  .connector { width:2px; height:26px; background:var(--line); }
+  .tier { width:100%; display:flex; flex-direction:column; align-items:center; }
+  .tier-tag { font-family:var(--mono); font-size:11px; letter-spacing:.1em; text-transform:uppercase; color:var(--muted); margin-bottom:12px; padding:3px 10px; border-radius:6px; background:var(--surface-2); border:1px solid var(--line); }
+  .backbone { display:flex; align-items:stretch; flex-wrap:wrap; justify-content:center; }
+  .arrow { display:flex; align-items:center; color:var(--accent); font-size:22px; padding:0 5px; font-weight:700; }
+  .node { background:var(--surface); border:1px solid var(--line); border-top:3px solid var(--accent); border-radius:12px; padding:13px 16px; min-width:150px; box-shadow:var(--shadow); text-align:left; }
+  .node .n-id { font-family:var(--mono); font-size:11px; color:var(--accent); font-weight:700; }
+  .node .n-name { font-weight:700; font-size:14px; margin:2px 0 3px; }
+  .node .n-sub { font-size:12px; color:var(--muted); line-height:1.4; }
+  .support-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:14px; width:100%; max-width:560px; }
+  .node.support { border-top-color:var(--amber); }
+  .node.support .n-id { color:var(--amber); }
+  .node.capstone { border-top-color:var(--good); text-align:center; min-width:300px; }
+  .node.capstone .n-id { color:var(--good); }
+  .node.next { border-top-color:var(--faint); text-align:center; min-width:240px; background:var(--surface-2); }
+  .node.next .n-id { color:var(--faint); }
+  @media (max-width:640px){ .backbone{flex-direction:column;align-items:center} .arrow{transform:rotate(90deg);padding:4px 0} .support-grid{grid-template-columns:1fr} .node{width:100%;min-width:0} }
+  .cards { display:grid; grid-template-columns:repeat(2,1fr); gap:18px; }
+  @media (max-width:720px){ .cards{grid-template-columns:1fr} }
+  .card { background:var(--surface); border:1px solid var(--line); border-radius:14px; padding:22px; box-shadow:var(--shadow); display:flex; flex-direction:column; gap:12px; }
+  .card.span { grid-column:1 / -1; }
+  .card-head { display:flex; align-items:baseline; gap:10px; }
+  .card-id { font-family:var(--mono); font-weight:700; font-size:13px; color:var(--surface); background:var(--accent); padding:3px 8px; border-radius:6px; flex:none; }
+  .card.amber .card-id { background:var(--amber); }
+  .card h3 { margin:0; font-size:18px; letter-spacing:-.01em; }
+  .card .role { font-family:var(--mono); font-size:11px; color:var(--faint); text-transform:uppercase; letter-spacing:.08em; }
+  .chips { display:flex; flex-wrap:wrap; gap:6px; }
+  .chip { font-family:var(--mono); font-size:11.5px; padding:4px 9px; border-radius:6px; background:var(--surface-2); border:1px solid var(--line); color:var(--ink); }
+  .model { font-size:13.5px; color:var(--ink); background:var(--surface-2); border-radius:8px; padding:9px 12px; }
+  .model b { font-family:var(--mono); font-size:10.5px; text-transform:uppercase; letter-spacing:.08em; color:var(--accent); display:block; margin-bottom:2px; }
+  .card.amber .model b { color:var(--amber); }
+  .why { font-size:14px; color:var(--muted); margin:0; }
+  .why b { color:var(--ink); font-weight:600; }
+  .drill { font-size:13.5px; background:var(--accent-soft); border-radius:9px; padding:11px 13px; border-left:3px solid var(--accent); color:var(--ink); }
+  .drill b { font-family:var(--mono); font-size:11px; text-transform:uppercase; letter-spacing:.08em; display:block; margin-bottom:3px; opacity:.8; }
+  .gotchas-label { font-family:var(--mono); font-size:10.5px; text-transform:uppercase; letter-spacing:.08em; color:var(--faint); margin-bottom:4px; }
+  .gotchas { font-size:13px; color:var(--muted); margin:0; padding:0; list-style:none; display:flex; flex-direction:column; gap:5px; }
+  .gotchas li { padding-left:20px; position:relative; }
+  .gotchas li::before { content:"!"; position:absolute; left:3px; top:0; font-family:var(--mono); font-weight:700; color:var(--amber); }
+  .links { display:flex; flex-direction:column; gap:2px; margin-top:2px; }
+  .links a { color:var(--accent); text-decoration:none; font-size:13.5px; font-weight:500; display:inline-flex; align-items:center; gap:7px; padding:3px 0; width:fit-content; border-bottom:1px solid transparent; transition:border-color .15s; }
+  .links a:hover { border-bottom-color:var(--accent); }
+  .links a:focus-visible { outline:2px solid var(--accent); outline-offset:3px; border-radius:3px; }
+  .links a .src { font-family:var(--mono); font-size:10.5px; color:var(--faint); flex:none; }
+  .callout { background:var(--surface); border:1px solid var(--line); border-radius:14px; padding:26px; box-shadow:var(--shadow); border-left:4px solid var(--good); }
+  .callout h3 { margin:0 0 8px; font-size:20px; }
+  .callout pre { background:var(--surface-2); border:1px solid var(--line); border-radius:10px; padding:16px; overflow-x:auto; font-family:var(--mono); font-size:12.5px; line-height:1.65; color:var(--ink); margin:14px 0 0; }
+  .callout .verdict { margin:14px 0 0; font-size:14px; color:var(--muted); }
+  footer { margin-top:56px; padding-top:22px; border-top:1px solid var(--line); display:flex; justify-content:space-between; align-items:center; gap:16px; flex-wrap:wrap; color:var(--faint); font-family:var(--mono); font-size:12px; }
+  .nav-link { font-weight:700; text-decoration:none; padding:9px 14px; border-radius:9px; border:1px solid; }
+  .prev-link { color:var(--prev); border-color:var(--prev); }
+  .prev-link:hover { background:var(--prev); color:var(--surface); }
+  .next-link { color:var(--accent); border-color:var(--accent); }
+  .next-link:hover { background:var(--accent); color:var(--surface); }
+</style>
+
+<div class="wrap">
+  <nav class="track">
+    <a class="link" href="01-python-fluency-map.html"><span class="s-n">01</span> Python Fluency</a>
+    <a class="link" href="02-llm-fundamentals-map.html"><span class="s-n">02</span> LLM Fundamentals</a>
+    <a class="link" href="03-agent-building-blocks-map.html"><span class="s-n">03</span> Agent Building Blocks</a>
+    <span class="current"><span class="s-n">04</span> Frameworks</span>
+    <a class="link" href="05-multi-agent-mcp-map.html"><span class="s-n">05</span> Multi-Agent &amp; MCP</a>
+    <a class="link" href="06-production-map.html"><span class="s-n">06</span> Production</a>
+  </nav>
+
+  <p class="eyebrow">Step 4 of 6 · AI Agent / AI Engineer Track</p>
+  <h1>Agent Frameworks</h1>
+  <p class="lede">You already built an agent by hand in Step 3 — which is exactly why you're ready for frameworks. They remove the boilerplate (state, retries, tracing, tool plumbing) so you focus on behavior. The discipline here: <b>pick one or two, don't collect them</b>, and always know what the abstraction is hiding.</p>
+
+  <div class="meta-row">
+    <span class="pill"><span class="dot" style="background:var(--accent)"></span>Backbone · the main choices</span>
+    <span class="pill"><span class="dot" style="background:var(--amber)"></span>Applied · specialized options</span>
+    <span class="pill"><span class="dot" style="background:var(--good)"></span>Capstone · rebuild in one</span>
+    <span class="pill">⏱ Full-time 1 week · Evenings 2 weeks</span>
+  </div>
+
+  <div style="margin:6px 0 2px;background:var(--surface);border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:12px;padding:14px 18px;box-shadow:var(--shadow);font-size:13.5px;color:var(--muted)">
+    <span style="font-family:var(--mono);font-size:10.5px;text-transform:uppercase;letter-spacing:.08em;color:var(--accent);font-weight:700;display:block;margin-bottom:5px">⇄ Coming from .NET?</span>
+    <span style="color:var(--ink)">You don't have to leave C#: <b>Semantic Kernel</b> and <b>Microsoft.Extensions.AI</b> are Microsoft's agent stacks — plugins ≈ tools, planners ≈ the agent loop. The same concepts you just learned, native to .NET.</span>
+    <span style="display:block;margin-top:8px;font-size:12px;color:var(--faint)">Link 404s? Docs move — search the link's title text at its site.</span>
+  </div>
+  <div class="section-label">The map — how the pieces relate</div>
+  <div class="map">
+    <div class="hub">THE FRAMEWORK LANDSCAPE<small>PICK 1–2 · KNOW THE ESCAPE HATCH</small></div>
+    <div class="connector"></div>
+    <div class="tier">
+      <span class="tier-tag">Backbone — the decision path</span>
+      <div class="backbone">
+        <div class="node"><div class="n-id">4.1</div><div class="n-name">Why / Why Not</div><div class="n-sub">what they abstract</div></div>
+        <div class="arrow">→</div>
+        <div class="node"><div class="n-id">4.2</div><div class="n-name">LangGraph</div><div class="n-sub">graph state machines</div></div>
+        <div class="arrow">→</div>
+        <div class="node"><div class="n-id">4.3</div><div class="n-name">Claude Agent SDK</div><div class="n-sub">Anthropic-native</div></div>
+        <div class="arrow">→</div>
+        <div class="node"><div class="n-id">4.4</div><div class="n-name">Choosing</div><div class="n-sub">match to the task</div></div>
+      </div>
+    </div>
+    <div class="connector"></div>
+    <div class="tier">
+      <span class="tier-tag">Applied — specialized tools</span>
+      <div class="support-grid">
+        <div class="node support"><div class="n-id">4.5</div><div class="n-name">LlamaIndex</div><div class="n-sub">RAG-first pipelines</div></div>
+        <div class="node support"><div class="n-id">4.6</div><div class="n-name">CrewAI / AutoGen</div><div class="n-sub">multi-agent · preview 05</div></div>
+      </div>
+    </div>
+    <div class="connector"></div>
+    <div class="node capstone"><div class="n-id">CAPSTONE</div><div class="n-name">Rebuild Step 3's agent in ONE framework</div><div class="n-sub">compare LOC, debuggability, and what was hidden</div></div>
+    <div class="connector"></div>
+    <div class="node next"><div class="n-id">UNLOCKS</div><div class="n-name">Step 5 · Multi-Agent &amp; MCP</div></div>
+  </div>
+
+  <div class="section-label">Module detail — what, why, gotchas &amp; where to learn</div>
+  <div class="cards">
+
+    <!-- 4.1 -->
+    <div class="card span">
+      <div class="card-head"><span class="card-id">4.1</span><div><h3>Why Frameworks — and Why Build Raw First</h3><div class="role">Backbone</div></div></div>
+      <div class="chips"><span class="chip">abstraction</span><span class="chip">boilerplate removed</span><span class="chip">magic &amp; leaks</span><span class="chip">version churn</span><span class="chip">lock-in</span></div>
+      <div class="model"><b>Mental model</b>A framework is your Step 3 loop with the plumbing pre-built. It only helps if you understand the loop well enough to debug when the abstraction leaks.</div>
+      <p class="why">Frameworks give you managed state, retries, tracing hooks, tool wiring, and memory out of the box. The cost is abstraction you can't see through, fast-moving APIs, and some lock-in. Because you built the raw loop in Step 3, you'll be able to reason about what the framework is doing — and drop down to raw calls when you need to.</p>
+      <div>
+        <div class="gotchas-label">Common mistakes</div>
+        <ul class="gotchas">
+          <li>Adopting a framework before understanding the loop → undebuggable magic.</li>
+          <li>Collecting five frameworks instead of getting good at one.</li>
+          <li>Fighting the framework's opinions instead of picking one that fits.</li>
+        </ul>
+      </div>
+      <div class="links">
+        <a href="https://www.anthropic.com/engineering/building-effective-agents" target="_blank" rel="noopener">Building Effective Agents (argues for simplicity first) <span class="src">Anthropic</span></a>
+      </div>
+    </div>
+
+    <!-- 4.2 -->
+    <div class="card">
+      <div class="card-head"><span class="card-id">4.2</span><div><h3>LangChain / LangGraph</h3><div class="role">Backbone · largest ecosystem</div></div></div>
+      <div class="chips"><span class="chip">LangGraph state machine</span><span class="chip">nodes / edges</span><span class="chip">LangChain integrations</span><span class="chip">LangSmith tracing</span></div>
+      <div class="model"><b>Mental model</b>LangGraph models an agent as a graph of nodes over explicit shared state — reach for it when control flow gets genuinely complex.</div>
+      <p class="why">The most popular ecosystem: a huge integration library (LangChain), durable inspectable state machines (LangGraph), and first-class tracing (LangSmith). Powerful, but a steep curve and a lot of surface area.</p>
+      <div>
+        <div class="gotchas-label">Common mistakes</div>
+        <ul class="gotchas">
+          <li>Drowning in LangChain's abstraction sprawl for a simple task.</li>
+          <li>Not pinning versions in a fast-moving library — things break between releases.</li>
+          <li>Modeling a linear flow as an elaborate graph.</li>
+        </ul>
+      </div>
+      <div class="links">
+        <a href="https://langchain-ai.github.io/langgraph/" target="_blank" rel="noopener">LangGraph docs <span class="src">langchain-ai.github.io</span></a>
+        <a href="https://python.langchain.com/" target="_blank" rel="noopener">LangChain (Python) <span class="src">langchain.com</span></a>
+      </div>
+    </div>
+
+    <!-- 4.3 -->
+    <div class="card">
+      <div class="card-head"><span class="card-id">4.3</span><div><h3>Claude Agent SDK</h3><div class="role">Backbone · Anthropic-native</div></div></div>
+      <div class="chips"><span class="chip">built-in loop</span><span class="chip">tools</span><span class="chip">subagents</span><span class="chip">MCP built-in</span></div>
+      <div class="model"><b>Mental model</b>If you're all-in on Claude, the Agent SDK gives you the loop, tools, subagents, and MCP wiring with the least glue — it's the engine behind Claude Code.</div>
+      <p class="why">Native tool use, streaming, subagents, and MCP support out of the box. Less vendor-neutral than LangGraph, but the fastest path to a solid Claude agent — and it maps cleanly onto everything you learned in Steps 2–3.</p>
+      <div>
+        <div class="gotchas-label">Common mistakes</div>
+        <ul class="gotchas">
+          <li>Expecting it to be provider-agnostic — it's Anthropic-specific by design.</li>
+          <li>Assuming it ships your domain tools — you still write those (3.2).</li>
+          <li>Not tracking SDK changes (it evolves alongside the API).</li>
+        </ul>
+      </div>
+      <div class="links">
+        <a href="https://docs.claude.com/en/api/agent-sdk/overview" target="_blank" rel="noopener">Claude Agent SDK — overview <span class="src">docs.claude.com</span></a>
+        <a href="https://github.com/anthropics/claude-agent-sdk-python" target="_blank" rel="noopener">claude-agent-sdk-python <span class="src">GitHub</span></a>
+      </div>
+    </div>
+
+    <!-- 4.4 -->
+    <div class="card">
+      <div class="card-head"><span class="card-id">4.4</span><div><h3>Choosing One</h3><div class="role">Backbone</div></div></div>
+      <div class="chips"><span class="chip">control-flow complexity</span><span class="chip">ecosystem</span><span class="chip">observability</span><span class="chip">escape hatch</span></div>
+      <div class="model"><b>Mental model</b>Pick the simplest thing that fits, and prefer frameworks you can drop out of when you need raw control.</div>
+      <p class="why">Judge on real criteria, not hype: how complex is your control flow, what integrations do you need, how good is the tracing, how vendor-locked are you, and can you escape the abstraction? For most single agents, a thin framework or raw SDK beats a heavy graph.</p>
+      <div>
+        <div class="gotchas-label">Common mistakes</div>
+        <ul class="gotchas">
+          <li>Résumé-driven framework selection.</li>
+          <li>Ignoring the exit cost when you outgrow it.</li>
+          <li>Reaching for a multi-agent framework for a single-agent job.</li>
+        </ul>
+      </div>
+      <div class="links">
+        <a href="https://www.anthropic.com/engineering/building-effective-agents" target="_blank" rel="noopener">Workflows vs. agents — when to use what <span class="src">Anthropic</span></a>
+      </div>
+    </div>
+
+    <!-- 4.5 -->
+    <div class="card amber">
+      <div class="card-head"><span class="card-id">4.5</span><div><h3>LlamaIndex</h3><div class="role">Applied · RAG-first</div></div></div>
+      <div class="chips"><span class="chip">data connectors</span><span class="chip">indexing</span><span class="chip">query engines</span></div>
+      <div class="model"><b>Mental model</b>If your app is mostly retrieval, LlamaIndex is RAG-shaped where LangChain is agent-shaped.</div>
+      <p class="why">Specializes in ingestion, indexing, and query pipelines over your data (3.3). Often paired with an agent framework rather than used alone — it owns the "know your data" half.</p>
+      <div class="links">
+        <a href="https://docs.llamaindex.ai/" target="_blank" rel="noopener">LlamaIndex docs <span class="src">llamaindex.ai</span></a>
+      </div>
+    </div>
+
+    <!-- 4.6 -->
+    <div class="card amber">
+      <div class="card-head"><span class="card-id">4.6</span><div><h3>CrewAI / AutoGen</h3><div class="role">Applied · multi-agent (preview of Step 5)</div></div></div>
+      <div class="chips"><span class="chip">role-based crews</span><span class="chip">conversational agents</span><span class="chip">handoffs</span></div>
+      <div class="model"><b>Mental model</b>These orchestrate <i>multiple</i> agents — reach for them only when one agent genuinely isn't enough (that's Step 5's whole question).</div>
+      <p class="why">CrewAI models role-based "crews"; AutoGen models conversational multi-agent systems. Both are powerful but add coordination overhead — don't adopt multi-agent machinery until a single agent has actually failed you.</p>
+      <div class="links">
+        <a href="https://docs.crewai.com/" target="_blank" rel="noopener">CrewAI docs <span class="src">crewai.com</span></a>
+        <a href="https://microsoft.github.io/autogen/" target="_blank" rel="noopener">AutoGen docs <span class="src">Microsoft</span></a>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="section-label">The capstone — proof you've cleared Step 4</div>
+  <div class="callout">
+    <h3>Rebuild your Step 3 agent in one framework</h3>
+    <pre>Take the working agent from Step 3 and rebuild it in
+ONE framework (LangGraph or the Claude Agent SDK):
+  • same tools, same RAG store, same task
+  • measure: lines of code vs your raw version
+  • note: what did the framework hide? what got easier?
+    what got harder to debug?
+  • keep BOTH versions side by side.</pre>
+    <p class="verdict">The goal isn't to love the framework — it's to <b>see exactly what it abstracts</b>, so you can choose it (or drop it) deliberately. Now you're ready to make agents cooperate.</p>
+  </div>
+
+  <footer>
+    <a class="nav-link prev-link" href="03-agent-building-blocks-map.html">← Step 3 · Agent Building Blocks</a>
+    <a class="nav-link next-link" href="05-multi-agent-mcp-map.html">Step 5 · Multi-Agent &amp; MCP →</a>
+  </footer>
+</div>

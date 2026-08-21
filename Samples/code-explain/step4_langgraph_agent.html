@@ -1,0 +1,237 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Explained · step4_langgraph_agent.py</title>
+<style>
+  :root {
+    --bg:#eef1ee; --surface:#ffffff; --surface-2:#f3f6f2; --ink:#182019; --muted:#586459; --faint:#8a968b; --line:#dbe2db;
+    --accent:#2f8f5b; --accent-2:#1f7d6b; --accent-soft:#dcefe2; --warn:#b8791a; --warn-soft:#f7ecd9;
+    --shadow:0 1px 2px rgba(24,32,25,.05),0 10px 30px rgba(24,32,25,.07);
+    --mono:ui-monospace,"Cascadia Code","SF Mono",Menlo,Consolas,monospace;
+    --sans:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+    --s1:#2f7cb0; --s2:#7a4fb0; --s3:#12897a; --s4:#c2610f; --s5:#a83a6a; --s6:#3f5bb0;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{ --bg:#0c110d; --surface:#141a15; --surface-2:#19211a; --ink:#e7eee8; --muted:#98a89b; --faint:#6c7a6e; --line:#232d25;
+      --accent:#4fb37e; --accent-2:#46c2ab; --accent-soft:#14301f; --warn:#e0a94e; --warn-soft:#2b230f;
+      --s1:#58a9dc; --s2:#b48fe0; --s3:#4ec6b1; --s4:#e8944a; --s5:#e07aa6; --s6:#8b9ff0;
+      --shadow:0 1px 2px rgba(0,0,0,.35),0 10px 30px rgba(0,0,0,.45); }
+  }
+  :root[data-theme="light"]{ --bg:#eef1ee; --surface:#ffffff; --surface-2:#f3f6f2; --ink:#182019; --muted:#586459; --faint:#8a968b; --line:#dbe2db; --accent:#2f8f5b; --accent-2:#1f7d6b; --accent-soft:#dcefe2; --warn:#b8791a; --warn-soft:#f7ecd9; --s1:#2f7cb0; --s2:#7a4fb0; --s3:#12897a; --s4:#c2610f; --s5:#a83a6a; --s6:#3f5bb0; --shadow:0 1px 2px rgba(24,32,25,.05),0 10px 30px rgba(24,32,25,.07); }
+  :root[data-theme="dark"]{ --bg:#0c110d; --surface:#141a15; --surface-2:#19211a; --ink:#e7eee8; --muted:#98a89b; --faint:#6c7a6e; --line:#232d25; --accent:#4fb37e; --accent-2:#46c2ab; --accent-soft:#14301f; --warn:#e0a94e; --warn-soft:#2b230f; --s1:#58a9dc; --s2:#b48fe0; --s3:#4ec6b1; --s4:#e8944a; --s5:#e07aa6; --s6:#8b9ff0; --shadow:0 1px 2px rgba(0,0,0,.35),0 10px 30px rgba(0,0,0,.45); }
+
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink); font-family:var(--sans); line-height:1.65; -webkit-font-smoothing:antialiased; }
+  .wrap { max-width:840px; margin:0 auto; padding:clamp(24px,5vw,56px) clamp(18px,4vw,36px); }
+
+  code { font-family:var(--mono); font-size:.85em; background:var(--surface-2); padding:2px 6px; border-radius:5px; word-break:break-word; }
+  a { color:var(--accent-2); }
+  a.file { text-decoration:none; font-family:var(--mono); font-size:.85em; font-weight:600; }
+  a.file:hover { text-decoration:underline; }
+
+  .kicker { font-family:var(--mono); font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--accent); font-weight:700; margin:0 0 12px; }
+  h1 { font-size:clamp(26px,5.5vw,38px); line-height:1.1; margin:0 0 16px; letter-spacing:-.02em; text-wrap:balance; font-weight:800; }
+  .intro { font-size:clamp(15.5px,2.2vw,17px); color:var(--muted); margin:0 0 6px; }
+  .intro b { color:var(--ink); }
+
+  .orient { background:var(--surface); border:1px solid var(--line); border-radius:14px; padding:18px 20px; margin:22px 0 8px; box-shadow:var(--shadow); }
+  .orient p { margin:0 0 10px; font-size:14.5px; }
+  .orient p:last-child { margin-bottom:0; }
+  .orient .label { font-family:var(--mono); font-size:11px; letter-spacing:.08em; text-transform:uppercase; color:var(--accent); font-weight:700; display:block; margin-bottom:3px; }
+
+  section.block { margin:42px 0; }
+  h2 { font-size:clamp(18px,3vw,21px); margin:0 0 4px; letter-spacing:-.01em; display:flex; align-items:center; gap:10px; }
+  h2 .badge { font-family:var(--mono); font-size:12px; font-weight:700; color:#fff; width:26px; height:26px; border-radius:8px; display:inline-flex; align-items:center; justify-content:center; flex:none; }
+  .loc { font-family:var(--mono); font-size:12.5px; margin:0 0 14px; }
+  .did { font-size:15px; margin:0 0 14px; }
+
+  pre { background:var(--surface-2); border:1px solid var(--line); border-radius:10px; padding:12px 14px; overflow-x:auto; margin:0 0 14px; }
+  pre code { background:none; padding:0; font-size:13px; }
+
+  .concept, .why, .trace, .trap, .predict {
+    border-radius:12px; padding:14px 16px; margin:0 0 12px; font-size:14px; border:1px solid var(--line);
+  }
+  .concept { background:var(--accent-soft); border-left:4px solid var(--accent); }
+  .why { background:var(--surface); box-shadow:var(--shadow); }
+  .concept b, .why b { color:var(--ink); font-family:var(--mono); font-size:11.5px; letter-spacing:.06em; text-transform:uppercase; display:block; margin-bottom:5px; color:var(--accent-2); }
+
+  .trace-card { background:var(--surface); border:1px solid var(--line); border-radius:14px; padding:18px 20px; box-shadow:var(--shadow); }
+  .trace-card ol { margin:0; padding-left:22px; }
+  .trace-card li { margin-bottom:10px; font-size:14.5px; }
+  .trace-card li:last-child { margin-bottom:0; }
+
+  .traps { background:var(--warn-soft); border:1px solid var(--line); border-left:4px solid var(--warn); border-radius:12px; padding:16px 20px; }
+  .traps ul { margin:0; padding-left:20px; }
+  .traps li { margin-bottom:9px; font-size:14.5px; }
+  .traps li:last-child { margin-bottom:0; }
+
+  .predict { background:var(--surface); box-shadow:var(--shadow); }
+  .predict b { display:block; color:var(--ink); font-size:14.5px; margin-bottom:6px; }
+
+  .watch-cmd { display:block; font-family:var(--mono); font-size:13.5px; background:var(--surface-2); border:1px solid var(--line); border-radius:8px; padding:10px 14px; margin:14px 0; color:var(--ink); }
+
+  .diagram { background:var(--surface); border:1px solid var(--line); border-radius:14px; padding:20px; margin:22px 0 36px; box-shadow:var(--shadow); overflow-x:auto; }
+  .diagram .dg-title { font-family:var(--mono); font-size:11px; letter-spacing:.08em; text-transform:uppercase; color:var(--accent); font-weight:700; margin:0 0 6px; }
+  .diagram .dg-note { margin:0 0 16px; font-size:12.5px; color:var(--muted); }
+  .diagram svg { width:100%; height:auto; display:block; min-width:560px; }
+  .dg-box { fill:var(--surface-2); stroke:var(--line); stroke-width:1.5; }
+  .dg-box-accent { fill:var(--accent-soft); stroke:var(--accent); stroke-width:1.5; }
+  .dg-box-warn { fill:var(--warn-soft); stroke:var(--warn); stroke-width:1.5; }
+  .dg-box-dashed { fill:none; stroke:var(--faint); stroke-width:1.5; stroke-dasharray:6 5; }
+  .dg-text { fill:var(--ink); font-family:var(--sans); font-size:12.5px; font-weight:600; }
+  .dg-sub { fill:var(--muted); font-family:var(--sans); font-size:10.8px; }
+  .dg-label { fill:var(--faint); font-family:var(--mono); font-size:10px; text-transform:uppercase; letter-spacing:.03em; }
+  .dg-lane { fill:var(--accent-2); font-family:var(--mono); font-size:11px; font-weight:700; }
+  .dg-arrow { stroke:var(--faint); stroke-width:1.6; fill:none; }
+  .dg-arrowhead { fill:var(--faint); }
+
+  .navrow { display:flex; justify-content:space-between; gap:12px; margin-top:8px; font-family:var(--mono); font-size:12.5px; }
+  .navrow a { text-decoration:none; font-weight:600; }
+  .navrow a:hover { text-decoration:underline; }
+
+  footer { margin-top:52px; padding-top:20px; border-top:1px solid var(--line); color:var(--faint); font-family:var(--mono); font-size:12px; text-align:center; }
+  footer a { color:var(--faint); }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <p class="kicker">/explain &middot; step 4</p>
+  <h1>step4_langgraph_agent.py</h1>
+  <p class="intro"><b>The same agent as Step 3, rebuilt on a framework.</b> The point isn't the output &mdash; it's comparing this file's line count to Step 3's and asking exactly what got hidden to make that possible.</p>
+
+  <div class="orient">
+    <p><span class="label">What happens when you run it</span> One printed line: a final answer to the same dorm question Step 3 answered. No live tool-call commentary by default.</p>
+    <p><span class="label">The one idea it teaches</span> A framework can compress an entire hand-written agent loop &mdash; dispatch, stop condition, message history &mdash; into a single function call. Less code, but also less visibility when it misbehaves.</p>
+    <p><span class="label">What it deliberately leaves out</span> Per-step tool-call visibility (it's there internally, just not printed), an explicit visible step cap like Step 3's <code>MAX_STEPS</code>, and any custom error-feedback logic &mdash; all now owned by the framework.</p>
+  </div>
+
+  <div class="diagram">
+    <p class="dg-title">the same loop, now enclosed</p>
+    <p class="dg-note">The dashed boundary is <code>create_react_agent</code> &mdash; Step 3's exact loop still runs inside it, just not in code you can read.</p>
+    <svg viewBox="0 0 700 520" role="img" aria-label="Diagram showing agent.invoke() calling into create_react_agent, a dashed box containing the same call model, check tool_use, dispatch tools, update history cycle as Step 3, before returning only the final message.">
+      <defs>
+        <marker id="dgArrow4" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path class="dg-arrowhead" d="M0,0 L10,5 L0,10 z"/>
+        </marker>
+      </defs>
+
+      <path class="dg-arrow" marker-end="url(#dgArrow4)" d="M350,68 L350,96"/>
+      <path class="dg-arrow" marker-end="url(#dgArrow4)" d="M350,404 L350,440"/>
+      <path class="dg-arrow" marker-end="url(#dgArrow4)" d="M405,172 L465,230"/>
+      <path class="dg-arrow" marker-end="url(#dgArrow4)" d="M465,268 L410,328"/>
+      <path class="dg-arrow" marker-end="url(#dgArrow4)" d="M290,328 L235,268"/>
+      <path class="dg-arrow" marker-end="url(#dgArrow4)" d="M235,230 L292,172"/>
+
+      <rect class="dg-box-dashed" x="100" y="100" width="500" height="300" rx="16"/>
+      <text class="dg-label" x="118" y="124">create_react_agent &mdash; hidden</text>
+
+      <g>
+        <rect class="dg-box" x="240" y="12" width="220" height="56" rx="10"/>
+        <text class="dg-text" x="350" y="36" text-anchor="middle">agent.invoke(...)</text>
+        <text class="dg-sub" x="350" y="52" text-anchor="middle">{"messages": [("user", question)]}</text>
+      </g>
+
+      <g>
+        <rect class="dg-box" x="275" y="138" width="150" height="44" rx="9"/>
+        <text class="dg-text" x="350" y="164" text-anchor="middle">call model</text>
+      </g>
+      <g>
+        <rect class="dg-box" x="425" y="228" width="150" height="44" rx="9"/>
+        <text class="dg-text" x="500" y="254" text-anchor="middle">tool_use?</text>
+      </g>
+      <g>
+        <rect class="dg-box" x="275" y="318" width="150" height="44" rx="9"/>
+        <text class="dg-text" x="350" y="344" text-anchor="middle">dispatch tools</text>
+      </g>
+      <g>
+        <rect class="dg-box" x="125" y="228" width="150" height="44" rx="9"/>
+        <text class="dg-text" x="200" y="254" text-anchor="middle">update history</text>
+      </g>
+
+      <g>
+        <rect class="dg-box-accent" x="240" y="442" width="220" height="56" rx="10"/>
+        <text class="dg-text" x="350" y="466" text-anchor="middle">final line only</text>
+        <text class="dg-sub" x="350" y="482" text-anchor="middle">result["messages"][-1].content</text>
+      </g>
+    </svg>
+  </div>
+
+  <section class="block">
+    <h2><span class="badge" style="background:var(--s1)">1</span><code>@tool</code>-decorated functions</h2>
+    <p class="loc"><a class="file" href="../step4_langgraph_agent.py#L23">step4_langgraph_agent.py:23-41</a></p>
+    <p class="did">Same <code>search</code>/<code>calculator</code> logic as Step 3, wrapped in LangChain's <code>@tool</code> decorator instead of a hand-built schema dict.</p>
+    <div class="concept"><b>Concept</b>Schema-from-introspection. <code>@tool</code> reads the function's docstring and type hints and builds the JSON schema automatically &mdash; the docstring <i>is</i> the description the model sees.</div>
+    <div class="why"><b>Why this way</b>This actually fixes the problem Step 3 had &mdash; two hand-maintained structures (<code>TOOLS</code>, <code>TOOL_SCHEMAS</code>) that could silently drift. The new cost is different: the docstring is no longer just a comment for humans, it's load-bearing input the model reads to decide when to call the tool. A vague docstring makes the tool harder to use correctly, with no error telling you why.</div>
+  </section>
+
+  <section class="block">
+    <h2><span class="badge" style="background:var(--s2)">2</span><code>create_react_agent(...)</code></h2>
+    <p class="loc"><a class="file" href="../step4_langgraph_agent.py#L44">step4_langgraph_agent.py:44-48</a></p>
+    <p class="did">One call builds the entire ReAct loop: model call, tool dispatch, stop condition, message history &mdash; the ~25 lines Step 3 wrote by hand.</p>
+    <div class="concept"><b>Concept</b>ReAct (Reason + Act) as a pre-built graph.</div>
+    <div class="why"><b>Why this way</b>Less code to write, but the file's own comment (lines 59-64) states the trade-off outright: you now debug <i>through</i> the framework's abstraction. If the loop misbehaves, you no longer have the mechanism in front of you to read line by line &mdash; you're reading LangGraph's internals or docs instead.</div>
+  </section>
+
+  <section class="block">
+    <h2><span class="badge" style="background:var(--s3)">3</span><code>main</code></h2>
+    <p class="loc"><a class="file" href="../step4_langgraph_agent.py#L51">step4_langgraph_agent.py:51-57</a></p>
+    <p class="did"><code>agent.invoke(...)</code> replaces Step 3's whole <code>run()</code> call; only the last message's content gets printed.</p>
+    <pre><code>result = agent.invoke({"messages": [("user", "...")]})
+print(result["messages"][-1].content)</code></pre>
+    <div class="why"><b>Why this matters</b><code>result["messages"]</code> actually holds the <i>entire</i> transcript LangGraph built internally &mdash; every tool call and tool result &mdash; but the script only shows the last line of it. Nothing was skipped; it's just not printed. That's the real difference between "the framework didn't do this work" and "the framework did this work somewhere you can't see by default."</div>
+  </section>
+
+  <section class="block">
+    <h2>Traced end to end</h2>
+    <p class="did">Same question as Step 3: <code>"How many residents live across Dorm A and Dorm B combined?"</code></p>
+    <div class="trace-card">
+      <ol>
+        <li><code>agent.invoke(...)</code> hands the question to LangGraph's model node.</li>
+        <li>The model calls <code>search</code>; LangGraph's internal tool-execution node runs it and appends the result.</li>
+        <li>Control loops back to the model node; it calls <code>calculator("480 + 320")</code>.</li>
+        <li>Loops back again; this time the model returns plain text with no tool call &mdash; the conditional edge routes to <code>END</code>.</li>
+        <li><code>result["messages"]</code> now holds roughly 6 entries: the question, two tool-call/tool-result pairs, and a final answer.</li>
+        <li><b>Output:</b> <code>result["messages"][-1].content</code> &mdash; just the final answer string.</li>
+      </ol>
+    </div>
+  </section>
+
+  <section class="block">
+    <h2>Traps</h2>
+    <div class="traps">
+      <ul>
+        <li><b>No <code>[tool] ...</code> printout.</b> Unlike Step 3, intermediate steps aren't shown unless you print <code>result["messages"]</code> yourself &mdash; "not shown" isn't "didn't happen."</li>
+        <li><b>Two new dependencies</b> &mdash; <code>langgraph</code> and <code>langchain-anthropic</code> &mdash; beyond Steps 1-3.</li>
+        <li><b>No visible <code>MAX_STEPS</code>.</b> The safety cap moved from a constant you can read in this file to a framework default you'd have to look up.</li>
+        <li><b>Same <code>eval()</code> demo-only risk</b> as Step 3, copy-pasted into <code>calculator</code>.</li>
+        <li>Needs <code>ANTHROPIC_API_KEY</code>, same fail-fast guard as earlier steps.</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="block">
+    <h2>What to watch when you run it</h2>
+    <p class="did">From inside <code>samples/</code>, with your key set:</p>
+    <span class="watch-cmd">uv run step4_langgraph_agent.py</span>
+    <p class="did">Only one line prints &mdash; that sparseness itself is the lesson.</p>
+    <div class="predict">
+      <b>Predict before you run it</b>
+      Add <code>print(len(result["messages"]))</code> right after the <code>invoke()</code> call. Guess how many messages will be in that list, then check. Getting that number right (or wrong) is the real lesson in what "hidden" means here.
+    </div>
+  </section>
+
+  <div class="navrow">
+    <a href="step3b_retrieval.html">&larr; step 3b: retrieval quality, measured</a>
+    <a href="step5_orchestrator.html">step 5: orchestrator + eval set &rarr;</a>
+  </div>
+
+  <footer>
+    generated by <code>/explain</code> &middot; source: <a href="../step4_langgraph_agent.py">step4_langgraph_agent.py</a> &middot; see also <a href="../README.md">README.md</a>
+  </footer>
+
+</div>
+</body>
+</html>

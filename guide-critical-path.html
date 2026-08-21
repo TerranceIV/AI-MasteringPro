@@ -1,0 +1,326 @@
+<title>Critical Path · What to Master vs Skim</title>
+<style>
+  :root {
+    --bg:#efeee9; --surface:#ffffff; --surface-2:#f6f5f0; --ink:#1c1a16; --muted:#5f5b52; --faint:#928d82; --line:#dedad0;
+    --gold:#9a7420; --gold-soft:#f2e9d3; --gold-ink:#6d5115;
+    --down:#8a5a55;
+    --s1:#2f7cb0; --s2:#7a4fb0; --s3:#12897a; --s4:#c2610f; --s5:#a83a6a; --s6:#3f5bb0;
+    --shadow:0 1px 2px rgba(28,26,22,.05),0 10px 28px rgba(28,26,22,.07);
+    --mono:ui-monospace,"Cascadia Code","SF Mono",Menlo,Consolas,monospace;
+    --sans:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{ --bg:#100f0c; --surface:#191813; --surface-2:#201e18; --ink:#eeece5; --muted:#a8a294; --faint:#7b7568; --line:#2b2820;
+      --gold:#d9ab46; --gold-soft:#2e2513; --gold-ink:#e8c473;
+      --down:#c98b84;
+      --s1:#58a9dc; --s2:#b48fe0; --s3:#4ec6b1; --s4:#e8944a; --s5:#e07aa6; --s6:#8b9ff0;
+      --shadow:0 1px 2px rgba(0,0,0,.35),0 10px 28px rgba(0,0,0,.45); }
+  }
+  :root[data-theme="light"]{ --bg:#efeee9; --surface:#ffffff; --surface-2:#f6f5f0; --ink:#1c1a16; --muted:#5f5b52; --faint:#928d82; --line:#dedad0; --gold:#9a7420; --gold-soft:#f2e9d3; --gold-ink:#6d5115; --down:#8a5a55; --s1:#2f7cb0; --s2:#7a4fb0; --s3:#12897a; --s4:#c2610f; --s5:#a83a6a; --s6:#3f5bb0; --shadow:0 1px 2px rgba(28,26,22,.05),0 10px 28px rgba(28,26,22,.07); }
+  :root[data-theme="dark"]{ --bg:#100f0c; --surface:#191813; --surface-2:#201e18; --ink:#eeece5; --muted:#a8a294; --faint:#7b7568; --line:#2b2820; --gold:#d9ab46; --gold-soft:#2e2513; --gold-ink:#e8c473; --down:#c98b84; --s1:#58a9dc; --s2:#b48fe0; --s3:#4ec6b1; --s4:#e8944a; --s5:#e07aa6; --s6:#8b9ff0; --shadow:0 1px 2px rgba(0,0,0,.35),0 10px 28px rgba(0,0,0,.45); }
+
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink); font-family:var(--sans); line-height:1.62; -webkit-font-smoothing:antialiased; }
+  .wrap { max-width:960px; margin:0 auto; padding:clamp(24px,5vw,60px) clamp(18px,4vw,38px); }
+  code { font-family:var(--mono); font-size:.86em; background:var(--surface-2); padding:1px 5px; border-radius:4px; }
+
+  .backlink { font-family:var(--mono); font-size:12px; text-decoration:none; color:var(--muted); border:1px solid var(--line); padding:6px 11px; border-radius:8px; display:inline-block; margin-bottom:26px; }
+  .backlink:hover { color:var(--ink); border-color:var(--muted); }
+
+  .kicker { font-family:var(--mono); font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--gold); font-weight:700; margin:0 0 12px; display:flex; align-items:center; gap:10px; }
+  .kicker::before { content:""; width:26px; height:2px; background:var(--gold); }
+  h1 { font-size:clamp(30px,6.4vw,50px); line-height:1.04; margin:0 0 14px; letter-spacing:-.025em; text-wrap:balance; font-weight:800; }
+  .thesis { font-size:clamp(16px,2.3vw,19px); color:var(--muted); max-width:64ch; margin:0 0 22px; }
+  .thesis b { color:var(--ink); }
+
+  .legend { display:flex; flex-wrap:wrap; gap:10px; margin-bottom:8px; }
+  .lg { font-family:var(--mono); font-size:12px; padding:7px 12px; border-radius:9px; background:var(--surface); border:1px solid var(--line); color:var(--muted); display:inline-flex; align-items:center; gap:8px; }
+  .lg .m { color:var(--gold); font-weight:700; letter-spacing:-1px; }
+  .lg .o { color:var(--faint); font-weight:700; }
+
+  h2 { font-size:clamp(19px,3vw,24px); margin:52px 0 6px; letter-spacing:-.015em; }
+  .sub { color:var(--muted); margin:0 0 18px; font-size:14.5px; max-width:66ch; }
+
+  /* ---- THE SPINE ---- */
+  .spine { display:flex; flex-direction:column; gap:12px; }
+  .rung { display:grid; grid-template-columns:auto 1fr; gap:16px; background:var(--surface); border:1px solid var(--line); border-radius:13px; padding:16px 18px; box-shadow:var(--shadow); border-left:4px solid var(--c); }
+  .rung .num { font-family:var(--mono); font-weight:800; font-size:15px; color:var(--gold-ink); background:var(--gold-soft); width:32px; height:32px; border-radius:9px; display:flex; align-items:center; justify-content:center; flex:none; }
+  .rung .h { display:flex; align-items:baseline; gap:9px; flex-wrap:wrap; }
+  .rung .mods { font-family:var(--mono); font-size:12px; font-weight:700; color:var(--c); }
+  .rung h3 { margin:0; font-size:16.5px; letter-spacing:-.01em; }
+  .rung .stars { color:var(--gold); font-size:12px; letter-spacing:-1px; margin-left:auto; }
+  .rung p { margin:5px 0 0; font-size:13.8px; color:var(--muted); }
+  .rung p b { color:var(--ink); }
+  @media (max-width:560px){ .rung{grid-template-columns:1fr} .rung .num{margin-bottom:-4px} }
+
+  /* ---- FULL COVERAGE GRID ---- */
+  .steps { display:grid; grid-template-columns:repeat(3,1fr); gap:14px; }
+  @media (max-width:820px){ .steps{grid-template-columns:repeat(2,1fr)} }
+  @media (max-width:560px){ .steps{grid-template-columns:1fr} }
+  .col { background:var(--surface); border:1px solid var(--line); border-top:3px solid var(--c); border-radius:13px; padding:15px 16px; box-shadow:var(--shadow); }
+  .col h4 { margin:0 0 3px; font-size:14.5px; }
+  .col h4 a { color:inherit; text-decoration:none; }
+  .col h4 a:hover { color:var(--c); }
+  .col .cap { font-family:var(--mono); font-size:10.5px; text-transform:uppercase; letter-spacing:.07em; color:var(--faint); display:block; margin-bottom:10px; }
+  .mod { display:flex; align-items:flex-start; gap:8px; padding:5px 0; border-top:1px solid var(--line); font-size:13px; }
+  .mod:first-of-type { border-top:none; }
+  .mod .pri { font-family:var(--mono); font-size:11px; font-weight:700; flex:none; width:26px; letter-spacing:-1px; }
+  .mod.p3 .pri { color:var(--gold); }
+  .mod.p2 .pri { color:var(--gold); opacity:.75; }
+  .mod.p0 .pri { color:var(--faint); font-weight:400; }
+  .mod .nm { color:var(--muted); }
+  .mod.p3 .nm, .mod.p2 .nm { color:var(--ink); font-weight:600; }
+  .mod .hype { color:var(--down); font-size:11px; font-family:var(--mono); }
+
+  /* ---- CALLOUT BLOCKS ---- */
+  .block { background:var(--surface); border:1px solid var(--line); border-radius:13px; padding:20px 22px; box-shadow:var(--shadow); }
+  .block.gold { border-left:4px solid var(--gold); background:var(--gold-soft); }
+  .block h3 { margin:0 0 8px; font-size:17px; }
+  .block p { margin:0 0 10px; font-size:14.3px; color:var(--muted); }
+  .block p:last-child { margin-bottom:0; }
+  .block b { color:var(--ink); }
+  .twocol { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+  @media (max-width:720px){ .twocol{grid-template-columns:1fr} }
+  ul.tight { margin:0; padding-left:19px; font-size:14px; color:var(--muted); display:flex; flex-direction:column; gap:6px; }
+  ul.tight b { color:var(--ink); }
+
+  /* ---- 20% STRIP ---- */
+  .strip { display:flex; flex-wrap:wrap; align-items:center; gap:8px; background:var(--surface); border:1px solid var(--line); border-radius:13px; padding:18px; box-shadow:var(--shadow); }
+  .pit { font-family:var(--mono); font-size:12.5px; font-weight:700; padding:7px 11px; border-radius:8px; background:var(--surface-2); border:1px solid var(--line); color:var(--c); }
+  .pit.hot { background:var(--gold-soft); border-color:var(--gold); color:var(--gold-ink); }
+  .sep { color:var(--faint); font-weight:700; }
+  .skimtag { font-family:var(--mono); font-size:12px; color:var(--faint); }
+
+  footer { margin-top:52px; padding-top:20px; border-top:1px solid var(--line); display:flex; justify-content:space-between; gap:14px; flex-wrap:wrap; color:var(--faint); font-family:var(--mono); font-size:12px; }
+  footer a { color:var(--gold); text-decoration:none; font-weight:700; }
+</style>
+
+<div class="wrap">
+
+  <a class="backlink" href="00-START-HERE.html">← Back to Start Here</a>
+
+  <p class="kicker">Priority view · across all 6 steps</p>
+  <h1>The Critical Path</h1>
+  <p class="thesis">The track has <b>42 modules</b>. Their career value is <b>not evenly distributed</b> — about a dozen carry most of it, and four are the real keystone. This page marks what to <b>master</b>, what to know, and what to <b>skim</b>, so you spend depth where it pays.</p>
+  <p class="sub" style="max-width:74ch;margin-top:-6px">Updated after the <a href="guide-plan-audit.html" style="color:var(--gold);font-weight:700">plan audit</a>: three modules were added (2.8 providers, 2.9 documents, 6.7 governance), retrieval was split and promoted, and the MCP position is now stated once instead of contradicting itself.</p>
+
+  <div class="legend">
+    <span class="lg"><span class="m">★★★</span> Master it — go slow, build it twice</span>
+    <span class="lg"><span class="m">★★</span> Solid working grasp</span>
+    <span class="lg"><span class="o">○</span> Know it exists — skim, look up later</span>
+  </div>
+
+  <!-- ================= THE SPINE ================= -->
+  <h2>The spine — in mastery order</h2>
+  <p class="sub">These seven rungs are ~80% of the value. The numbering is a real sequence: each rung assumes the one before it.</p>
+  <div class="spine">
+
+    <div class="rung" style="--c:var(--s1)">
+      <span class="num">1</span>
+      <div>
+        <div class="h"><span class="mods">1.2 + 1.3</span><h3>Async &amp; Pydantic</h3><span class="stars">★★</span></div>
+        <p>Not "Python fluency" — <b>just these two</b>. Async is where all agent performance comes from; Pydantic is the bridge between your code and tool schemas. The rest of Step 1 you can look up as needed. <a href="01-python-fluency-map.html" style="color:var(--s1)">Open map →</a></p>
+      </div>
+    </div>
+
+    <div class="rung" style="--c:var(--s2)">
+      <span class="num">2</span>
+      <div>
+        <div class="h"><span class="mods">2.5 + 2.6</span><h3>Prompting &amp; Structured Output</h3><span class="stars">★★★</span></div>
+        <p>Your <b>highest-frequency daily skill</b>. And they're the same muscle — tool use <i>is</i> structured output. Getting reliable JSON out of a model is the thing you'll do every single day. <a href="02-llm-fundamentals-map.html" style="color:var(--s2)">Open map →</a></p>
+      </div>
+    </div>
+
+    <div class="rung" style="--c:var(--s3)">
+      <span class="num">3</span>
+      <div>
+        <div class="h"><span class="mods">3.1 + 3.2</span><h3>The Agent Loop &amp; Tool Use</h3><span class="stars">★★★</span></div>
+        <p><b>The keystone. Live here until it's boring.</b> An agent <i>is</i> a while-loop plus tool dispatch — every framework, every multi-agent system, every AI product is this with decoration on top. Master this and the rest of the track becomes vocabulary. <a href="03-agent-building-blocks-map.html" style="color:var(--s3)">Open map →</a></p>
+      </div>
+    </div>
+
+    <div class="rung" style="--c:var(--s3)">
+      <span class="num">4</span>
+      <div>
+        <div class="h"><span class="mods">3.5</span><h3>Context Engineering</h3><span class="stars">★★</span></div>
+        <p>The <b>most under-rated module in the track</b> and the real craft of 2026. This is what separates "works in a demo" from "works reliably" — budgeting the window, trimming stale tool output, injecting only what this turn needs. <a href="03-agent-building-blocks-map.html" style="color:var(--s3)">Open map →</a></p>
+      </div>
+    </div>
+
+    <div class="rung" style="--c:var(--s5)">
+      <span class="num">5</span>
+      <div>
+        <div class="h"><span class="mods">5.4</span><h3>Evaluation</h3><span class="stars">★★</span></div>
+        <p>What separates <b>hobbyist from professional</b>. It's the most common gap in self-taught agent builders and the thing interviewers probe hardest. Build the Step 5 eval capstone properly — don't skim it. <a href="05-multi-agent-mcp-map.html" style="color:var(--s5)">Open map →</a></p>
+      </div>
+    </div>
+
+    <div class="rung" style="--c:var(--s6)">
+      <span class="num">6</span>
+      <div>
+        <div class="h"><span class="mods">6.4</span><h3>Security &amp; Prompt Injection</h3><span class="stars">★★</span></div>
+        <p>Non-negotiable <b>for you specifically</b> — see "Your leverage" below. Anyone can build an agent; few can build one that won't leak data or get hijacked by injected text. <a href="06-production-map.html" style="color:var(--s6)">Open map →</a></p>
+      </div>
+    </div>
+
+    <div class="rung" style="--c:var(--s6)">
+      <span class="num">7</span>
+      <div>
+        <div class="h"><span class="mods">6.7</span><h3>Governance &amp; Auditability</h3><span class="stars">★★★</span></div>
+        <p><b>Your single highest-leverage module, and it barely existed in the first version of this track.</b> Security asks "can an attacker break this?"; governance asks "can you <i>prove</i> what it did?" — and the second question is what actually gets a system approved for deployment in a government context. Redaction, a tamper-evident audit trail, approval gates on writes, a retention policy you can hand someone. Almost no self-taught agent builder learns this. <a href="06-production-map.html" style="color:var(--s6)">Open map →</a></p>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="block" style="margin-top:16px;border-left:4px solid var(--down)">
+    <h3>⚠ One thing to read before you write any code: module 2.4</h3>
+    <p>Not a spine rung — a <b>tripwire</b>. Three patterns that appear in essentially every LLM tutorial written before 2026 now return a <b>400 error</b> on current models: <code>temperature</code>/<code>top_p</code>/<code>top_k</code>, <code>thinking.budget_tokens</code>, and assistant prefill. You steer with the prompt and with <code>effort</code> now. Fifteen minutes on <a href="02-llm-fundamentals-map.html" style="color:var(--s2)">2.4</a> saves you an afternoon of debugging a request that was never going to work.</p>
+  </div>
+
+  <!-- ================= FULL COVERAGE ================= -->
+  <h2>Every module, marked</h2>
+  <p class="sub">The whole track at a glance. Click a step title to open its map.</p>
+  <div class="steps">
+
+    <div class="col" style="--c:var(--s1)">
+      <h4><a href="01-python-fluency-map.html">01 · Python Fluency</a></h4><span class="cap">2 of 7 are load-bearing</span>
+      <div class="mod p0"><span class="pri">○</span><span class="nm">1.1 Core mechanics</span></div>
+      <div class="mod p2"><span class="pri">★★</span><span class="nm">1.2 Async / await</span></div>
+      <div class="mod p2"><span class="pri">★★</span><span class="nm">1.3 Types + Pydantic</span></div>
+      <div class="mod p0"><span class="pri">○</span><span class="nm">1.4 JSON handling</span></div>
+      <div class="mod p0"><span class="pri">○</span><span class="nm">1.5 Errors &amp; retries</span></div>
+      <div class="mod p0"><span class="pri">○</span><span class="nm">1.6 HTTP &amp; APIs</span></div>
+      <div class="mod p0"><span class="pri">○</span><span class="nm">1.7 Env &amp; packaging</span></div>
+    </div>
+
+    <div class="col" style="--c:var(--s2)">
+      <h4><a href="02-llm-fundamentals-map.html">02 · LLM Fundamentals</a></h4><span class="cap">the two ★★★ live here</span>
+      <div class="mod p2"><span class="pri">★★</span><span class="nm">2.1 What an LLM is</span></div>
+      <div class="mod p2"><span class="pri">★★</span><span class="nm">2.2 Tokens &amp; cost</span></div>
+      <div class="mod p0"><span class="pri">○</span><span class="nm">2.3 Messages API</span></div>
+      <div class="mod p2"><span class="pri">★★</span><span class="nm">2.4 Effort &amp; thinking <span class="hype">· 400s if wrong</span></span></div>
+      <div class="mod p3"><span class="pri">★★★</span><span class="nm">2.5 Prompt engineering</span></div>
+      <div class="mod p3"><span class="pri">★★★</span><span class="nm">2.6 Structured output</span></div>
+      <div class="mod p0"><span class="pri">○</span><span class="nm">2.7 Streaming</span></div>
+      <div class="mod p2"><span class="pri">★★</span><span class="nm">2.8 Providers &amp; model choice</span></div>
+      <div class="mod p2"><span class="pri">★★</span><span class="nm">2.9 Documents &amp; images</span></div>
+    </div>
+
+    <div class="col" style="--c:var(--s3)">
+      <h4><a href="03-agent-building-blocks-map.html">03 · Building Blocks</a></h4><span class="cap">the densest step — go slow</span>
+      <div class="mod p3"><span class="pri">★★★</span><span class="nm">3.1 The agent loop</span></div>
+      <div class="mod p3"><span class="pri">★★★</span><span class="nm">3.2 Tool use</span></div>
+      <div class="mod p2"><span class="pri">★★</span><span class="nm">3.3a Retrieval</span></div>
+      <div class="mod p2"><span class="pri">★★</span><span class="nm">3.3b Retrieval quality</span></div>
+      <div class="mod p0"><span class="pri">○</span><span class="nm">3.4 Memory</span></div>
+      <div class="mod p2"><span class="pri">★★</span><span class="nm">3.5 Context management</span></div>
+      <div class="mod p2"><span class="pri">★★</span><span class="nm">3.6 Guardrails &amp; recovery</span></div>
+    </div>
+
+    <div class="col" style="--c:var(--s4)">
+      <h4><a href="04-frameworks-map.html">04 · Frameworks</a></h4><span class="cap">lightest step — pick one, move on</span>
+      <div class="mod p0"><span class="pri">○</span><span class="nm">4.1 Why / why not</span></div>
+      <div class="mod p0"><span class="pri">○</span><span class="nm">4.2 LangGraph <span class="hype">· churns yearly</span></span></div>
+      <div class="mod p0"><span class="pri">○</span><span class="nm">4.3 Claude Agent SDK</span></div>
+      <div class="mod p0"><span class="pri">○</span><span class="nm">4.4 Choosing one</span></div>
+      <div class="mod p0"><span class="pri">○</span><span class="nm">4.5 LlamaIndex</span></div>
+      <div class="mod p0"><span class="pri">○</span><span class="nm">4.6 CrewAI / AutoGen</span></div>
+    </div>
+
+    <div class="col" style="--c:var(--s5)">
+      <h4><a href="05-multi-agent-mcp-map.html">05 · Multi-Agent &amp; MCP</a></h4><span class="cap">one gem, lots of hype</span>
+      <div class="mod p0"><span class="pri">○</span><span class="nm">5.1 When multi-agent <span class="hype">· over-hyped</span></span></div>
+      <div class="mod p0"><span class="pri">○</span><span class="nm">5.2 Orchestration <span class="hype">· over-hyped</span></span></div>
+      <div class="mod p2"><span class="pri">★★</span><span class="nm">5.3 MCP — <b>consume</b> (○ to author)</span></div>
+      <div class="mod p3"><span class="pri">★★★</span><span class="nm">5.4 Evaluation</span></div>
+      <div class="mod p0"><span class="pri">○</span><span class="nm">5.5 Subagents &amp; handoffs</span></div>
+      <div class="mod p0"><span class="pri">○</span><span class="nm">5.6 Shared state</span></div>
+    </div>
+
+    <div class="col" style="--c:var(--s6)">
+      <h4><a href="06-production-map.html">06 · Production</a></h4><span class="cap">where you differentiate</span>
+      <div class="mod p2"><span class="pri">★★</span><span class="nm">6.1 Observability</span></div>
+      <div class="mod p0"><span class="pri">○</span><span class="nm">6.2 Cost &amp; latency</span></div>
+      <div class="mod p0"><span class="pri">○</span><span class="nm">6.3 Guardrails</span></div>
+      <div class="mod p2"><span class="pri">★★</span><span class="nm">6.4 Security / injection</span></div>
+      <div class="mod p2"><span class="pri">★★</span><span class="nm">6.5 Serving &amp; deployment</span></div>
+      <div class="mod p2"><span class="pri">★★</span><span class="nm">6.6 Eval-driven CI</span></div>
+      <div class="mod p3"><span class="pri">★★★</span><span class="nm">6.7 Governance &amp; audit</span></div>
+    </div>
+
+  </div>
+
+  <div class="block" style="margin-top:16px">
+    <h3>What changed, and why</h3>
+    <ul class="tight">
+      <li><b>5.4 Evaluation ○→★★★.</b> It was already called "what separates hobbyist from professional" — that deserves three stars, not two. It's also the one skill that makes every other number on your CV credible.</li>
+      <li><b>3.3 RAG ○ → 3.3a + 3.3b, both ★★.</b> The anti-hype instinct was right; the conclusion overshot. See below.</li>
+      <li><b>5.3 MCP ○→★★ for consuming, ○ for authoring.</b> The old page said "skim" while the finish page said "learn it deeply." Now it says one thing.</li>
+      <li><b>2.4 ○→★★.</b> Promoted purely because getting it wrong is a hard 400 error, not a quality issue.</li>
+      <li><b>6.5 and 6.6 ○→★★.</b> Both had running code that didn't match what the capstone promised. Now they do, and both are cheap.</li>
+      <li><b>6.7 is new and goes straight to ★★★</b> — for you specifically. See "Your leverage."</li>
+    </ul>
+  </div>
+
+  <!-- ================= HYPE vs VALUE ================= -->
+  <h2>Lower value than the hype suggests</h2>
+  <p class="sub">These get the most attention online and deserve the least of your depth.</p>
+  <div class="twocol">
+    <div class="block">
+      <ul class="tight">
+        <li><b>Multi-agent orchestration</b> — heavily over-hyped. Most production systems that actually work are <i>one good agent with good tools</i>. Learn the patterns; resist reaching for them.</li>
+        <li><b>Framework depth</b> — commoditized and churns yearly. Learn one well enough to ship; don't invest identity in it.</li>
+      </ul>
+    </div>
+    <div class="block">
+      <ul class="tight">
+        <li><b>Vector databases</b> — not retrieval itself. The field did shift toward long context, and a vector DB is the most expensive fix you can reach for. Beat a plain lexical baseline first; add embeddings only when you can name the queries that <i>demonstrably</i> fail without them (that's 3.3b).</li>
+        <li><b>Fine-tuning</b> — you almost certainly never need it. Prompting + tools + retrieval cover nearly everything. Revisit only when your eval set shows a consistent format or style failure that prompting can't fix.</li>
+        <li><b>Agent frameworks as an identity</b> — "LangChain developer" is not a career. "I understand the loop" is.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="block" style="margin-top:14px;border-left:4px solid var(--gold)">
+    <h3>The one call this page got wrong</h3>
+    <p>The earlier version marked <b>RAG as skim, "hype ≠ value"</b> — and then the finish page made a RAG chatbot the first portfolio project. Both halves can't be right.</p>
+    <p><b>The correction:</b> the anti-hype instinct was sound but the conclusion overshot. Long context changes <i>how much</i> you retrieve and <i>what</i> you retrieve; it doesn't remove the need to find the right twenty pages out of two hundred thousand, and it does nothing for permissions, freshness, or citations. Enterprise AI work is overwhelmingly "answer questions over our documents."</p>
+    <p>So retrieval is now <b>★★</b>, split into finding documents (3.3a) and <b>measuring whether you found them</b> (3.3b). The genuinely over-hyped part — reaching for a vector database as step one — stays in the list above. The under-rated part is that <b>most "the agent hallucinated" bugs are actually retrieval misses</b>, and ten labelled queries will tell you which you have.</p>
+  </div>
+
+  <!-- ================= YOUR LEVERAGE ================= -->
+  <h2>Your leverage — where you're not a generic learner</h2>
+  <p class="sub">That changes two things.</p>
+  <div class="twocol">
+    <div class="block gold">
+      <h3>C# is your delivery vehicle</h3>
+      <p><b>Microsoft.Extensions.AI</b> and <b>Semantic Kernel</b> aren't a footnote for you — they're likely how you'd actually ship AI at work. Treat Python as the <i>learning</i> vehicle and C# as the <i>delivery</i> one. Every map carries a "⇄ Coming from .NET?" bridge for exactly this.</p>
+      <p style="margin-top:10px">Related: <b>2.8</b> exists because a government project almost certainly won't call <code>api.anthropic.com</code> directly — it'll consume AI through a procured platform in a permitted region. Learning one vendor's SDK isn't portable to the job you actually have.</p>
+    </div>
+    <div class="block gold">
+      <h3>Governance is <i>the</i> differentiator — and now it's taught</h3>
+      <p>In a government/PII context, <b>"I can build an agent" is common; "I can build one that won't leak data or get hijacked" is rare</b>. Your existing instincts — input validation, layered architecture, audit trails — transfer directly and are an advantage most AI-curious devs don't have.</p>
+      <p style="margin-top:10px"><b>This page used to assert that and then teach nothing about it.</b> Module <b>6.7</b> now closes the gap: redaction before the model call, a hash-chained audit trail, approval gates on write tools, and a retention policy. Run <code>step6b_governance.py --offline</code> — it costs nothing and it is the most differentiating twenty minutes in the whole track for you.</p>
+    </div>
+  </div>
+
+  <!-- ================= 20% PATH ================= -->
+  <h2>If you only had 20% of the time</h2>
+  <p class="sub">The fast track inside the fast track.</p>
+  <div class="strip">
+    <span class="pit" style="--c:var(--s1)">1.2 + 1.3</span><span class="sep">→</span>
+    <span class="pit" style="--c:var(--s2)">2.5 + 2.6</span><span class="sep">→</span>
+    <span class="pit hot">3.1 + 3.2 · live here</span><span class="sep">→</span>
+    <span class="pit" style="--c:var(--s5)">5.4 eval</span><span class="sep">→</span>
+    <span class="pit" style="--c:var(--s6)">6.7 governance</span>
+    <span class="skimtag">· skim Step 4 and most of Step 5</span>
+  </div>
+  <p class="sub" style="margin-top:12px">Two additions if you have a little more than 20%: <b>2.9 documents</b> (half a day, and the likeliest thing you'll actually ship at work) and <b>3.3b retrieval quality</b> (the number that makes a portfolio project credible). <b>6.4 security</b> comes bundled with 6.7 in practice — you can't write a governance layer without thinking about injection.</p>
+
+  <footer>
+    <span>Critical Path · priority view over the 6-step track</span>
+    <span><a href="00-START-HERE.html">← Start Here</a> &nbsp;·&nbsp; <a href="guide-exit-checks.html">Exit Checks</a> &nbsp;·&nbsp; <a href="guide-plan-audit.html">Plan Audit</a> &nbsp;·&nbsp; <a href="index.html">Visual hub →</a></span>
+  </footer>
+
+</div>

@@ -1,0 +1,261 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Explained · step2b_document_extract.py</title>
+<style>
+  :root {
+    --bg:#eef1ee; --surface:#ffffff; --surface-2:#f3f6f2; --ink:#182019; --muted:#586459; --faint:#8a968b; --line:#dbe2db;
+    --accent:#2f8f5b; --accent-2:#1f7d6b; --accent-soft:#dcefe2; --warn:#b8791a; --warn-soft:#f7ecd9;
+    --shadow:0 1px 2px rgba(24,32,25,.05),0 10px 30px rgba(24,32,25,.07);
+    --mono:ui-monospace,"Cascadia Code","SF Mono",Menlo,Consolas,monospace;
+    --sans:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+    --s1:#2f7cb0; --s2:#7a4fb0; --s3:#12897a; --s4:#c2610f; --s5:#a83a6a; --s6:#3f5bb0;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{ --bg:#0c110d; --surface:#141a15; --surface-2:#19211a; --ink:#e7eee8; --muted:#98a89b; --faint:#6c7a6e; --line:#232d25;
+      --accent:#4fb37e; --accent-2:#46c2ab; --accent-soft:#14301f; --warn:#e0a94e; --warn-soft:#2b230f;
+      --s1:#58a9dc; --s2:#b48fe0; --s3:#4ec6b1; --s4:#e8944a; --s5:#e07aa6; --s6:#8b9ff0;
+      --shadow:0 1px 2px rgba(0,0,0,.35),0 10px 30px rgba(0,0,0,.45); }
+  }
+  :root[data-theme="light"]{ --bg:#eef1ee; --surface:#ffffff; --surface-2:#f3f6f2; --ink:#182019; --muted:#586459; --faint:#8a968b; --line:#dbe2db; --accent:#2f8f5b; --accent-2:#1f7d6b; --accent-soft:#dcefe2; --warn:#b8791a; --warn-soft:#f7ecd9; --s1:#2f7cb0; --s2:#7a4fb0; --s3:#12897a; --s4:#c2610f; --s5:#a83a6a; --s6:#3f5bb0; --shadow:0 1px 2px rgba(24,32,25,.05),0 10px 30px rgba(24,32,25,.07); }
+  :root[data-theme="dark"]{ --bg:#0c110d; --surface:#141a15; --surface-2:#19211a; --ink:#e7eee8; --muted:#98a89b; --faint:#6c7a6e; --line:#232d25; --accent:#4fb37e; --accent-2:#46c2ab; --accent-soft:#14301f; --warn:#e0a94e; --warn-soft:#2b230f; --s1:#58a9dc; --s2:#b48fe0; --s3:#4ec6b1; --s4:#e8944a; --s5:#e07aa6; --s6:#8b9ff0; --shadow:0 1px 2px rgba(0,0,0,.35),0 10px 30px rgba(0,0,0,.45); }
+
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink); font-family:var(--sans); line-height:1.65; -webkit-font-smoothing:antialiased; }
+  .wrap { max-width:840px; margin:0 auto; padding:clamp(24px,5vw,56px) clamp(18px,4vw,36px); }
+
+  code { font-family:var(--mono); font-size:.85em; background:var(--surface-2); padding:2px 6px; border-radius:5px; word-break:break-word; }
+  a { color:var(--accent-2); }
+  a.file { text-decoration:none; font-family:var(--mono); font-size:.85em; font-weight:600; }
+  a.file:hover { text-decoration:underline; }
+
+  .kicker { font-family:var(--mono); font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--accent); font-weight:700; margin:0 0 12px; }
+  h1 { font-size:clamp(26px,5.5vw,38px); line-height:1.1; margin:0 0 16px; letter-spacing:-.02em; text-wrap:balance; font-weight:800; }
+  .intro { font-size:clamp(15.5px,2.2vw,17px); color:var(--muted); margin:0 0 6px; }
+  .intro b { color:var(--ink); }
+
+  .orient { background:var(--surface); border:1px solid var(--line); border-radius:14px; padding:18px 20px; margin:22px 0 8px; box-shadow:var(--shadow); }
+  .orient p { margin:0 0 10px; font-size:14.5px; }
+  .orient p:last-child { margin-bottom:0; }
+  .orient .label { font-family:var(--mono); font-size:11px; letter-spacing:.08em; text-transform:uppercase; color:var(--accent); font-weight:700; display:block; margin-bottom:3px; }
+
+  section.block { margin:42px 0; }
+  h2 { font-size:clamp(18px,3vw,21px); margin:0 0 4px; letter-spacing:-.01em; display:flex; align-items:center; gap:10px; }
+  h2 .badge { font-family:var(--mono); font-size:12px; font-weight:700; color:#fff; width:26px; height:26px; border-radius:8px; display:inline-flex; align-items:center; justify-content:center; flex:none; }
+  .loc { font-family:var(--mono); font-size:12.5px; margin:0 0 14px; }
+  .did { font-size:15px; margin:0 0 14px; }
+
+  pre { background:var(--surface-2); border:1px solid var(--line); border-radius:10px; padding:12px 14px; overflow-x:auto; margin:0 0 14px; }
+  pre code { background:none; padding:0; font-size:13px; }
+
+  .concept, .why, .trace, .trap, .predict {
+    border-radius:12px; padding:14px 16px; margin:0 0 12px; font-size:14px; border:1px solid var(--line);
+  }
+  .concept { background:var(--accent-soft); border-left:4px solid var(--accent); }
+  .why { background:var(--surface); box-shadow:var(--shadow); }
+  .concept b, .why b { color:var(--ink); font-family:var(--mono); font-size:11.5px; letter-spacing:.06em; text-transform:uppercase; display:block; margin-bottom:5px; color:var(--accent-2); }
+
+  .trace-card { background:var(--surface); border:1px solid var(--line); border-radius:14px; padding:18px 20px; box-shadow:var(--shadow); }
+  .trace-card ol { margin:0; padding-left:22px; }
+  .trace-card li { margin-bottom:10px; font-size:14.5px; }
+  .trace-card li:last-child { margin-bottom:0; }
+
+  .traps { background:var(--warn-soft); border:1px solid var(--line); border-left:4px solid var(--warn); border-radius:12px; padding:16px 20px; }
+  .traps ul { margin:0; padding-left:20px; }
+  .traps li { margin-bottom:9px; font-size:14.5px; }
+  .traps li:last-child { margin-bottom:0; }
+
+  .predict { background:var(--surface); box-shadow:var(--shadow); }
+  .predict b { display:block; color:var(--ink); font-size:14.5px; margin-bottom:6px; }
+
+  .watch-cmd { display:block; font-family:var(--mono); font-size:13.5px; background:var(--surface-2); border:1px solid var(--line); border-radius:8px; padding:10px 14px; margin:14px 0; color:var(--ink); }
+
+  .diagram { background:var(--surface); border:1px solid var(--line); border-radius:14px; padding:20px; margin:22px 0 36px; box-shadow:var(--shadow); overflow-x:auto; }
+  .diagram .dg-title { font-family:var(--mono); font-size:11px; letter-spacing:.08em; text-transform:uppercase; color:var(--accent); font-weight:700; margin:0 0 6px; }
+  .diagram .dg-note { margin:0 0 16px; font-size:12.5px; color:var(--muted); }
+  .diagram svg { width:100%; height:auto; display:block; min-width:560px; }
+  .dg-box { fill:var(--surface-2); stroke:var(--line); stroke-width:1.5; }
+  .dg-box-accent { fill:var(--accent-soft); stroke:var(--accent); stroke-width:1.5; }
+  .dg-box-warn { fill:var(--warn-soft); stroke:var(--warn); stroke-width:1.5; }
+  .dg-box-dashed { fill:none; stroke:var(--faint); stroke-width:1.5; stroke-dasharray:6 5; }
+  .dg-text { fill:var(--ink); font-family:var(--sans); font-size:12.5px; font-weight:600; }
+  .dg-sub { fill:var(--muted); font-family:var(--sans); font-size:10.8px; }
+  .dg-label { fill:var(--faint); font-family:var(--mono); font-size:10px; text-transform:uppercase; letter-spacing:.03em; }
+  .dg-lane { fill:var(--accent-2); font-family:var(--mono); font-size:11px; font-weight:700; }
+  .dg-arrow { stroke:var(--faint); stroke-width:1.6; fill:none; }
+  .dg-arrowhead { fill:var(--faint); }
+
+  .navrow { display:flex; justify-content:space-between; gap:12px; margin-top:8px; font-family:var(--mono); font-size:12.5px; }
+  .navrow a { text-decoration:none; font-weight:600; }
+  .navrow a:hover { text-decoration:underline; }
+
+  footer { margin-top:52px; padding-top:20px; border-top:1px solid var(--line); color:var(--faint); font-family:var(--mono); font-size:12px; text-align:center; }
+  footer a { color:var(--faint); }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <p class="kicker">/explain &middot; step 2b</p>
+  <h1>step2b_document_extract.py</h1>
+  <p class="intro"><b>A PDF goes in, a validated Python object comes out.</b> No OCR pipeline, no layout parser, no separate "document AI" service &mdash; just Step 2's structured output with a file glued to the front of the message.</p>
+
+  <div class="orient">
+    <p><span class="label">What happens when you run it</span> With no arguments it writes <code>sample_inspection.pdf</code> into the folder, sends it to the model, and prints six extracted fields &mdash; block, inspector, date, headcount, a list of issues, pass/fail &mdash; followed by a confidence verdict.</p>
+    <p><span class="label">The one idea it teaches</span> A document is a <b>content block</b>, not a special API. If you can do <code>classify()</code> from Step 2, you can already do document extraction; the only new thing is what you put in the <code>content</code> list.</p>
+    <p><span class="label">What it deliberately leaves out</span> Everything that makes this hard at scale: no batching, no Files API upload (it base64s the whole document on every call), no page-range handling for long documents, and no human-review queue &mdash; just a printed warning where one would go.</p>
+  </div>
+
+  <div class="diagram">
+    <p class="dg-title">the whole of document extraction</p>
+    <p class="dg-note">The middle box is the only part that's new. Everything else you built in Step 2.</p>
+    <svg viewBox="0 0 760 220" role="img" aria-label="Flow: PDF bytes are base64 encoded into a document block, sent with a text instruction to messages.parse, which returns a validated InspectionRecord, then a confidence check routes it to storage or to a human.">
+      <defs>
+        <marker id="dgArrow2b" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path class="dg-arrowhead" d="M0,0 L10,5 L0,10 z"/>
+        </marker>
+      </defs>
+
+      <path class="dg-arrow" marker-end="url(#dgArrow2b)" d="M180,74 L212,74"/>
+      <path class="dg-arrow" marker-end="url(#dgArrow2b)" d="M448,74 L480,74"/>
+      <path class="dg-arrow" marker-end="url(#dgArrow2b)" d="M605,110 L605,142"/>
+
+      <text class="dg-label" x="20" y="32">on disk</text>
+      <g>
+        <rect class="dg-box" x="20" y="46" width="160" height="56" rx="10"/>
+        <text class="dg-text" x="100" y="70" text-anchor="middle">form.pdf</text>
+        <text class="dg-sub" x="100" y="88" text-anchor="middle">any PDF or image</text>
+      </g>
+
+      <text class="dg-label" x="212" y="32">the only new part</text>
+      <g>
+        <rect class="dg-box-accent" x="212" y="46" width="236" height="56" rx="10"/>
+        <text class="dg-text" x="330" y="70" text-anchor="middle">document block</text>
+        <text class="dg-sub" x="330" y="88" text-anchor="middle">base64 + media_type, sent FIRST</text>
+      </g>
+
+      <text class="dg-label" x="480" y="32">module 2.6, unchanged</text>
+      <g>
+        <rect class="dg-box" x="480" y="46" width="250" height="56" rx="10"/>
+        <text class="dg-text" x="605" y="70" text-anchor="middle">messages.parse()</text>
+        <text class="dg-sub" x="605" y="88" text-anchor="middle">&rarr; InspectionRecord object</text>
+      </g>
+
+      <g>
+        <rect class="dg-box-warn" x="480" y="142" width="250" height="56" rx="10"/>
+        <text class="dg-text" x="605" y="166" text-anchor="middle">confidence &lt; 0.8 ?</text>
+        <text class="dg-sub" x="605" y="184" text-anchor="middle">human review, not the database</text>
+      </g>
+    </svg>
+  </div>
+
+  <section class="block">
+    <h2><span class="badge" style="background:var(--s1)">1</span><code>MEDIA_TYPES</code> &mdash; plumbing worth 20 seconds</h2>
+    <p class="loc"><a class="file" href="../step2b_document_extract.py#L30">step2b_document_extract.py:30-38</a></p>
+    <p class="did">Maps a file extension to the MIME type string the API expects.</p>
+    <div class="why"><b>Why this way</b>This is plumbing, not a lesson &mdash; skim it. The one thing to take from it: the API needs to be <i>told</i> what the bytes are, and it will not guess from the filename. Get <code>media_type</code> wrong and you get an error, not a silent misread, which is the good kind of failure.</div>
+  </section>
+
+  <section class="block">
+    <h2><span class="badge" style="background:var(--s2)">2</span><code>InspectionRecord</code> &mdash; the shape you want back</h2>
+    <p class="loc"><a class="file" href="../step2b_document_extract.py#L43">step2b_document_extract.py:43-55</a></p>
+    <p class="did">A Pydantic model describing the six fields to pull out of the form, each with a description.</p>
+    <pre><code>residents: int = Field(description="Total resident headcount stated on the form")
+confidence: float = Field(ge=0, le=1, description="0..1 -- ... Use a LOW value if the
+                          document is unclear, partially illegible, or missing fields.")</code></pre>
+    <div class="concept"><b>Concept</b>The same model-as-contract idea from module 1.3, pointed at a document. The class defines the schema going out <i>and</i> validates the data coming back.</div>
+    <div class="why"><b>Why this way</b>Every <code>description</code> string here is <b>sent to the model</b> &mdash; they are instructions, not code comments. That's why the <code>confidence</code> description spells out <i>when</i> to go low ("unclear, partially illegible, missing fields") instead of just saying "confidence". A bare field name gets you a number the model picked to look reasonable; a described field gets you a number that means something.</div>
+    <div class="why"><b>Why <code>residents: int</code> matters more than it looks</b>Typing it as <code>int</code> means the model cannot return <code>"four hundred and eighty"</code> or <code>"480 (approx)"</code> and have it slip into your database as a string. The type is doing validation work that you would otherwise write by hand and forget in one place.</div>
+  </section>
+
+  <section class="block">
+    <h2><span class="badge" style="background:var(--s3)">3</span><code>extract()</code> &mdash; the whole feature, in one call</h2>
+    <p class="loc"><a class="file" href="../step2b_document_extract.py#L57">step2b_document_extract.py:57-98</a></p>
+    <p class="did">Base64-encodes the file, wraps it in a content block, and asks <code>messages.parse()</code> for an <code>InspectionRecord</code>.</p>
+    <pre><code>block_type = "document" if media_type == "application/pdf" else "image"
+file_block = {"type": block_type,
+              "source": {"type": "base64", "media_type": media_type, "data": data}}</code></pre>
+    <div class="concept"><b>Concept</b>Multimodal input as a content block. PDFs use <code>document</code>; images use <code>image</code>. Otherwise they behave identically.</div>
+    <div class="why"><b>Why the file comes first in the list</b>Look at the order in the <code>content</code> list: file block, <i>then</i> the text instruction. Models follow an instruction more reliably once they have already seen the data it refers to. Put the instruction first and you are asking it to remember a rule while it reads three pages &mdash; it works less well, and it is a free fix.</div>
+    <div class="why"><b>Why <code>messages.parse()</code> instead of a forced tool</b><a class="file" href="../step2_first_call.py">step2_first_call.py</a> did this the long way: define a tool, force <code>tool_choice</code>, dig the <code>tool_use</code> block out of the response, then <code>model_validate</code> it. <code>parse()</code> collapses all four steps &mdash; you hand it <code>output_format=InspectionRecord</code> and <code>.parsed_output</code> is already an instance. The reason Step 2 did it by hand first is the same reason Step 3 comes before Step 4: <b>you should know what the convenience method is doing before you use it.</b></div>
+    <div class="why"><b>The prompt is doing real work</b>"Use exactly what the document says &mdash; do not infer or invent values. If a field is genuinely absent, say so in <code>issues</code> and lower your <code>confidence</code>." Without that last sentence the model has no sanctioned way to express "this form is missing the date", so it will quietly produce a plausible one. <b>Give the model a legitimate way to fail and it will usually take it.</b></div>
+  </section>
+
+  <section class="block">
+    <h2><span class="badge" style="background:var(--s4)">4</span><code>make_sample_pdf()</code> &mdash; skip this one</h2>
+    <p class="loc"><a class="file" href="../step2b_document_extract.py#L101">step2b_document_extract.py:101-157</a></p>
+    <p class="did">Hand-writes a minimal but genuinely valid one-page PDF, so the sample runs with zero setup.</p>
+    <div class="why"><b>Why you should skim this and move on</b>You will never write a PDF by hand in real work, and nothing here teaches you anything about AI. It exists only so the file has something to read when you have no PDF handy. The one mildly interesting detail, if you're curious: a PDF ends with a cross-reference table of <b>byte offsets</b> to every object, each entry exactly 20 bytes wide &mdash; which is why the code records <code>len(out)</code> as it builds rather than computing offsets afterwards.</div>
+    <div class="why"><b>What to do instead</b>Point it at a real document: <code>uv run step2b_document_extract.py my_form.pdf</code>. A scanned photo of a paper form is a much better test than this clean generated one, because that's the input you'll actually get.</div>
+  </section>
+
+  <section class="block">
+    <h2><span class="badge" style="background:var(--s5)">5</span>The confidence gate &mdash; the actual lesson</h2>
+    <p class="loc"><a class="file" href="../step2b_document_extract.py#L180">step2b_document_extract.py:180-187</a></p>
+    <p class="did">Prints a warning if <code>confidence &lt; 0.8</code> instead of treating the record as final.</p>
+    <pre><code>if record.confidence &lt; 0.8:
+    print("[!] low confidence -- route this document to a human reviewer")</code></pre>
+    <div class="concept"><b>Concept</b>Guardrails as a routing decision (module 6.3), not as a validation step.</div>
+    <div class="why"><b>Why this one branch is the whole point of the file</b>The model is <i>always</i> willing to give you an answer, and a schema-valid answer looks exactly as confident as a correct one. Schema-valid and factually right are different properties, and nothing in the type system distinguishes them. So <b>you</b> decide the threshold, and low confidence routes to a person rather than to a database. That single <code>if</code> is the difference between a demo and a system an organisation is allowed to depend on &mdash; and it's the part that gets left out of every tutorial.</div>
+    <div class="why"><b>Where the number comes from</b>Not from intuition: you pick it by labelling a few dozen real documents, seeing what confidence the model assigns to the ones it got wrong, and setting the bar above that. Which is module 3.3b's argument in a different costume &mdash; a threshold you haven't measured is a threshold you're guessing at.</div>
+  </section>
+
+  <section class="block">
+    <h2>Traced end to end</h2>
+    <p class="did">Input: the generated <code>sample_inspection.pdf</code>, a form that says Dorm A, 480 residents, three findings, and "FAILED".</p>
+    <div class="trace-card">
+      <ol>
+        <li>No CLI argument given, so <code>sample_inspection.pdf</code> doesn't exist yet &mdash; <code>make_sample_pdf()</code> writes about 1 KB of PDF bytes.</li>
+        <li><code>extract()</code> reads those bytes and base64-encodes them into one long ASCII string.</li>
+        <li>Extension <code>.pdf</code> &rarr; <code>media_type="application/pdf"</code> &rarr; <code>block_type="document"</code>.</li>
+        <li>One request goes out with a two-item <code>content</code> list: the document block, then the instruction.</li>
+        <li>The model reads the page and emits an object matching <code>InspectionRecord</code>'s schema &mdash; it cannot emit anything else, because <code>output_format</code> constrains it.</li>
+        <li><code>.parsed_output</code> is already validated: <code>residents</code> arrives as the integer <code>480</code>, not the string <code>"480"</code>.</li>
+        <li><code>issues</code> comes back as three list items, one per numbered finding. <code>passed</code> is <code>False</code> &mdash; the form says FAILED, and the field description said to use what the document states.</li>
+        <li>Fields print. <code>confidence</code> is high (the generated form is clean and complete), so the <code>[ok]</code> branch runs.</li>
+      </ol>
+    </div>
+  </section>
+
+  <section class="block">
+    <h2>Traps</h2>
+    <div class="traps">
+      <ul>
+        <li><b>The generated PDF is deliberately easy.</b> Clean text, no rotation, no handwriting, every field present. Do not conclude from one green run that extraction is solved &mdash; test a real scan before you believe anything.</li>
+        <li><b><code>confidence</code> is the model's self-report, not a calibrated probability.</b> It's genuinely useful as a relative signal and it is <i>not</i> a statistical guarantee. Treat it as a triage hint.</li>
+        <li><b>Output varies between runs.</b> Wording inside <code>issues</code> will shift; the numbers shouldn't. Different phrasing is not a bug.</li>
+        <li><b>A document is untrusted input.</b> Text inside a PDF can carry a prompt injection, and it walks straight past any guardrail that only inspects the user's message. This sample has no defence against that at all &mdash; see module 6.4.</li>
+        <li><b>Base64 inflates by about a third</b> and it's re-sent on every call. Fine for one page; use the Files API once you're uploading the same document repeatedly.</li>
+        <li><b>Needs <code>ANTHROPIC_API_KEY</code></b> and <code>anthropic</code> + <code>pydantic</code>. Regenerating the PDF requires nothing.</li>
+        <li><code>sample_inspection.pdf</code> is gitignored &mdash; it's generated, so deleting it is safe.</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="block">
+    <h2>What to watch when you run it</h2>
+    <span class="watch-cmd">uv run --with "anthropic,pydantic" step2b_document_extract.py</span>
+    <p class="did">Three things matter: that <code>residents</code> is an <code>int</code>, that <code>issues</code> has three entries, and the final confidence verdict.</p>
+    <div class="predict">
+      <b>Predict before you run</b>
+      The form says "Overall result: FAILED". Will <code>passed</code> come back <code>False</code>? Now the harder one: the form never mentions a <i>rent</i> amount, and <code>InspectionRecord</code> has no rent field &mdash; but <code>issues</code> is a free-text list. Will the model invent an issue to fill it, or leave it at three? Guess, then look.
+    </div>
+    <div class="predict">
+      <b>Then break it on purpose</b>
+      Open <code>make_sample_pdf()</code> and delete the <code>"Date of inspection: 2026-08-14"</code> line, delete the generated PDF, and re-run. <code>inspected_on</code> is a required <code>str</code>, so the model cannot omit it &mdash; watch what it does instead, and watch <code>confidence</code>. <b>This is the single most instructive thing you can do with this file:</b> it shows you exactly how a document-extraction pipeline fails in production, which is never with an exception.
+    </div>
+  </section>
+
+  <div class="navrow">
+    <a href="step2_first_call.html">&larr; step 2: the first real LLM call</a>
+    <a href="step3_agent.html">step 3: the real tool-calling agent &rarr;</a>
+  </div>
+
+  <footer>
+    generated by <code>/explain</code> &middot; source: <a href="../step2b_document_extract.py">step2b_document_extract.py</a> &middot; see also <a href="../README.md">README.md</a>
+  </footer>
+</div>
+</body>
+</html>

@@ -1,0 +1,280 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Explained · Dockerfile</title>
+<style>
+  :root {
+    --bg:#eef1ee; --surface:#ffffff; --surface-2:#f3f6f2; --ink:#182019; --muted:#586459; --faint:#8a968b; --line:#dbe2db;
+    --accent:#2f8f5b; --accent-2:#1f7d6b; --accent-soft:#dcefe2; --warn:#b8791a; --warn-soft:#f7ecd9;
+    --shadow:0 1px 2px rgba(24,32,25,.05),0 10px 30px rgba(24,32,25,.07);
+    --mono:ui-monospace,"Cascadia Code","SF Mono",Menlo,Consolas,monospace;
+    --sans:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+    --s1:#2f7cb0; --s2:#7a4fb0; --s3:#12897a; --s4:#c2610f; --s5:#a83a6a; --s6:#3f5bb0;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{ --bg:#0c110d; --surface:#141a15; --surface-2:#19211a; --ink:#e7eee8; --muted:#98a89b; --faint:#6c7a6e; --line:#232d25;
+      --accent:#4fb37e; --accent-2:#46c2ab; --accent-soft:#14301f; --warn:#e0a94e; --warn-soft:#2b230f;
+      --s1:#58a9dc; --s2:#b48fe0; --s3:#4ec6b1; --s4:#e8944a; --s5:#e07aa6; --s6:#8b9ff0;
+      --shadow:0 1px 2px rgba(0,0,0,.35),0 10px 30px rgba(0,0,0,.45); }
+  }
+  :root[data-theme="light"]{ --bg:#eef1ee; --surface:#ffffff; --surface-2:#f3f6f2; --ink:#182019; --muted:#586459; --faint:#8a968b; --line:#dbe2db; --accent:#2f8f5b; --accent-2:#1f7d6b; --accent-soft:#dcefe2; --warn:#b8791a; --warn-soft:#f7ecd9; --s1:#2f7cb0; --s2:#7a4fb0; --s3:#12897a; --s4:#c2610f; --s5:#a83a6a; --s6:#3f5bb0; --shadow:0 1px 2px rgba(24,32,25,.05),0 10px 30px rgba(24,32,25,.07); }
+  :root[data-theme="dark"]{ --bg:#0c110d; --surface:#141a15; --surface-2:#19211a; --ink:#e7eee8; --muted:#98a89b; --faint:#6c7a6e; --line:#232d25; --accent:#4fb37e; --accent-2:#46c2ab; --accent-soft:#14301f; --warn:#e0a94e; --warn-soft:#2b230f; --s1:#58a9dc; --s2:#b48fe0; --s3:#4ec6b1; --s4:#e8944a; --s5:#e07aa6; --s6:#8b9ff0; --shadow:0 1px 2px rgba(0,0,0,.35),0 10px 30px rgba(0,0,0,.45); }
+
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink); font-family:var(--sans); line-height:1.65; -webkit-font-smoothing:antialiased; }
+  .wrap { max-width:840px; margin:0 auto; padding:clamp(24px,5vw,56px) clamp(18px,4vw,36px); }
+
+  code { font-family:var(--mono); font-size:.85em; background:var(--surface-2); padding:2px 6px; border-radius:5px; word-break:break-word; }
+  a { color:var(--accent-2); }
+  a.file { text-decoration:none; font-family:var(--mono); font-size:.85em; font-weight:600; }
+  a.file:hover { text-decoration:underline; }
+
+  .kicker { font-family:var(--mono); font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--accent); font-weight:700; margin:0 0 12px; }
+  h1 { font-size:clamp(26px,5.5vw,38px); line-height:1.1; margin:0 0 16px; letter-spacing:-.02em; text-wrap:balance; font-weight:800; }
+  .intro { font-size:clamp(15.5px,2.2vw,17px); color:var(--muted); margin:0 0 6px; }
+  .intro b { color:var(--ink); }
+
+  .orient { background:var(--surface); border:1px solid var(--line); border-radius:14px; padding:18px 20px; margin:22px 0 8px; box-shadow:var(--shadow); }
+  .orient p { margin:0 0 10px; font-size:14.5px; }
+  .orient p:last-child { margin-bottom:0; }
+  .orient .label { font-family:var(--mono); font-size:11px; letter-spacing:.08em; text-transform:uppercase; color:var(--accent); font-weight:700; display:block; margin-bottom:3px; }
+
+  section.block { margin:42px 0; }
+  h2 { font-size:clamp(18px,3vw,21px); margin:0 0 4px; letter-spacing:-.01em; display:flex; align-items:center; gap:10px; }
+  h2 .badge { font-family:var(--mono); font-size:12px; font-weight:700; color:#fff; width:26px; height:26px; border-radius:8px; display:inline-flex; align-items:center; justify-content:center; flex:none; }
+  .loc { font-family:var(--mono); font-size:12.5px; margin:0 0 14px; }
+  .did { font-size:15px; margin:0 0 14px; }
+
+  pre { background:var(--surface-2); border:1px solid var(--line); border-radius:10px; padding:12px 14px; overflow-x:auto; margin:0 0 14px; }
+  pre code { background:none; padding:0; font-size:13px; }
+
+  .concept, .why, .trace, .trap, .predict {
+    border-radius:12px; padding:14px 16px; margin:0 0 12px; font-size:14px; border:1px solid var(--line);
+  }
+  .concept { background:var(--accent-soft); border-left:4px solid var(--accent); }
+  .why { background:var(--surface); box-shadow:var(--shadow); }
+  .concept b, .why b { color:var(--ink); font-family:var(--mono); font-size:11.5px; letter-spacing:.06em; text-transform:uppercase; display:block; margin-bottom:5px; color:var(--accent-2); }
+
+  .trace-card { background:var(--surface); border:1px solid var(--line); border-radius:14px; padding:18px 20px; box-shadow:var(--shadow); }
+  .trace-card ol { margin:0; padding-left:22px; }
+  .trace-card li { margin-bottom:10px; font-size:14.5px; }
+  .trace-card li:last-child { margin-bottom:0; }
+
+  .traps { background:var(--warn-soft); border:1px solid var(--line); border-left:4px solid var(--warn); border-radius:12px; padding:16px 20px; }
+  .traps ul { margin:0; padding-left:20px; }
+  .traps li { margin-bottom:9px; font-size:14.5px; }
+  .traps li:last-child { margin-bottom:0; }
+
+  .predict { background:var(--surface); box-shadow:var(--shadow); }
+  .predict b { display:block; color:var(--ink); font-size:14.5px; margin-bottom:6px; }
+
+  .watch-cmd { display:block; font-family:var(--mono); font-size:13.5px; background:var(--surface-2); border:1px solid var(--line); border-radius:8px; padding:10px 14px; margin:14px 0; color:var(--ink); }
+
+  .diagram { background:var(--surface); border:1px solid var(--line); border-radius:14px; padding:20px; margin:22px 0 36px; box-shadow:var(--shadow); overflow-x:auto; }
+  .diagram .dg-title { font-family:var(--mono); font-size:11px; letter-spacing:.08em; text-transform:uppercase; color:var(--accent); font-weight:700; margin:0 0 6px; }
+  .diagram .dg-note { margin:0 0 16px; font-size:12.5px; color:var(--muted); }
+  .diagram svg { width:100%; height:auto; display:block; min-width:560px; }
+  .dg-box { fill:var(--surface-2); stroke:var(--line); stroke-width:1.5; }
+  .dg-box-accent { fill:var(--accent-soft); stroke:var(--accent); stroke-width:1.5; }
+  .dg-box-warn { fill:var(--warn-soft); stroke:var(--warn); stroke-width:1.5; }
+  .dg-box-dashed { fill:none; stroke:var(--faint); stroke-width:1.5; stroke-dasharray:6 5; }
+  .dg-text { fill:var(--ink); font-family:var(--sans); font-size:12.5px; font-weight:600; }
+  .dg-sub { fill:var(--muted); font-family:var(--sans); font-size:10.8px; }
+  .dg-label { fill:var(--faint); font-family:var(--mono); font-size:10px; text-transform:uppercase; letter-spacing:.03em; }
+  .dg-lane { fill:var(--accent-2); font-family:var(--mono); font-size:11px; font-weight:700; }
+  .dg-arrow { stroke:var(--faint); stroke-width:1.6; fill:none; }
+  .dg-arrowhead { fill:var(--faint); }
+
+  .navrow { display:flex; justify-content:space-between; gap:12px; margin-top:8px; font-family:var(--mono); font-size:12.5px; }
+  .navrow a { text-decoration:none; font-weight:600; }
+  .navrow a:hover { text-decoration:underline; }
+
+  footer { margin-top:52px; padding-top:20px; border-top:1px solid var(--line); color:var(--faint); font-family:var(--mono); font-size:12px; text-align:center; }
+  footer a { color:var(--faint); }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <p class="kicker">/explain &middot; support file</p>
+  <h1>Dockerfile</h1>
+  <p class="intro"><b>The step most self-taught agent builders skip.</b> "It runs on my machine" is not a deployment &mdash; and this is twenty lines that turn the Step 6 service into a reproducible artifact you can hand to someone else.</p>
+
+  <div class="orient">
+    <p><span class="label">What happens when you run it</span> <code>docker build</code> produces an image; <code>docker run</code> starts the FastAPI service on port 8000 with a health check, as a non-root user. Same behaviour as running uvicorn locally, minus your laptop.</p>
+    <p><span class="label">The one idea it teaches</span> Layer ordering and least privilege. Dependencies go in their own layer because they change rarely; the process drops out of root because an agent executes model-chosen actions.</p>
+    <p><span class="label">What it deliberately leaves out</span> A lockfile (it pins minimums, not exact versions), multi-stage builds, and any orchestration &mdash; no compose file, no Kubernetes manifest, no secret management beyond <code>-e</code>.</p>
+  </div>
+
+  <div class="diagram">
+    <p class="dg-title">why the order of these lines matters</p>
+    <p class="dg-note">Docker caches per layer. Everything below a changed layer is rebuilt.</p>
+    <svg viewBox="0 0 760 280" role="img" aria-label="Layers stacked in build order: base image, uv binary, dependency install, then application code, then the non-root user. Editing application code only invalidates the layers below it, so the dependency install stays cached.">
+      <defs>
+        <marker id="dgArrowDk" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path class="dg-arrowhead" d="M0,0 L10,5 L0,10 z"/>
+        </marker>
+      </defs>
+
+      <text class="dg-label" x="20" y="30">build order &darr;</text>
+
+      <g>
+        <rect class="dg-box" x="20" y="40" width="420" height="40" rx="8"/>
+        <text class="dg-text" x="34" y="65">FROM python:3.12-slim</text>
+      </g>
+      <g>
+        <rect class="dg-box" x="20" y="86" width="420" height="40" rx="8"/>
+        <text class="dg-text" x="34" y="111">COPY uv binary</text>
+      </g>
+      <g>
+        <rect class="dg-box-accent" x="20" y="132" width="420" height="40" rx="8"/>
+        <text class="dg-text" x="34" y="157">RUN uv pip install &mdash; slow, changes rarely</text>
+      </g>
+      <g>
+        <rect class="dg-box-warn" x="20" y="178" width="420" height="40" rx="8"/>
+        <text class="dg-text" x="34" y="203">COPY your 3 .py files &mdash; changes constantly</text>
+      </g>
+      <g>
+        <rect class="dg-box" x="20" y="224" width="420" height="40" rx="8"/>
+        <text class="dg-text" x="34" y="249">USER appuser</text>
+      </g>
+
+      <path class="dg-arrow" marker-end="url(#dgArrowDk)" d="M452,198 L520,198"/>
+      <g>
+        <rect class="dg-box-dashed" x="520" y="140" width="220" height="116" rx="10"/>
+        <text class="dg-text" x="630" y="170" text-anchor="middle">edit a .py file</text>
+        <text class="dg-sub" x="630" y="192" text-anchor="middle">&rarr; rebuild takes ~1 second</text>
+        <text class="dg-sub" x="630" y="214" text-anchor="middle">the install layer is reused</text>
+        <text class="dg-sub" x="630" y="238" text-anchor="middle">swap the two and it's ~40s</text>
+      </g>
+    </svg>
+  </div>
+
+  <section class="block">
+    <h2><span class="badge" style="background:var(--s1)">1</span><code>FROM python:3.12-slim</code> + the uv binary</h2>
+    <p class="loc"><a class="file" href="../../Dockerfile#L14">Dockerfile:14-18</a></p>
+    <pre><code>FROM python:3.12-slim
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/</code></pre>
+    <div class="concept"><b>Concept</b>A multi-source copy. <code>COPY --from</code> pulls files out of <i>another image</i> without making it your base.</div>
+    <div class="why"><b>Why <code>-slim</code></b>Roughly a tenth the size of the full image. Smaller means faster pulls, less disk, and a smaller attack surface &mdash; fewer packages installed means fewer CVEs to answer for at review time. The cost is no build toolchain and no <code>curl</code>, which the health check works around later.</div>
+    <div class="why"><b>Why copy uv in rather than <code>pip install uv</code></b>You get the same tool you use locally, at a fixed known-good build, without a Python-level install step. It's the pattern Astral document, and the general trick is worth knowing: <b>you can lift a static binary out of any published image</b> without inheriting that image's OS.</div>
+    <div class="why"><b>The version pin you'd want in production</b><code>python:3.12-slim</code> is a moving tag &mdash; it changes as patches land. Reproducible builds pin a digest. Fine for a sample; not fine for something you must rebuild identically in six months.</div>
+  </section>
+
+  <section class="block">
+    <h2><span class="badge" style="background:var(--s2)">2</span><code>ENV</code> &mdash; three settings, one that actually matters</h2>
+    <p class="loc"><a class="file" href="../../Dockerfile#L21">Dockerfile:21-23</a></p>
+    <pre><code>ENV UV_SYSTEM_PYTHON=1 \
+    PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1</code></pre>
+    <div class="concept"><b>Concept</b>Container-appropriate Python defaults.</div>
+    <div class="why"><b><code>PYTHONUNBUFFERED=1</code> is the one that will bite you</b>Python buffers stdout when it isn't a terminal. In a container that means <b>your logs vanish</b> &mdash; they sit in a buffer, and if the process is killed you lose them entirely. For <a class="file" href="../step6_service.html">step6_service.py</a>, whose whole observability story is one JSON line per request, that would quietly defeat the point. This is the single most valuable line in the file.</div>
+    <div class="why"><b>The other two</b><code>UV_SYSTEM_PYTHON=1</code> tells uv to install into the image's Python rather than making a venv &mdash; the container <i>is</i> the isolation, so a venv inside it is a layer of indirection for nothing. <code>PYTHONDONTWRITEBYTECODE=1</code> skips <code>.pyc</code> files, which would just bloat the image. Both are hygiene; neither will ruin your day.</div>
+  </section>
+
+  <section class="block">
+    <h2><span class="badge" style="background:var(--s3)">3</span>The dependency layer &mdash; the caching lesson</h2>
+    <p class="loc"><a class="file" href="../../Dockerfile#L29">Dockerfile:29-38</a></p>
+    <p class="did">Installs four packages, <i>then</i> copies the application code.</p>
+    <pre><code>RUN uv pip install --system --no-cache \
+        "anthropic&gt;=0.40" "fastapi&gt;=0.110" "uvicorn[standard]&gt;=0.30" "pydantic&gt;=2.6"
+
+COPY config.py step3_agent.py step6_service.py ./</code></pre>
+    <div class="concept"><b>Concept</b>Layer caching. Docker reuses a layer if its inputs are unchanged, and invalidates <b>everything below</b> a layer that changed.</div>
+    <div class="why"><b>Why dependencies come before code &mdash; test this yourself</b>Your code changes many times an hour; your dependencies change monthly. In this order, editing a <code>.py</code> file rebuilds only the last two layers: about a second. <b>Swap the two lines and every code edit re-downloads and reinstalls four packages</b> &mdash; tens of seconds, every time. Same image, same correctness, a build loop you'll come to resent.</div>
+    <div class="why"><b>Why <code>--no-cache</code></b>uv's download cache is useless inside a finished image &mdash; it's write-once. Skipping it keeps the layer smaller. (Note it means the opposite of what it sounds like: it disables uv's <i>package</i> cache, not Docker's <i>layer</i> cache, which you very much want.)</div>
+    <div class="why"><b>Why only three files are copied</b>Not the whole repo. Two reasons, and the second is the important one: a smaller image, and <b>no accidental secrets baked into a layer forever</b>. Copy the directory wholesale and a stray <code>.env</code> or an <code>audit-log.jsonl</code> is in the image permanently &mdash; deleting it in a later layer does <i>not</i> remove it, because layers are additive. Being explicit is the defence.</div>
+    <div class="why"><b>What production does instead</b>Copies a <code>uv.lock</code> and installs from it, so the build is byte-reproducible. Minimum-version pins keep this sample from rotting as packages move, at the cost of "works today, maybe differently next month".</div>
+  </section>
+
+  <section class="block">
+    <h2><span class="badge" style="background:var(--s4)">4</span><code>USER appuser</code> &mdash; two lines of real security</h2>
+    <p class="loc"><a class="file" href="../../Dockerfile#L43">Dockerfile:43-44</a></p>
+    <pre><code>RUN useradd --system --uid 10001 appuser
+USER appuser</code></pre>
+    <div class="concept"><b>Concept</b>Least privilege (module 6.4). Containers run as root unless you say otherwise.</div>
+    <div class="why"><b>Why this matters more for an agent than for a plain web app</b>An agent <b>executes actions the model chose</b>. This sample's calculator tool literally calls <code>eval()</code> behind a regex allowlist. Root inside a container isn't root on the host, but it's a meaningfully worse starting position for any escape or misconfiguration &mdash; and you are one careless tool away from finding out. Two lines.</div>
+    <div class="why"><b>Why after the installs</b>Installing needs root. Switch earlier and <code>uv pip install --system</code> fails on permissions. Order is forced: privileged setup first, then drop, then run.</div>
+    <div class="why"><b>Why an explicit high uid</b><code>--uid 10001</code> is predictable, which matters when a mounted volume needs matching ownership. <code>--system</code> skips the home directory and password entry a service account has no use for.</div>
+  </section>
+
+  <section class="block">
+    <h2><span class="badge" style="background:var(--s5)">5</span><code>HEALTHCHECK</code> and <code>CMD</code></h2>
+    <p class="loc"><a class="file" href="../../Dockerfile#L49">Dockerfile:49-54</a></p>
+    <pre><code>HEALTHCHECK --interval=30s --timeout=5s --start-period=5s --retries=3 \
+    CMD python -c "import urllib.request as u; u.urlopen('http://127.0.0.1:8000/health')"
+
+CMD ["uvicorn", "step6_service:app", "--host", "0.0.0.0", "--port", "8000"]</code></pre>
+    <div class="concept"><b>Concept</b>Liveness as a container-level contract, so an orchestrator can restart or de-register an unhealthy instance without knowing anything about your app.</div>
+    <div class="why"><b>Why Python and not curl</b><code>python:*-slim</code> has no <code>curl</code>. Rather than install a package purely to make one HTTP request, use the interpreter that's already there. <b>Reach for what's in the image before you add to it.</b></div>
+    <div class="why"><b>Why <code>/health</code> and not <code>/ask</code></b><code>/health</code> needs no API key and makes no model call. Health-checking a real endpoint every 30 seconds would burn tokens forever and fail whenever the upstream API had a hiccup &mdash; conflating "my process is alive" with "my dependency is up", which are different questions with different remedies.</div>
+    <div class="why"><b>Why <code>--host 0.0.0.0</code> is required</b>uvicorn defaults to <code>127.0.0.1</code>, which inside a container means "reachable only from inside this container". Your <code>-p 8000:8000</code> would map to nothing and you'd get a connection refused that looks like a Docker problem. <b>This is the classic first-container bug.</b></div>
+    <div class="why"><b>Why no <code>--reload</code></b>It watches the filesystem, roughly doubles memory, and there is nothing to reload from &mdash; the code is baked into the image. That flag belongs on your laptop only.</div>
+  </section>
+
+  <section class="block">
+    <h2>Traced end to end</h2>
+    <p class="did">A first build, an edit, and a run.</p>
+    <div class="trace-card">
+      <ol>
+        <li><code>docker build -t dorm-agent .</code> from inside <code>samples/</code> &mdash; the build context is that folder.</li>
+        <li>Base image pulled if absent. uv is copied out of Astral's image into <code>/bin</code>.</li>
+        <li>The install layer runs: four packages, tens of seconds. <b>Cached from here on.</b></li>
+        <li>Three <code>.py</code> files copied. <code>appuser</code> created, then the process drops to it.</li>
+        <li>Now edit <code>step6_service.py</code> and rebuild: Docker reuses everything through the install and redoes only the copy onward. <b>About a second</b> &mdash; the payoff of the ordering.</li>
+        <li><code>docker run --rm -p 8000:8000 -e ANTHROPIC_API_KEY=... -e API_KEYS=dev-key-123 dorm-agent</code></li>
+        <li>uvicorn binds <code>0.0.0.0:8000</code> inside; Docker maps it to your <code>localhost:8000</code>.</li>
+        <li>Five seconds later the health check begins polling <code>/health</code>. <code>docker ps</code> shows <code>(healthy)</code>.</li>
+        <li>A request to <code>/ask</code> with the key header runs the agent. The JSON trace line reaches your terminal <i>immediately</i> &mdash; because of <code>PYTHONUNBUFFERED</code>.</li>
+        <li>Omit <code>-e API_KEYS</code> and every request returns <b>503</b>: the service fails closed rather than serving anonymously.</li>
+      </ol>
+    </div>
+  </section>
+
+  <section class="block">
+    <h2>Traps</h2>
+    <div class="traps">
+      <ul>
+        <li><b>Build from inside <code>samples/</code></b> (or pass <code>samples/</code> as the context). The <code>COPY</code> paths are relative to the build context, not to the Dockerfile.</li>
+        <li><b>Both env vars are required at <code>docker run</code>.</b> <code>ANTHROPIC_API_KEY</code> and <code>API_KEYS</code>. Missing the second gives 503 on every request &mdash; deliberate, not broken.</li>
+        <li><b>Never bake a key in with <code>ENV</code>.</b> It would be in the image, in the layer history, and in your registry. Pass secrets at run time.</li>
+        <li><b>Deleting a file in a later layer doesn't remove it.</b> Layers are additive &mdash; a secret copied in once is in the image forever. That's why <code>COPY</code> here names three files.</li>
+        <li><b>Minimum-version pins, not a lockfile.</b> Two builds a month apart may not be identical.</li>
+        <li><b><code>python:3.12-slim</code> is a moving tag.</b> Pin a digest if you need reproducibility.</li>
+        <li><b>No <code>step6b_governance.py</code> in the image.</b> Only the three files the service imports &mdash; the governance sample is a CLI demo, not part of the service.</li>
+        <li><b>The image needs no <code>docker-compose</code> or registry</b> to try. It also has no logging driver, no resource limits, and no restart policy &mdash; all of which are the orchestrator's job.</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="block">
+    <h2>What to watch when you run it</h2>
+    <span class="watch-cmd">docker build -t dorm-agent .</span>
+    <span class="watch-cmd">docker run --rm -p 8000:8000 -e ANTHROPIC_API_KEY=$env:ANTHROPIC_API_KEY -e API_KEYS=dev-key-123 dorm-agent</span>
+    <span class="watch-cmd">curl -s localhost:8000/health
+curl -s localhost:8000/ask -H "content-type: application/json" -H "x-api-key: dev-key-123" -d "{\"question\":\"What are the quiet hours?\"}"</span>
+    <p class="did">Watch for <code>CACHED</code> markers on the second build, and for the trace line appearing in the container's output the moment a request completes.</p>
+    <div class="predict">
+      <b>Predict before you build</b>
+      Edit one comment in <code>step6_service.py</code> and rebuild. How many of the layers rebuild &mdash; all of them, or two? And roughly how long? Guess a number, then time it.
+    </div>
+    <div class="predict">
+      <b>Then break it twice, on purpose</b>
+      <b>1.</b> Change <code>--host 0.0.0.0</code> to <code>--host 127.0.0.1</code>, rebuild, run, and curl. You'll get a connection refused that looks exactly like a Docker networking fault and is nothing of the kind &mdash; it's the most common first-container bug, and meeting it deliberately is cheaper than meeting it at 6pm.
+      <br><br><b>2.</b> Move the <code>COPY config.py ...</code> line <i>above</i> the <code>RUN uv pip install</code> line, then edit a <code>.py</code> file and rebuild. Time it. That difference &mdash; one second against forty &mdash; is what "layer ordering" actually means, and you'll never need to look it up again.
+    </div>
+  </section>
+
+  <div class="navrow">
+    <a href="mcp_dorm_server.html">&larr; support: mcp_dorm_server.py</a>
+    <a href="../step6_service.html">step 6: what runs inside this image &rarr;</a>
+  </div>
+
+  <footer>
+    generated by <code>/explain</code> &middot; source: <a href="../../Dockerfile">Dockerfile</a> &middot; runs <a href="../../step6_service.py">step6_service.py</a>
+  </footer>
+</div>
+</body>
+</html>

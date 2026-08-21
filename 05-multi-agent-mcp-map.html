@@ -1,0 +1,324 @@
+<title>Step 5 · Multi-Agent &amp; MCP</title>
+<style>
+  :root {
+    --bg:#f3edf0; --surface:#ffffff; --surface-2:#f8f0f4; --ink:#241620; --muted:#6b5560; --faint:#977f8b; --line:#e4d5dd;
+    --accent:#a83a6a; --accent-soft:#f3dde8;      /* step 5 · magenta */
+    --amber:#9a6a1a; --amber-soft:#f2e8d0;
+    --good:#2f8f5b; --prev:#2f7cb0;
+    --shadow:0 1px 2px rgba(36,22,32,.06),0 8px 24px rgba(36,22,32,.07);
+    --mono:ui-monospace,"Cascadia Code","SF Mono",Menlo,Consolas,monospace;
+    --sans:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{ --bg:#130c10; --surface:#1d141a; --surface-2:#251923; --ink:#f0e2ea; --muted:#b596a5; --faint:#8a6c7b; --line:#331f2b;
+      --accent:#e07aa6; --accent-soft:#331724; --amber:#d8b24e; --amber-soft:#302913; --good:#4fb37e; --prev:#58a9dc;
+      --shadow:0 1px 2px rgba(0,0,0,.35),0 8px 24px rgba(0,0,0,.4); }
+  }
+  :root[data-theme="light"]{ --bg:#f3edf0; --surface:#ffffff; --surface-2:#f8f0f4; --ink:#241620; --muted:#6b5560; --faint:#977f8b; --line:#e4d5dd; --accent:#a83a6a; --accent-soft:#f3dde8; --amber:#9a6a1a; --amber-soft:#f2e8d0; --good:#2f8f5b; --prev:#2f7cb0; --shadow:0 1px 2px rgba(36,22,32,.06),0 8px 24px rgba(36,22,32,.07); }
+  :root[data-theme="dark"]{ --bg:#130c10; --surface:#1d141a; --surface-2:#251923; --ink:#f0e2ea; --muted:#b596a5; --faint:#8a6c7b; --line:#331f2b; --accent:#e07aa6; --accent-soft:#331724; --amber:#d8b24e; --amber-soft:#302913; --good:#4fb37e; --prev:#58a9dc; --shadow:0 1px 2px rgba(0,0,0,.35),0 8px 24px rgba(0,0,0,.4); }
+
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink); font-family:var(--sans); line-height:1.6; -webkit-font-smoothing:antialiased; }
+  .wrap { max-width:1080px; margin:0 auto; padding:clamp(22px,5vw,56px) clamp(18px,4vw,40px); }
+  code { font-family:var(--mono); font-size:.87em; background:var(--surface-2); padding:1px 5px; border-radius:4px; }
+  .track { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:34px; }
+  .track a, .track span { font-family:var(--mono); font-size:12px; padding:7px 12px; border-radius:8px; border:1px solid var(--line); display:inline-flex; align-items:center; gap:8px; text-decoration:none; }
+  .track .s-n { font-weight:700; opacity:.55; }
+  .track .current { background:var(--ink); color:var(--bg); border-color:var(--ink); }
+  .track .current .s-n { opacity:.8; }
+  .track a.link { color:var(--accent); background:var(--surface); }
+  .track a.link:hover { border-color:var(--accent); }
+  .track a.link:focus-visible { outline:2px solid var(--accent); outline-offset:2px; }
+  .eyebrow { font-family:var(--mono); font-size:12px; letter-spacing:.12em; text-transform:uppercase; color:var(--accent); font-weight:600; display:flex; align-items:center; gap:10px; margin:0 0 14px; }
+  .eyebrow::before { content:""; width:28px; height:2px; background:var(--accent); display:inline-block; }
+  h1 { font-size:clamp(30px,6vw,52px); line-height:1.05; margin:0 0 14px; letter-spacing:-.02em; text-wrap:balance; font-weight:800; }
+  .lede { font-size:clamp(16px,2.2vw,19px); color:var(--muted); max-width:62ch; margin:0 0 22px; }
+  .meta-row { display:flex; flex-wrap:wrap; gap:10px; }
+  .pill { font-family:var(--mono); font-size:12px; padding:6px 12px; border-radius:999px; background:var(--surface); border:1px solid var(--line); color:var(--muted); display:inline-flex; align-items:center; gap:7px; }
+  .dot { width:8px; height:8px; border-radius:50%; display:inline-block; }
+  .section-label { font-family:var(--mono); font-size:12px; letter-spacing:.1em; text-transform:uppercase; color:var(--faint); margin:56px 0 20px; padding-bottom:10px; border-bottom:1px solid var(--line); font-weight:600; }
+  .map { display:flex; flex-direction:column; align-items:center; }
+  .hub { background:var(--ink); color:var(--bg); padding:16px 26px; border-radius:14px; font-family:var(--mono); font-weight:700; font-size:clamp(15px,2.4vw,18px); text-align:center; box-shadow:var(--shadow); letter-spacing:-.01em; }
+  .hub small { display:block; font-size:11px; font-weight:500; opacity:.7; letter-spacing:.08em; margin-top:3px; }
+  .connector { width:2px; height:26px; background:var(--line); }
+  .tier { width:100%; display:flex; flex-direction:column; align-items:center; }
+  .tier-tag { font-family:var(--mono); font-size:11px; letter-spacing:.1em; text-transform:uppercase; color:var(--muted); margin-bottom:12px; padding:3px 10px; border-radius:6px; background:var(--surface-2); border:1px solid var(--line); }
+  .backbone { display:flex; align-items:stretch; flex-wrap:wrap; justify-content:center; }
+  .arrow { display:flex; align-items:center; color:var(--accent); font-size:22px; padding:0 5px; font-weight:700; }
+  .node { background:var(--surface); border:1px solid var(--line); border-top:3px solid var(--accent); border-radius:12px; padding:13px 16px; min-width:150px; box-shadow:var(--shadow); text-align:left; }
+  .node .n-id { font-family:var(--mono); font-size:11px; color:var(--accent); font-weight:700; }
+  .node .n-name { font-weight:700; font-size:14px; margin:2px 0 3px; }
+  .node .n-sub { font-size:12px; color:var(--muted); line-height:1.4; }
+  .support-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:14px; width:100%; max-width:560px; }
+  .node.support { border-top-color:var(--amber); }
+  .node.support .n-id { color:var(--amber); }
+  .node.capstone { border-top-color:var(--good); text-align:center; min-width:300px; }
+  .node.capstone .n-id { color:var(--good); }
+  .node.next { border-top-color:var(--faint); text-align:center; min-width:240px; background:var(--surface-2); }
+  .node.next .n-id { color:var(--faint); }
+  @media (max-width:640px){ .backbone{flex-direction:column;align-items:center} .arrow{transform:rotate(90deg);padding:4px 0} .support-grid{grid-template-columns:1fr} .node{width:100%;min-width:0} }
+  .cards { display:grid; grid-template-columns:repeat(2,1fr); gap:18px; }
+  @media (max-width:720px){ .cards{grid-template-columns:1fr} }
+  .card { background:var(--surface); border:1px solid var(--line); border-radius:14px; padding:22px; box-shadow:var(--shadow); display:flex; flex-direction:column; gap:12px; }
+  .card.span { grid-column:1 / -1; }
+  .card-head { display:flex; align-items:baseline; gap:10px; }
+  .card-id { font-family:var(--mono); font-weight:700; font-size:13px; color:var(--surface); background:var(--accent); padding:3px 8px; border-radius:6px; flex:none; }
+  .card.amber .card-id { background:var(--amber); }
+  .card h3 { margin:0; font-size:18px; letter-spacing:-.01em; }
+  .card .role { font-family:var(--mono); font-size:11px; color:var(--faint); text-transform:uppercase; letter-spacing:.08em; }
+  .chips { display:flex; flex-wrap:wrap; gap:6px; }
+  .chip { font-family:var(--mono); font-size:11.5px; padding:4px 9px; border-radius:6px; background:var(--surface-2); border:1px solid var(--line); color:var(--ink); }
+  .model { font-size:13.5px; color:var(--ink); background:var(--surface-2); border-radius:8px; padding:9px 12px; }
+  .model b { font-family:var(--mono); font-size:10.5px; text-transform:uppercase; letter-spacing:.08em; color:var(--accent); display:block; margin-bottom:2px; }
+  .card.amber .model b { color:var(--amber); }
+  .why { font-size:14px; color:var(--muted); margin:0; }
+  .why b { color:var(--ink); font-weight:600; }
+  .snippet { background:var(--surface-2); border:1px solid var(--line); border-radius:9px; padding:13px; overflow-x:auto; font-family:var(--mono); font-size:12px; line-height:1.6; margin:0; color:var(--ink); }
+  .drill { font-size:13.5px; background:var(--accent-soft); border-radius:9px; padding:11px 13px; border-left:3px solid var(--accent); color:var(--ink); }
+  .drill b { font-family:var(--mono); font-size:11px; text-transform:uppercase; letter-spacing:.08em; display:block; margin-bottom:3px; opacity:.8; }
+  .builds { font-family:var(--mono); font-size:11px; color:var(--prev); background:transparent; border:1px dashed var(--prev); padding:4px 9px; border-radius:6px; width:fit-content; text-decoration:none; }
+  .builds:hover { background:var(--prev); color:var(--surface); }
+  .gotchas-label { font-family:var(--mono); font-size:10.5px; text-transform:uppercase; letter-spacing:.08em; color:var(--faint); margin-bottom:4px; }
+  .gotchas { font-size:13px; color:var(--muted); margin:0; padding:0; list-style:none; display:flex; flex-direction:column; gap:5px; }
+  .gotchas li { padding-left:20px; position:relative; }
+  .gotchas li::before { content:"!"; position:absolute; left:3px; top:0; font-family:var(--mono); font-weight:700; color:var(--amber); }
+  .links { display:flex; flex-direction:column; gap:2px; margin-top:2px; }
+  .links a { color:var(--accent); text-decoration:none; font-size:13.5px; font-weight:500; display:inline-flex; align-items:center; gap:7px; padding:3px 0; width:fit-content; border-bottom:1px solid transparent; transition:border-color .15s; }
+  .links a:hover { border-bottom-color:var(--accent); }
+  .links a:focus-visible { outline:2px solid var(--accent); outline-offset:3px; border-radius:3px; }
+  .links a .src { font-family:var(--mono); font-size:10.5px; color:var(--faint); flex:none; }
+  .callout { background:var(--surface); border:1px solid var(--line); border-radius:14px; padding:26px; box-shadow:var(--shadow); border-left:4px solid var(--good); }
+  .callout h3 { margin:0 0 8px; font-size:20px; }
+  .callout pre { background:var(--surface-2); border:1px solid var(--line); border-radius:10px; padding:16px; overflow-x:auto; font-family:var(--mono); font-size:12.5px; line-height:1.65; color:var(--ink); margin:14px 0 0; }
+  .callout .verdict { margin:14px 0 0; font-size:14px; color:var(--muted); }
+  footer { margin-top:56px; padding-top:22px; border-top:1px solid var(--line); display:flex; justify-content:space-between; align-items:center; gap:16px; flex-wrap:wrap; color:var(--faint); font-family:var(--mono); font-size:12px; }
+  .nav-link { font-weight:700; text-decoration:none; padding:9px 14px; border-radius:9px; border:1px solid; }
+  .prev-link { color:var(--prev); border-color:var(--prev); }
+  .prev-link:hover { background:var(--prev); color:var(--surface); }
+  .next-link { color:var(--accent); border-color:var(--accent); }
+  .next-link:hover { background:var(--accent); color:var(--surface); }
+</style>
+
+<div class="wrap">
+  <nav class="track">
+    <a class="link" href="01-python-fluency-map.html"><span class="s-n">01</span> Python Fluency</a>
+    <a class="link" href="02-llm-fundamentals-map.html"><span class="s-n">02</span> LLM Fundamentals</a>
+    <a class="link" href="03-agent-building-blocks-map.html"><span class="s-n">03</span> Agent Building Blocks</a>
+    <a class="link" href="04-frameworks-map.html"><span class="s-n">04</span> Frameworks</a>
+    <span class="current"><span class="s-n">05</span> Multi-Agent &amp; MCP</span>
+    <a class="link" href="06-production-map.html"><span class="s-n">06</span> Production</a>
+  </nav>
+
+  <p class="eyebrow">Step 5 of 6 · AI Agent / AI Engineer Track</p>
+  <h1>Multi-Agent &amp; MCP</h1>
+  <p class="lede">Two force-multipliers on top of a single agent: <b>orchestration</b> (many agents dividing work) and <b>MCP</b> (an open protocol so any agent can plug into any tool or data source). Plus the skill that keeps all of it honest — <b>evaluation</b>. Default to one agent; earn your way to many.</p>
+
+  <div class="meta-row">
+    <span class="pill"><span class="dot" style="background:var(--accent)"></span>Backbone · coordinate &amp; interop</span>
+    <span class="pill"><span class="dot" style="background:var(--amber)"></span>Applied · make it robust</span>
+    <span class="pill"><span class="dot" style="background:var(--good)"></span>Capstone · orchestrator + MCP + eval</span>
+    <span class="pill">⏱ Full-time 1–2 weeks · Evenings 3 weeks</span>
+  </div>
+
+  <div style="margin:6px 0 2px;background:var(--surface);border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:12px;padding:14px 18px;box-shadow:var(--shadow);font-size:13.5px;color:var(--muted)">
+    <span style="font-family:var(--mono);font-size:10.5px;text-transform:uppercase;letter-spacing:.08em;color:var(--accent);font-weight:700;display:block;margin-bottom:5px">⇄ Coming from .NET?</span>
+    <span style="color:var(--ink)">Fan-out ≈ <code>Task.WhenAll</code> + a coordinator. <b>MCP has an official C# SDK.</b> Semantic Kernel also offers agent-group orchestration.</span>
+    <span style="display:block;margin-top:8px;font-size:12px;color:var(--faint)">Link 404s? Docs move — search the link's title text at its site.</span>
+  </div>
+  <div class="section-label">The map — how the pieces relate</div>
+  <div class="map">
+    <div class="hub">COORDINATION &amp; INTEROP<small>MANY AGENTS · ONE PROTOCOL · MEASURED</small></div>
+    <div class="connector"></div>
+    <div class="tier">
+      <span class="tier-tag">Backbone — scale out, then interoperate, then measure</span>
+      <div class="backbone">
+        <div class="node"><div class="n-id">5.1</div><div class="n-name">When Multi-Agent</div><div class="n-sub">and when NOT to</div></div>
+        <div class="arrow">→</div>
+        <div class="node"><div class="n-id">5.2</div><div class="n-name">Orchestration Patterns</div><div class="n-sub">router, fan-out, workers</div></div>
+        <div class="arrow">→</div>
+        <div class="node"><div class="n-id">5.3</div><div class="n-name">MCP</div><div class="n-sub">USB-C for tools</div></div>
+        <div class="arrow">→</div>
+        <div class="node"><div class="n-id">5.4</div><div class="n-name">Evaluation</div><div class="n-sub">measure, don't vibe</div></div>
+      </div>
+    </div>
+    <div class="connector"></div>
+    <div class="tier">
+      <span class="tier-tag">Applied — make coordination robust</span>
+      <div class="support-grid">
+        <div class="node support"><div class="n-id">5.5</div><div class="n-name">Subagents &amp; Handoffs</div><div class="n-sub">scoped context, clean returns</div></div>
+        <div class="node support"><div class="n-id">5.6</div><div class="n-name">Shared State &amp; Comms</div><div class="n-sub">message passing · 1.2 races</div></div>
+      </div>
+    </div>
+    <div class="connector"></div>
+    <div class="node capstone"><div class="n-id">CAPSTONE</div><div class="n-name">Orchestrator-worker system + 12-case eval suite + an MCP client</div><div class="n-sub">fan out, synthesize, measure pass rate — and discover tools you never coded against</div></div>
+    <div class="connector"></div>
+    <div class="node next"><div class="n-id">UNLOCKS</div><div class="n-name">Step 6 · Production</div></div>
+  </div>
+
+  <div class="section-label">Module detail — what, why, gotchas &amp; where to learn</div>
+  <div class="cards">
+
+    <!-- 5.1 -->
+    <div class="card span">
+      <div class="card-head"><span class="card-id">5.1</span><div><h3>When to Go Multi-Agent</h3><div class="role">Backbone · the gate question</div></div></div>
+      <div class="chips"><span class="chip">single vs multi</span><span class="chip">independent subtasks</span><span class="chip">separation of concerns</span><span class="chip">N× cost</span></div>
+      <div class="model"><b>Mental model</b>Default to one agent. Go multi only when subtasks are genuinely independent, need different tools/context, or the work can't fit one context window.</div>
+      <p class="why">Multi-agent multiplies cost, latency, and failure modes. Justify it with a real reason: parallelizable fan-out, specialized roles that shouldn't share a prompt, or context that exceeds a single window. Absent that, a single agent with good tools (Step 3) is simpler and more reliable.</p>
+      <div>
+        <div class="gotchas-label">Common mistakes</div>
+        <ul class="gotchas">
+          <li>Going multi-agent for prestige when one agent would do.</li>
+          <li>N agents = N× tokens &amp; latency — the bill compounds fast.</li>
+          <li>Errors propagating across agents with no isolation or checkpoint.</li>
+        </ul>
+      </div>
+      <div class="links">
+        <a href="https://www.anthropic.com/engineering/built-multi-agent-research-system" target="_blank" rel="noopener">How we built a multi-agent research system <span class="src">Anthropic</span></a>
+        <a href="https://www.anthropic.com/engineering/building-effective-agents" target="_blank" rel="noopener">Building Effective Agents <span class="src">Anthropic</span></a>
+      </div>
+    </div>
+
+    <!-- 5.2 -->
+    <div class="card">
+      <div class="card-head"><span class="card-id">5.2</span><div><h3>Orchestration Patterns</h3><div class="role">Backbone</div></div></div>
+      <div class="chips"><span class="chip">prompt chaining</span><span class="chip">routing</span><span class="chip">parallel fan-out</span><span class="chip">orchestrator-workers</span><span class="chip">evaluator-optimizer</span></div>
+      <div class="model"><b>Mental model</b>An orchestrator decomposes the task, workers run in parallel, the orchestrator synthesizes — the same fan-out/gather shape as 1.2, one level up.</div>
+      <p class="why">The canonical patterns: <b>chaining</b> (sequential steps), <b>routing</b> (classify → send to a specialist), <b>parallelization</b> (fan-out + vote/merge), <b>orchestrator-workers</b> (dynamically split subtasks), and <b>evaluator-optimizer</b> (generate → critique → refine). Most real systems compose a few of these.</p>
+      <div>
+        <div class="gotchas-label">Common mistakes</div>
+        <ul class="gotchas">
+          <li>Synchronous barriers that waste the parallelism you paid for.</li>
+          <li>No dedup/merge of overlapping worker output.</li>
+          <li>Orchestrator context bloating as it accumulates every worker's full result.</li>
+        </ul>
+      </div>
+      <div class="links">
+        <a href="https://www.anthropic.com/engineering/building-effective-agents" target="_blank" rel="noopener">Workflow &amp; agent patterns (with diagrams) <span class="src">Anthropic</span></a>
+      </div>
+    </div>
+
+    <!-- 5.3 -->
+    <div class="card">
+      <div class="card-head"><span class="card-id">5.3</span><div><h3>MCP — Model Context Protocol</h3><div class="role">Backbone · consume it (★★) · author it (○)</div></div></div>
+      <div class="chips"><span class="chip">open protocol</span><span class="chip">servers / clients</span><span class="chip">runtime discovery</span><span class="chip">tools · resources · prompts</span><span class="chip">stdio / remote</span></div>
+      <div class="model"><b>Mental model</b>MCP is USB-C for tools — one open protocol so any agent (Claude, IDEs, your app) can use any tool or data source without bespoke glue per integration.</div>
+      <div style="background:var(--surface-2);border:1px solid var(--line);border-left:3px solid var(--accent);border-radius:9px;padding:12px 14px;margin:0 0 12px;font-size:13.5px">
+        <b>The position this track takes, so you don't get mixed signals:</b>
+        <b>consuming</b> MCP servers is worth a solid ★★ and about an hour — it's genuinely useful and it's the part employers mean when they mention MCP.
+        <b>Authoring</b> a server is a ○ "know it exists" until you have something specific to expose; the API is small and you'll learn it in an afternoon on the day you need it.
+        Read the client sample, skim the server sample.
+      </div>
+      <p class="why">Instead of hand-wiring each tool into each agent, tools and data are exposed once as an <b>MCP server</b>; any MCP-capable <b>client</b> consumes it. The part that surprises people is <b>runtime discovery</b>: your client calls <code>list_tools()</code> and hands whatever comes back to the model. Your agent gains capabilities it was never coded against — which is the entire payoff of a standard, and something you should see happen once with your own eyes.</p>
+      <div class="drill"><b>Drill</b>Run <code>step5b_mcp_client.py</code>. It launches <code>mcp_dorm_server.py</code> as a subprocess, discovers its tools, and uses them — with no tool schemas written in the client. Then add a third tool to the server and re-run the client <i>unchanged</i>.</div>
+      <div>
+        <div class="gotchas-label">Common mistakes</div>
+        <ul class="gotchas">
+          <li>Conflating MCP tools with in-process functions — MCP is a protocol boundary, with a process and a serialization cost.</li>
+          <li>Ignoring auth &amp; trust of remote MCP servers (Step 6 security). A third-party server sees every argument you send it.</li>
+          <li>Treating tool <i>descriptions</i> from a remote server as trusted text — they land in your prompt, so a hostile server is an injection vector.</li>
+          <li>Over-exposing capabilities — grant least privilege per server, and keep write tools behind an approval gate (6.7).</li>
+          <li>Writing a server when you needed a function. If nothing else will ever consume it, a protocol boundary is pure overhead.</li>
+        </ul>
+      </div>
+      <div class="links">
+        <a href="https://modelcontextprotocol.io/" target="_blank" rel="noopener">Model Context Protocol — spec &amp; SDKs <span class="src">modelcontextprotocol.io</span></a>
+        <a href="https://www.anthropic.com/news/model-context-protocol" target="_blank" rel="noopener">MCP announcement <span class="src">Anthropic</span></a>
+        <a href="https://docs.claude.com/en/docs/mcp" target="_blank" rel="noopener">Using MCP with Claude <span class="src">docs.claude.com</span></a>
+      </div>
+    </div>
+
+    <!-- 5.4 -->
+    <div class="card">
+      <div class="card-head"><span class="card-id">5.4</span><div><h3>Evaluation</h3><div class="role">Backbone · replaces "it feels right"</div></div></div>
+      <div class="chips"><span class="chip">eval set</span><span class="chip">assertions</span><span class="chip">LLM-as-judge</span><span class="chip">rubrics</span><span class="chip">refusal cases</span><span class="chip">regression</span></div>
+      <div class="model"><b>Mental model</b>You can't improve what you don't measure — swap vibes for a dataset of tasks graded on every change.</div>
+      <p class="why">Build a set of representative tasks + expected outcomes; grade with assertions or an LLM-as-judge; track pass rate across prompt/model/tool changes. Non-negotiable once an agent does anything non-trivial — and the foundation for the CI gate in Step 6.</p>
+      <p class="why"><b>Use the cheapest grader that can do the job.</b> A substring or JSON assertion is free, instant, and never flakes — use it whenever the right answer contains a specific fact. Reserve the <b>LLM judge</b> for what assertions genuinely cannot express, and give it a <b>rubric</b> written as a pass condition, not a description of the task. A suite that is mostly deterministic runs in seconds and you'll actually keep running it.</p>
+      <p class="why"><b>The cases people forget are the refusals.</b> Ask about a record that doesn't exist. The correct answer is "I don't know" — and no substring check can express "must not invent a number." Those cases are where an agent's real reliability lives, and they're the first thing a careful interviewer probes.</p>
+      <div class="drill"><b>Drill</b>Open <code>evals.py</code>. Eight cases use a free substring check; four use the judge — including two where the agent is supposed to <i>refuse</i>. Now break the agent on purpose: delete the "say so plainly rather than guessing" line from the Step 3 system prompt and re-run. Watch which cases flip.</div>
+      <div>
+        <div class="gotchas-label">Common mistakes</div>
+        <ul class="gotchas">
+          <li>Evaluating on the very examples you tuned the prompt on.</li>
+          <li>Judging everything with an LLM. It's slow, costs money, and adds variance where a substring check would have been exact.</li>
+          <li>A vague rubric ("is the answer good?"). Write the pass condition explicitly, and tell the judge to fail when uncertain.</li>
+          <li>Trusting an LLM-judge without ever checking its agreement with a human on a sample.</li>
+          <li>Only testing the happy path — no refusal cases, no malformed inputs, no "the tool returned an error" cases.</li>
+          <li>A suite that never grows. Every production failure should arrive back here as a new case.</li>
+          <li>Gating CI at 100%. Judge-graded suites have real variance; a perfect bar flakes and gets disabled within a week.</li>
+        </ul>
+      </div>
+      <div class="links">
+        <a href="https://www.promptfoo.dev/" target="_blank" rel="noopener">promptfoo — eval &amp; red-team harness <span class="src">promptfoo.dev</span></a>
+        <a href="https://docs.claude.com/en/docs/test-and-evaluate/develop-tests" target="_blank" rel="noopener">Developing evals <span class="src">docs.claude.com</span></a>
+      </div>
+    </div>
+
+    <!-- 5.5 -->
+    <div class="card amber">
+      <div class="card-head"><span class="card-id">5.5</span><div><h3>Subagents &amp; Handoffs</h3><div class="role">Applied</div></div></div>
+      <div class="chips"><span class="chip">delegation</span><span class="chip">context isolation</span><span class="chip">return contract</span></div>
+      <div class="model"><b>Mental model</b>A subagent is a fresh context you hand a scoped task — it returns a <i>result</i>, not its entire transcript.</div>
+      <p class="why">Isolate noisy subtasks (deep research, verification) into subagents so the main context stays clean (3.5). Define precisely what's handed in and what comes back — the return contract is where multi-agent systems succeed or turn to mush.</p>
+      <div>
+        <div class="gotchas-label">Common mistakes</div>
+        <ul class="gotchas">
+          <li>Passing entire histories instead of a scoped task + inputs.</li>
+          <li>Losing a subagent's work when it dies with no result captured.</li>
+          <li>Vague return contracts → the orchestrator can't use the output.</li>
+        </ul>
+      </div>
+      <div class="links">
+        <a href="https://www.anthropic.com/engineering/built-multi-agent-research-system" target="_blank" rel="noopener">Subagent orchestration in practice <span class="src">Anthropic</span></a>
+      </div>
+    </div>
+
+    <!-- 5.6 -->
+    <div class="card amber">
+      <div class="card-head"><span class="card-id">5.6</span><div><h3>Shared State &amp; Communication</h3><div class="role">Applied</div></div></div>
+      <div class="chips"><span class="chip">message passing</span><span class="chip">shared store</span><span class="chip">race conditions</span></div>
+      <a class="builds" href="01-python-fluency-map.html">↩ builds on 1.2 · Concurrency</a>
+      <div class="model"><b>Mental model</b>Prefer explicit message passing over shared mutable state; if agents must share state, guard it like any concurrent system.</div>
+      <p class="why">Agents coordinate by passing messages or through a shared store. Concurrent writes cause the same races you learned to tame in 1.2 — keep contracts explicit, and bound the chatter so cost doesn't spiral.</p>
+      <div>
+        <div class="gotchas-label">Common mistakes</div>
+        <ul class="gotchas">
+          <li>Unsynchronized writes to shared state → corrupted or lost updates.</li>
+          <li>Agents deadlocking while each waits on the other.</li>
+          <li>Unbounded back-and-forth chatter inflating cost with no progress.</li>
+        </ul>
+      </div>
+      <div class="links">
+        <a href="https://www.anthropic.com/engineering/built-multi-agent-research-system" target="_blank" rel="noopener">Coordination lessons learned <span class="src">Anthropic</span></a>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="section-label">The capstone — proof you've cleared Step 5</div>
+  <div class="callout">
+    <h3>An orchestrated, interoperable, measured system</h3>
+    <pre>Build an orchestrator that:
+  • fans out to 2–3 workers CONCURRENTLY       (5.2, 1.2)
+  • each worker has its own tools + scoped task (5.5)
+  • synthesizes worker results into one answer  (5.2)
+  • is scored by a 12-case eval suite with a
+    reported pass rate                          (5.4)
+  • uses cheap assertions where it can, and a
+    rubric-driven judge where it must           (5.4)
+  • includes at least 2 REFUSAL cases the agent
+    is supposed to decline                      (5.4)
+
+And separately, a client that:
+  • connects to an MCP server over stdio        (5.3)
+  • DISCOVERS its tools at runtime rather than
+    hardcoding any schema                       (5.3)</pre>
+    <p class="verdict">If your orchestrator delegates, merges, and you can <b>quote a pass-rate number that includes refusal cases</b> — you can build and measure real multi-agent systems. Step 6 makes it safe to put in front of users.</p>
+    <p class="why" style="margin-top:12px"><b>Notice how small the orchestrator is.</b> In <code>step5_orchestrator.py</code> the whole thing is one <code>gather()</code> and one summarizing prompt. That is not a simplification for teaching — that genuinely is what most "multi-agent frameworks" are wrapping. Which is exactly why 5.1 tells you to default to one good agent: the pattern is cheap to reach for and expensive to run.</p>
+  </div>
+
+  <footer>
+    <a class="nav-link prev-link" href="04-frameworks-map.html">← Step 4 · Frameworks</a>
+    <a class="nav-link next-link" href="06-production-map.html">Step 6 · Production →</a>
+  </footer>
+</div>

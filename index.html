@@ -1,0 +1,166 @@
+<title>AI Agent / AI Engineer — Learning Track</title>
+<style>
+  :root {
+    --bg:#eceff3; --surface:#ffffff; --surface-2:#f3f6fa; --ink:#161c26; --muted:#55606f; --faint:#8592a3; --line:#d7dde6;
+    --ink-accent:#2f3b4c;
+    --s1:#2f7cb0; --s2:#7a4fb0; --s3:#12897a; --s4:#c2610f; --s5:#a83a6a; --s6:#3f5bb0;
+    --good:#2f8f5b;
+    --shadow:0 1px 2px rgba(22,28,38,.06),0 10px 30px rgba(22,28,38,.08);
+    --mono:ui-monospace,"Cascadia Code","SF Mono",Menlo,Consolas,monospace;
+    --sans:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{ --bg:#0b0f16; --surface:#131925; --surface-2:#19202e; --ink:#e7ecf3; --muted:#98a3b4; --faint:#6d7a8c; --line:#242c3a; --ink-accent:#c3ccd8;
+      --s1:#58a9dc; --s2:#b48fe0; --s3:#4ec6b1; --s4:#e8944a; --s5:#e07aa6; --s6:#8b9ff0; --good:#4fb37e;
+      --shadow:0 1px 2px rgba(0,0,0,.35),0 10px 30px rgba(0,0,0,.45); }
+  }
+  :root[data-theme="light"]{ --bg:#eceff3; --surface:#ffffff; --surface-2:#f3f6fa; --ink:#161c26; --muted:#55606f; --faint:#8592a3; --line:#d7dde6; --ink-accent:#2f3b4c; --s1:#2f7cb0; --s2:#7a4fb0; --s3:#12897a; --s4:#c2610f; --s5:#a83a6a; --s6:#3f5bb0; --good:#2f8f5b; --shadow:0 1px 2px rgba(22,28,38,.06),0 10px 30px rgba(22,28,38,.08); }
+  :root[data-theme="dark"]{ --bg:#0b0f16; --surface:#131925; --surface-2:#19202e; --ink:#e7ecf3; --muted:#98a3b4; --faint:#6d7a8c; --line:#242c3a; --ink-accent:#c3ccd8; --s1:#58a9dc; --s2:#b48fe0; --s3:#4ec6b1; --s4:#e8944a; --s5:#e07aa6; --s6:#8b9ff0; --good:#4fb37e; --shadow:0 1px 2px rgba(0,0,0,.35),0 10px 30px rgba(0,0,0,.45); }
+
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink); font-family:var(--sans); line-height:1.6; -webkit-font-smoothing:antialiased; }
+  .wrap { max-width:1080px; margin:0 auto; padding:clamp(28px,6vw,72px) clamp(18px,4vw,40px); }
+  code { font-family:var(--mono); font-size:.86em; background:var(--surface-2); padding:2px 6px; border-radius:5px; }
+
+  .eyebrow { font-family:var(--mono); font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--muted); font-weight:600; display:flex; align-items:center; gap:10px; margin:0 0 16px; }
+  .eyebrow::before { content:""; width:30px; height:2px; background:var(--ink-accent); display:inline-block; }
+  h1 { font-size:clamp(34px,7vw,60px); line-height:1.03; margin:0 0 16px; letter-spacing:-.025em; text-wrap:balance; font-weight:800; }
+  .lede { font-size:clamp(16px,2.3vw,20px); color:var(--muted); max-width:64ch; margin:0 0 20px; }
+  .through { font-size:14.5px; color:var(--ink); background:var(--surface); border:1px solid var(--line); border-left:4px solid var(--good); border-radius:12px; padding:16px 18px; max-width:70ch; box-shadow:var(--shadow); }
+  .through b { color:var(--ink); }
+
+  .section-label { font-family:var(--mono); font-size:12px; letter-spacing:.1em; text-transform:uppercase; color:var(--faint); margin:52px 0 20px; padding-bottom:10px; border-bottom:1px solid var(--line); font-weight:600; }
+
+  .steps { display:grid; grid-template-columns:repeat(2,1fr); gap:16px; }
+  @media (max-width:720px){ .steps{grid-template-columns:1fr} }
+  .step { display:flex; flex-direction:column; gap:10px; background:var(--surface); border:1px solid var(--line); border-radius:14px; padding:20px 20px 18px; box-shadow:var(--shadow); text-decoration:none; color:inherit; border-top:3px solid var(--c); transition:transform .12s, border-color .12s; }
+  .step:hover { transform:translateY(-2px); }
+  .step:focus-visible { outline:2px solid var(--c); outline-offset:3px; }
+  .step-top { display:flex; align-items:center; gap:11px; }
+  .step-n { font-family:var(--mono); font-weight:700; font-size:13px; color:#fff; background:var(--c); width:30px; height:30px; border-radius:8px; display:flex; align-items:center; justify-content:center; flex:none; }
+  .step h3 { margin:0; font-size:18px; letter-spacing:-.01em; }
+  .step .tag { font-family:var(--mono); font-size:10.5px; text-transform:uppercase; letter-spacing:.07em; color:var(--faint); margin-left:auto; }
+  .step p { margin:0; font-size:13.5px; color:var(--muted); }
+  .step .parts { display:flex; flex-wrap:wrap; gap:5px; }
+  .part { font-family:var(--mono); font-size:11px; padding:3px 8px; border-radius:5px; background:var(--surface-2); border:1px solid var(--line); color:var(--muted); }
+  .step .go { font-family:var(--mono); font-size:12px; color:var(--c); font-weight:700; margin-top:2px; }
+
+  .s1{--c:var(--s1)} .s2{--c:var(--s2)} .s3{--c:var(--s3)} .s4{--c:var(--s4)} .s5{--c:var(--s5)} .s6{--c:var(--s6)}
+
+  .samples { background:var(--surface); border:1px solid var(--line); border-radius:14px; padding:22px; box-shadow:var(--shadow); }
+  .samples p.intro { margin:0 0 16px; color:var(--muted); font-size:14.5px; }
+  .srow { display:grid; grid-template-columns:auto 1fr auto; gap:12px 16px; align-items:center; padding:11px 0; border-top:1px solid var(--line); }
+  .srow:first-of-type { border-top:none; }
+  .srow .sn { font-family:var(--mono); font-weight:700; font-size:12px; color:#fff; background:var(--c); width:26px; height:26px; border-radius:7px; display:flex; align-items:center; justify-content:center; }
+  .srow a { font-family:var(--mono); font-size:13px; color:var(--ink); text-decoration:none; border-bottom:1px solid var(--line); }
+  .srow a:hover { border-bottom-color:var(--ink); }
+  .srow .cmd { font-family:var(--mono); font-size:12px; color:var(--muted); text-align:right; white-space:nowrap; overflow-x:auto; max-width:100%; }
+  .srow .nokey { color:var(--good); }
+  @media (max-width:640px){ .srow{grid-template-columns:auto 1fr} .srow .cmd{grid-column:2;text-align:left} }
+
+  .note { margin-top:16px; font-size:13px; color:var(--muted); }
+  .note code { font-size:.9em; }
+
+  footer { margin-top:56px; padding-top:22px; border-top:1px solid var(--line); color:var(--faint); font-family:var(--mono); font-size:12px; display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px; }
+</style>
+
+<div class="wrap">
+
+  <p class="eyebrow">Self-paced roadmap · 6 steps</p>
+  <p style="margin:0 0 18px;font-family:var(--mono);font-size:13px;display:flex;gap:18px;flex-wrap:wrap"><a href="00-START-HERE.html" style="color:var(--good);font-weight:700;text-decoration:none">★ New here? Start with the simple step-by-step guide →</a><a href="guide-critical-path.html" style="color:var(--s4);font-weight:700;text-decoration:none">◆ Critical Path: what to master vs skim →</a><a href="guide-exit-checks.html" style="color:var(--s3);font-weight:700;text-decoration:none">✎ Exit Checks: can you actually do it? →</a><a href="guide-plan-audit.html" style="color:var(--s6);font-weight:700;text-decoration:none">◈ Plan Audit →</a></p>
+  <h1>Becoming an AI Agent Engineer</h1>
+  <p class="lede">A fast-track path from Python reflexes to shipping a production agent service. Each step is a visual mind map — backbone concepts in order, applied concepts alongside, and a capstone that proves you're ready for the next step. Every capstone has runnable sample code.</p>
+  <p class="through">The whole track is one continuous build: <b>Step 1</b>'s mock agent loop → <b>Step 2</b> swaps in one real LLM call → <b>Step 3</b> wraps that call in a loop with tools = <b>an agent</b> → <b>Step 4</b> rebuilds it in a framework → <b>Step 5</b> makes agents cooperate + speak MCP + get measured → <b>Step 6</b> ships it. Finish with 3 portfolio projects.</p>
+
+  <div class="section-label">The six steps — click any to open its map</div>
+  <div class="steps">
+
+    <a class="step s1" href="01-python-fluency-map.html">
+      <div class="step-top"><span class="step-n">01</span><h3>Python Fluency</h3><span class="tag">Foundation</span></div>
+      <p>The exact subset of Python agents assume: async, Pydantic, and the reflexes frameworks are built on.</p>
+      <div class="parts"><span class="part">async</span><span class="part">Pydantic</span><span class="part">decorators</span><span class="part">retries</span></div>
+      <span class="go">Open map →</span>
+    </a>
+
+    <a class="step s2" href="02-llm-fundamentals-map.html">
+      <div class="step-top"><span class="step-n">02</span><h3>LLM Fundamentals</h3><span class="tag">Black box</span></div>
+      <p>Understand the model before wiring it in: tokens, prompting, structured output, streaming, documents — and the API changes that break old tutorials.</p>
+      <div class="parts"><span class="part">tokens</span><span class="part">prompting</span><span class="part">effort</span><span class="part">documents</span><span class="part">providers</span></div>
+      <span class="go">Open map →</span>
+    </a>
+
+    <a class="step s3" href="03-agent-building-blocks-map.html">
+      <div class="step-top"><span class="step-n">03</span><h3>Agent Building Blocks</h3><span class="tag">The core</span></div>
+      <p>The heart of the track: the async agent loop, tool use, retrieval you can actually measure, memory, context management, guardrails.</p>
+      <div class="parts"><span class="part">agent loop</span><span class="part">tools</span><span class="part">retrieval</span><span class="part">recall@k</span><span class="part">memory</span></div>
+      <span class="go">Open map →</span>
+    </a>
+
+    <a class="step s4" href="04-frameworks-map.html">
+      <div class="step-top"><span class="step-n">04</span><h3>Frameworks</h3><span class="tag">Leverage</span></div>
+      <p>Now that you've built it raw, let a framework remove the boilerplate — LangGraph, the Claude Agent SDK, and how to choose.</p>
+      <div class="parts"><span class="part">LangGraph</span><span class="part">Agent SDK</span><span class="part">LlamaIndex</span></div>
+      <span class="go">Open map →</span>
+    </a>
+
+    <a class="step s5" href="05-multi-agent-mcp-map.html">
+      <div class="step-top"><span class="step-n">05</span><h3>Multi-Agent &amp; MCP</h3><span class="tag">Scale out</span></div>
+      <p>Orchestration patterns, the MCP interop standard, and evaluation — measure agents instead of vibing.</p>
+      <div class="parts"><span class="part">orchestration</span><span class="part">MCP</span><span class="part">eval</span></div>
+      <span class="go">Open map →</span>
+    </a>
+
+    <a class="step s6" href="06-production-map.html">
+      <div class="step-top"><span class="step-n">06</span><h3>Production</h3><span class="tag">Ship it</span></div>
+      <p>Observability, cost, security, governance, containerised serving, and an eval-gated CI loop. The employable layer.</p>
+      <div class="parts"><span class="part">tracing</span><span class="part">cost</span><span class="part">security</span><span class="part">governance</span><span class="part">CI gate</span></div>
+      <span class="go">Open map →</span>
+    </a>
+
+  </div>
+
+  <div class="section-label">Runnable code — one capstone per step</div>
+  <div class="samples">
+    <p class="intro">Heavily-commented Python you actually run. They build on each other (Steps 5–6 import the Step 3 agent). Setup + prerequisites are in <a href="samples/README.md" style="color:inherit;font-family:var(--mono);font-size:.92em">samples/README.md</a>.</p>
+
+    <div class="srow s1"><span class="sn">01</span><a href="samples/step1_mock_agent.py">step1_mock_agent.py</a><span class="cmd nokey">uv run step1_mock_agent.py · no key</span></div>
+    <div class="srow s2"><span class="sn">02</span><a href="samples/step2_first_call.py">step2_first_call.py</a><span class="cmd">uv run step2_first_call.py</span></div>
+    <div class="srow s2"><span class="sn">2b</span><a href="samples/step2b_document_extract.py">step2b_document_extract.py</a><span class="cmd">uv run step2b_document_extract.py</span></div>
+    <div class="srow s3"><span class="sn">03</span><a href="samples/step3_agent.py">step3_agent.py</a><span class="cmd">uv run step3_agent.py "..."</span></div>
+    <div class="srow s3"><span class="sn">3b</span><a href="samples/step3b_retrieval.py">step3b_retrieval.py</a><span class="cmd">uv run step3b_retrieval.py</span></div>
+    <div class="srow s4"><span class="sn">04</span><a href="samples/step4_langgraph_agent.py">step4_langgraph_agent.py</a><span class="cmd">uv run step4_langgraph_agent.py</span></div>
+    <div class="srow s5"><span class="sn">05</span><a href="samples/step5_orchestrator.py">step5_orchestrator.py</a><span class="cmd">uv run step5_orchestrator.py</span></div>
+    <div class="srow s5"><span class="sn">5b</span><a href="samples/step5b_mcp_client.py">step5b_mcp_client.py</a><span class="cmd">uv run step5b_mcp_client.py</span></div>
+    <div class="srow s6"><span class="sn">06</span><a href="samples/step6_service.py">step6_service.py</a><span class="cmd">uv run uvicorn step6_service:app</span></div>
+    <div class="srow s6"><span class="sn">6b</span><a href="samples/step6b_governance.py">step6b_governance.py</a><span class="cmd nokey">uv run step6b_governance.py --offline · no key</span></div>
+
+    <p class="note">Quick start: install <code>uv</code>, then from <code>samples/</code> run <code>uv init &amp;&amp; uv add anthropic pydantic</code>, set <code>ANTHROPIC_API_KEY</code>, and run Step 1 (needs no key) to confirm your setup. Model, provider, effort and pricing all live in one place — <a href="samples/config.py" style="color:inherit;font-family:var(--mono);font-size:.92em">samples/config.py</a> — and are overridable with <code>$env:AI_MODEL</code> / <code>$env:AI_PROVIDER</code>.</p>
+    <p class="note"><b>Also in <code>samples/</code>:</b> <code>evals.py</code> (the 12-case suite with an LLM judge), <code>mcp_dorm_server.py</code>, and a <code>Dockerfile</code> — plus <a href=".github/workflows/eval.yml" style="color:inherit;font-family:var(--mono);font-size:.92em">.github/workflows/eval.yml</a>, the CI gate that fails the build when the pass rate drops.</p>
+
+    <p class="note" style="margin-top:14px;padding-top:14px;border-top:1px solid var(--line)"><b>📖 Read before you run.</b> Every sample has a block-by-block walkthrough — what each part does, the concept it teaches, and <i>why it was written that way</i> rather than the obvious naive alternative. Each ends with a prediction to make before you press enter. They chain in order:<br>
+      <span style="font-family:var(--mono);font-size:.92em;line-height:2">
+      <a href="samples/code-explain/step1_mock_agent.html" style="color:var(--s1)">1 mock loop</a> ·
+      <a href="samples/code-explain/step2_first_call.html" style="color:var(--s2)">2 first call</a> ·
+      <a href="samples/code-explain/step2b_document_extract.html" style="color:var(--s2)">2b documents</a> ·
+      <a href="samples/code-explain/step3_agent.html" style="color:var(--s3)">3 the agent</a> ·
+      <a href="samples/code-explain/step3b_retrieval.html" style="color:var(--s3)">3b retrieval</a> ·
+      <a href="samples/code-explain/step4_langgraph_agent.html" style="color:var(--s4)">4 framework</a> ·
+      <a href="samples/code-explain/step5_orchestrator.html" style="color:var(--s5)">5 orchestrator</a> ·
+      <a href="samples/code-explain/step5b_mcp_client.html" style="color:var(--s5)">5b MCP</a> ·
+      <a href="samples/code-explain/step6_service.html" style="color:var(--s6)">6 the service</a> ·
+      <a href="samples/code-explain/step6b_governance.html" style="color:var(--s6)">6b governance</a>
+      </span><br>
+      <span style="font-family:var(--mono);font-size:.92em;line-height:2">and the supporting files &mdash;
+      <a href="samples/code-explain/support/config.html">config.py</a> ·
+      <a href="samples/code-explain/support/evals.html">evals.py</a> ·
+      <a href="samples/code-explain/support/mcp_dorm_server.html">mcp_dorm_server.py</a> ·
+      <a href="samples/code-explain/support/Dockerfile.html">Dockerfile</a>
+      </span></p>
+  </div>
+
+  <footer>
+    <span>AI Agent / AI Engineer Track · <code style="font-size:.9em">00-</code> is the start, <code style="font-size:.9em">01–06</code> the steps, <code style="font-size:.9em">guide-</code> the companions</span>
+    <span>Start at Step 1 · finish employable ★</span>
+  </footer>
+
+</div>

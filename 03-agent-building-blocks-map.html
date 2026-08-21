@@ -1,0 +1,365 @@
+<title>Step 3 · Agent Building Blocks</title>
+<style>
+  :root {
+    --bg: #eaeff4; --surface: #ffffff; --surface-2: #f2f8f6;
+    --ink: #16202b; --muted: #566b64; --faint: #7f948d; --line: #d3e0da;
+    --accent: #12897a; --accent-soft: #d3ede8;      /* step 3 · emerald */
+    --amber: #b8791a; --amber-soft: #f4e7cf;
+    --good: #2f8f5b; --prev: #2f7cb0;
+    --shadow: 0 1px 2px rgba(22,32,43,.06), 0 8px 24px rgba(22,32,43,.06);
+    --mono: ui-monospace, "Cascadia Code", "SF Mono", Menlo, Consolas, monospace;
+    --sans: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg:#0c141c; --surface:#131f1c; --surface-2:#182a26; --ink:#e6edf3; --muted:#93a8a1; --faint:#6f847d; --line:#233530;
+      --accent:#4ec6b1; --accent-soft:#10302b; --amber:#e0a94e; --amber-soft:#352a16; --good:#4fb37e; --prev:#58a9dc;
+      --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 24px rgba(0,0,0,.35); }
+  }
+  :root[data-theme="light"] { --bg:#eaeff4; --surface:#ffffff; --surface-2:#f2f8f6; --ink:#16202b; --muted:#566b64; --faint:#7f948d; --line:#d3e0da; --accent:#12897a; --accent-soft:#d3ede8; --amber:#b8791a; --amber-soft:#f4e7cf; --good:#2f8f5b; --prev:#2f7cb0; --shadow:0 1px 2px rgba(22,32,43,.06),0 8px 24px rgba(22,32,43,.06); }
+  :root[data-theme="dark"] { --bg:#0c141c; --surface:#131f1c; --surface-2:#182a26; --ink:#e6edf3; --muted:#93a8a1; --faint:#6f847d; --line:#233530; --accent:#4ec6b1; --accent-soft:#10302b; --amber:#e0a94e; --amber-soft:#352a16; --good:#4fb37e; --prev:#58a9dc; --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 24px rgba(0,0,0,.35); }
+
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink); font-family:var(--sans); line-height:1.6; -webkit-font-smoothing:antialiased; }
+  .wrap { max-width:1080px; margin:0 auto; padding:clamp(22px,5vw,56px) clamp(18px,4vw,40px); }
+  code { font-family:var(--mono); font-size:.87em; background:var(--surface-2); padding:1px 5px; border-radius:4px; }
+  .track { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:34px; }
+  .track a, .track span { font-family:var(--mono); font-size:12px; padding:7px 12px; border-radius:8px; border:1px solid var(--line); display:inline-flex; align-items:center; gap:8px; text-decoration:none; }
+  .track .s-n { font-weight:700; opacity:.55; }
+  .track .current { background:var(--ink); color:var(--bg); border-color:var(--ink); }
+  .track .current .s-n { opacity:.8; }
+  .track a.link { color:var(--accent); background:var(--surface); }
+  .track a.link:hover { border-color:var(--accent); }
+  .track a.link:focus-visible { outline:2px solid var(--accent); outline-offset:2px; }
+  .eyebrow { font-family:var(--mono); font-size:12px; letter-spacing:.12em; text-transform:uppercase; color:var(--accent); font-weight:600; display:flex; align-items:center; gap:10px; margin:0 0 14px; }
+  .eyebrow::before { content:""; width:28px; height:2px; background:var(--accent); display:inline-block; }
+  h1 { font-size:clamp(30px,6vw,52px); line-height:1.05; margin:0 0 14px; letter-spacing:-.02em; text-wrap:balance; font-weight:800; }
+  .lede { font-size:clamp(16px,2.2vw,19px); color:var(--muted); max-width:62ch; margin:0 0 22px; }
+  .meta-row { display:flex; flex-wrap:wrap; gap:10px; }
+  .pill { font-family:var(--mono); font-size:12px; padding:6px 12px; border-radius:999px; background:var(--surface); border:1px solid var(--line); color:var(--muted); display:inline-flex; align-items:center; gap:7px; }
+  .dot { width:8px; height:8px; border-radius:50%; display:inline-block; }
+  .section-label { font-family:var(--mono); font-size:12px; letter-spacing:.1em; text-transform:uppercase; color:var(--faint); margin:56px 0 20px; padding-bottom:10px; border-bottom:1px solid var(--line); font-weight:600; }
+  .map { display:flex; flex-direction:column; align-items:center; }
+  .hub { background:var(--ink); color:var(--bg); padding:16px 26px; border-radius:14px; font-family:var(--mono); font-weight:700; font-size:clamp(15px,2.4vw,18px); text-align:center; box-shadow:var(--shadow); letter-spacing:-.01em; }
+  .hub small { display:block; font-size:11px; font-weight:500; opacity:.7; letter-spacing:.08em; margin-top:3px; }
+  .connector { width:2px; height:26px; background:var(--line); }
+  .tier { width:100%; display:flex; flex-direction:column; align-items:center; }
+  .tier-tag { font-family:var(--mono); font-size:11px; letter-spacing:.1em; text-transform:uppercase; color:var(--muted); margin-bottom:12px; padding:3px 10px; border-radius:6px; background:var(--surface-2); border:1px solid var(--line); }
+  .backbone { display:flex; align-items:stretch; flex-wrap:wrap; justify-content:center; }
+  .arrow { display:flex; align-items:center; color:var(--accent); font-size:22px; padding:0 5px; font-weight:700; }
+  .node { background:var(--surface); border:1px solid var(--line); border-top:3px solid var(--accent); border-radius:12px; padding:13px 16px; min-width:150px; box-shadow:var(--shadow); text-align:left; }
+  .node .n-id { font-family:var(--mono); font-size:11px; color:var(--accent); font-weight:700; }
+  .node .n-name { font-weight:700; font-size:14px; margin:2px 0 3px; }
+  .node .n-sub { font-size:12px; color:var(--muted); line-height:1.4; }
+  .support-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:14px; width:100%; max-width:560px; }
+  .node.support { border-top-color:var(--amber); }
+  .node.support .n-id { color:var(--amber); }
+  .node.capstone { border-top-color:var(--good); text-align:center; min-width:300px; }
+  .node.capstone .n-id { color:var(--good); }
+  .node.next { border-top-color:var(--faint); text-align:center; min-width:240px; background:var(--surface-2); }
+  .node.next .n-id { color:var(--faint); }
+  @media (max-width:640px){ .backbone{flex-direction:column;align-items:center} .arrow{transform:rotate(90deg);padding:4px 0} .support-grid{grid-template-columns:1fr} .node{width:100%;min-width:0} }
+  .cards { display:grid; grid-template-columns:repeat(2,1fr); gap:18px; }
+  @media (max-width:720px){ .cards{grid-template-columns:1fr} }
+  .card { background:var(--surface); border:1px solid var(--line); border-radius:14px; padding:22px; box-shadow:var(--shadow); display:flex; flex-direction:column; gap:12px; }
+  .card.span { grid-column:1 / -1; }
+  .card-head { display:flex; align-items:baseline; gap:10px; }
+  .card-id { font-family:var(--mono); font-weight:700; font-size:13px; color:var(--surface); background:var(--accent); padding:3px 8px; border-radius:6px; flex:none; }
+  .card.amber .card-id { background:var(--amber); }
+  .card h3 { margin:0; font-size:18px; letter-spacing:-.01em; }
+  .card .role { font-family:var(--mono); font-size:11px; color:var(--faint); text-transform:uppercase; letter-spacing:.08em; }
+  .chips { display:flex; flex-wrap:wrap; gap:6px; }
+  .chip { font-family:var(--mono); font-size:11.5px; padding:4px 9px; border-radius:6px; background:var(--surface-2); border:1px solid var(--line); color:var(--ink); }
+  .model { font-size:13.5px; color:var(--ink); background:var(--surface-2); border-radius:8px; padding:9px 12px; }
+  .model b { font-family:var(--mono); font-size:10.5px; text-transform:uppercase; letter-spacing:.08em; color:var(--accent); display:block; margin-bottom:2px; }
+  .card.amber .model b { color:var(--amber); }
+  .why { font-size:14px; color:var(--muted); margin:0; }
+  .why b { color:var(--ink); font-weight:600; }
+  .snippet { background:var(--surface-2); border:1px solid var(--line); border-radius:9px; padding:13px; overflow-x:auto; font-family:var(--mono); font-size:12px; line-height:1.6; margin:0; color:var(--ink); }
+  .drill { font-size:13.5px; background:var(--accent-soft); border-radius:9px; padding:11px 13px; border-left:3px solid var(--accent); color:var(--ink); }
+  .card.amber .drill { background:var(--amber-soft); border-left-color:var(--amber); }
+  .drill b { font-family:var(--mono); font-size:11px; text-transform:uppercase; letter-spacing:.08em; display:block; margin-bottom:3px; opacity:.8; }
+  .builds { font-family:var(--mono); font-size:11px; color:var(--prev); background:transparent; border:1px dashed var(--prev); padding:4px 9px; border-radius:6px; width:fit-content; text-decoration:none; }
+  .builds:hover { background:var(--prev); color:var(--surface); }
+  .gotchas-label { font-family:var(--mono); font-size:10.5px; text-transform:uppercase; letter-spacing:.08em; color:var(--faint); margin-bottom:4px; }
+  .gotchas { font-size:13px; color:var(--muted); margin:0; padding:0; list-style:none; display:flex; flex-direction:column; gap:5px; }
+  .gotchas li { padding-left:20px; position:relative; }
+  .gotchas li::before { content:"!"; position:absolute; left:3px; top:0; font-family:var(--mono); font-weight:700; color:var(--amber); }
+  .links { display:flex; flex-direction:column; gap:2px; margin-top:2px; }
+  .links a { color:var(--accent); text-decoration:none; font-size:13.5px; font-weight:500; display:inline-flex; align-items:center; gap:7px; padding:3px 0; width:fit-content; border-bottom:1px solid transparent; transition:border-color .15s; }
+  .links a:hover { border-bottom-color:var(--accent); }
+  .links a:focus-visible { outline:2px solid var(--accent); outline-offset:3px; border-radius:3px; }
+  .links a .src { font-family:var(--mono); font-size:10.5px; color:var(--faint); flex:none; }
+  .callout { background:var(--surface); border:1px solid var(--line); border-radius:14px; padding:26px; box-shadow:var(--shadow); border-left:4px solid var(--good); }
+  .callout h3 { margin:0 0 8px; font-size:20px; }
+  .callout pre { background:var(--surface-2); border:1px solid var(--line); border-radius:10px; padding:16px; overflow-x:auto; font-family:var(--mono); font-size:12.5px; line-height:1.65; color:var(--ink); margin:14px 0 0; }
+  .callout .verdict { margin:14px 0 0; font-size:14px; color:var(--muted); }
+  footer { margin-top:56px; padding-top:22px; border-top:1px solid var(--line); display:flex; justify-content:space-between; align-items:center; gap:16px; flex-wrap:wrap; color:var(--faint); font-family:var(--mono); font-size:12px; }
+  .nav-link { font-weight:700; text-decoration:none; padding:9px 14px; border-radius:9px; border:1px solid; }
+  .prev-link { color:var(--prev); border-color:var(--prev); }
+  .prev-link:hover { background:var(--prev); color:var(--surface); }
+  .next-link { color:var(--accent); border-color:var(--accent); }
+  .next-link:hover { background:var(--accent); color:var(--surface); }
+</style>
+
+<div class="wrap">
+  <nav class="track">
+    <a class="link" href="01-python-fluency-map.html"><span class="s-n">01</span> Python Fluency</a>
+    <a class="link" href="02-llm-fundamentals-map.html"><span class="s-n">02</span> LLM Fundamentals</a>
+    <span class="current"><span class="s-n">03</span> Agent Building Blocks</span>
+    <a class="link" href="04-frameworks-map.html"><span class="s-n">04</span> Frameworks</a>
+    <a class="link" href="05-multi-agent-mcp-map.html"><span class="s-n">05</span> Multi-Agent &amp; MCP</a>
+    <a class="link" href="06-production-map.html"><span class="s-n">06</span> Production</a>
+  </nav>
+
+  <p class="eyebrow">Step 3 of 6 · AI Agent / AI Engineer Track</p>
+  <h1>Agent Building Blocks</h1>
+  <p class="lede">This is the heart of the whole track. An agent is nothing more than Step 2's single LLM call wrapped in a <b>loop</b>, handed <b>tools</b> to act with, <b>retrieval</b> to know things past its cutoff, and <b>memory</b> to stay coherent. Build these by hand once — every framework in Step 4 is just this, abstracted.</p>
+
+  <div class="meta-row">
+    <span class="pill"><span class="dot" style="background:var(--accent)"></span>Backbone · the loop &amp; its inputs</span>
+    <span class="pill"><span class="dot" style="background:var(--amber)"></span>Applied · keep it alive in production</span>
+    <span class="pill"><span class="dot" style="background:var(--good)"></span>Capstone · a real working agent</span>
+    <span class="pill">⏱ Full-time 1–2 weeks · Evenings 3–4 weeks</span>
+  </div>
+
+  <div style="margin:6px 0 2px;background:var(--surface);border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:12px;padding:14px 18px;box-shadow:var(--shadow);font-size:13.5px;color:var(--muted)">
+    <span style="font-family:var(--mono);font-size:10.5px;text-transform:uppercase;letter-spacing:.08em;color:var(--accent);font-weight:700;display:block;margin-bottom:5px">⇄ Coming from .NET?</span>
+    <span style="color:var(--ink)">The agent loop is a <code>while</code> loop + a <code>switch</code> on tool calls — nothing exotic. Tools ≈ methods you expose; RAG ≈ a search query interpolated into the prompt. <b>Microsoft.Extensions.AI</b> gives you the same function-calling in C#.</span>
+    <span style="display:block;margin-top:8px;font-size:12px;color:var(--faint)">Link 404s? Docs move — search the link's title text at its site.</span>
+  </div>
+  <div class="section-label">The map — how the pieces relate</div>
+  <div class="map">
+    <div class="hub">THE AGENT LOOP<small>MODEL DECIDES · YOUR CODE ACTS</small></div>
+    <div class="connector"></div>
+    <div class="tier">
+      <span class="tier-tag">Backbone — the loop and what feeds it</span>
+      <div class="backbone">
+        <div class="node"><div class="n-id">3.1</div><div class="n-name">Agent Loop</div><div class="n-sub">plan → act → observe → repeat</div></div>
+        <div class="arrow">→</div>
+        <div class="node"><div class="n-id">3.2</div><div class="n-name">Tool Use</div><div class="n-sub">act on the world · 1.3 + 2.6</div></div>
+        <div class="arrow">→</div>
+        <div class="node"><div class="n-id">3.3a</div><div class="n-name">Retrieval</div><div class="n-sub">find the right documents</div></div>
+        <div class="arrow">→</div>
+        <div class="node"><div class="n-id">3.4</div><div class="n-name">Memory</div><div class="n-sub">stay coherent over turns</div></div>
+      </div>
+    </div>
+    <div class="connector"></div>
+    <div class="tier">
+      <span class="tier-tag">Applied — keep the loop alive</span>
+      <div class="support-grid">
+        <div class="node support"><div class="n-id">3.3b</div><div class="n-name">Retrieval Quality</div><div class="n-sub">measure it, or you're guessing</div></div>
+        <div class="node support"><div class="n-id">3.5</div><div class="n-name">Context Management</div><div class="n-sub">budget the window · 2.2</div></div>
+        <div class="node support"><div class="n-id">3.6</div><div class="n-name">Guardrails &amp; Recovery</div><div class="n-sub">caps, retries · 1.5</div></div>
+      </div>
+    </div>
+    <div class="connector"></div>
+    <div class="node capstone"><div class="n-id">CAPSTONE</div><div class="n-name">A real tool-calling agent</div><div class="n-sub">retrieval + memory + a real tool, in a bounded async loop — plus a scored retriever</div></div>
+    <div class="connector"></div>
+    <div class="node next"><div class="n-id">UNLOCKS</div><div class="n-name">Step 4 · Frameworks</div></div>
+  </div>
+
+  <div class="section-label">Module detail — what, why, gotchas &amp; where to learn</div>
+  <div class="cards">
+
+    <!-- 3.1 -->
+    <div class="card span">
+      <div class="card-head"><span class="card-id">3.1</span><div><h3>The Agent Loop</h3><div class="role">Backbone · this IS the agent</div></div></div>
+      <div class="chips"><span class="chip">while loop</span><span class="chip">plan → act → observe</span><span class="chip">stop_reason</span><span class="chip">tool_result feedback</span><span class="chip">max iterations</span></div>
+      <div class="model"><b>Mental model</b>An agent is Step 2's single call in a while-loop: call the model → if it asks for a tool, run it and feed the result back → loop → stop when the model is done.</div>
+      <p class="why">Everything else in this step (tools, RAG, memory) exists to feed this loop. The crucial inversion from a normal program: <b>the model decides what to do next; your code just executes and reports back the observation.</b> Get this loop right and you've built an agent — the rest is quality.</p>
+      <pre class="snippet">messages = [{"role": "user", "content": task}]
+for _ in range(MAX_STEPS):                         # 3.6: always cap iterations
+    reply = call_model(messages, tools=TOOL_SCHEMAS)   # Step 2 call
+    messages.append(reply)
+    if reply.stop_reason != "tool_use":
+        break                                      # model gave a final answer
+    for call in reply.tool_calls:
+        try:
+            result = TOOLS[call.name](**call.input)    # 1.1 dispatch
+        except Exception as e:
+            result = f"ERROR: {e}"                  # feed the error BACK, don't crash
+        messages.append(tool_result(call.id, result))  # the "observation"</pre>
+      <div class="drill"><b>Drill</b>Build this loop against your Step 2 call with one real tool (a calculator). Log every step. Confirm the model calls the tool, sees the result, and then answers.</div>
+      <div>
+        <div class="gotchas-label">Common mistakes</div>
+        <ul class="gotchas">
+          <li>No iteration cap → an agent that loops forever, burning tokens and money.</li>
+          <li>Not feeding tool <i>errors</i> back — the model can often recover if it sees what went wrong.</li>
+          <li>Dropping the assistant's <code>tool_use</code> turn from history — the next call breaks.</li>
+        </ul>
+      </div>
+      <div class="links">
+        <a href="https://www.anthropic.com/engineering/building-effective-agents" target="_blank" rel="noopener">Building Effective Agents — the essential read <span class="src">Anthropic</span></a>
+        <a href="https://docs.claude.com/en/docs/build-with-claude/tool-use/overview" target="_blank" rel="noopener">Tool use loop mechanics <span class="src">docs.claude.com</span></a>
+        <a href="https://github.com/anthropics/anthropic-cookbook" target="_blank" rel="noopener">Cookbook — runnable agent recipes <span class="src">GitHub</span></a>
+      </div>
+    </div>
+
+    <!-- 3.2 -->
+    <div class="card">
+      <div class="card-head"><span class="card-id">3.2</span><div><h3>Tool Use / Function Calling</h3><div class="role">Backbone</div></div></div>
+      <div class="chips"><span class="chip">input_schema</span><span class="chip">tool_use / tool_result</span><span class="chip">dispatch</span><span class="chip">parallel tools</span></div>
+      <a class="builds" href="02-llm-fundamentals-map.html">↩ builds on 1.3 + 2.6</a>
+      <div class="model"><b>Mental model</b>A tool = a Pydantic schema + a Python function. The model picks one and fills the args; your code runs it and returns the observation.</div>
+      <p class="why">Tools are how an agent affects the world — search, query a DB, call an API, run code. The model <b>never executes anything</b>; it emits a structured request (from your 1.3 schema) and you run the real function and hand back the result.</p>
+      <div>
+        <div class="gotchas-label">Common mistakes</div>
+        <ul class="gotchas">
+          <li><b>Prompt injection:</b> tool results &amp; retrieved text are untrusted — they can carry instructions that hijack the agent. The risk is born <em>here</em>; full defenses in <a href="06-production-map.html" style="color:var(--accent)">Step 6.4</a>.</li>
+          <li>Side-effecting tools (write/charge/delete) with no idempotency or confirmation.</li>
+          <li>Returning huge tool outputs that blow the context window (3.5).</li>
+          <li>Vague tool descriptions — they're prompts; the model chooses tools based on them.</li>
+        </ul>
+      </div>
+      <div class="links">
+        <a href="https://docs.claude.com/en/docs/build-with-claude/tool-use/overview" target="_blank" rel="noopener">Tool use overview <span class="src">docs.claude.com</span></a>
+        <a href="https://docs.claude.com/en/docs/build-with-claude/tool-use/implement-tool-use" target="_blank" rel="noopener">Implementing tools <span class="src">docs.claude.com</span></a>
+      </div>
+    </div>
+
+    <!-- 3.3a -->
+    <div class="card">
+      <div class="card-head"><span class="card-id">3.3a</span><div><h3>Retrieval — Grounding in Your Data</h3><div class="role">Backbone</div></div></div>
+      <div class="chips"><span class="chip">lexical (BM25)</span><span class="chip">embeddings</span><span class="chip">hybrid search</span><span class="chip">chunking</span><span class="chip">retrieve → inject</span><span class="chip">pgvector / Chroma</span></div>
+      <div class="model"><b>Mental model</b>Don't bake facts into the model — find the right chunks at query time and paste them into the context.</div>
+      <p class="why">Retrieval solves 2.1's cutoff + hallucination problem: fetch relevant text, inject it, and the model answers <i>from your data</i>. <b>Start lexical.</b> A keyword ranker like BM25 needs no embeddings, no database and no index-time pipeline — and on many corpora it is most of the way there. Add vectors when you can point at the queries lexical search demonstrably cannot serve (see 3.3b). <b>Hybrid</b> — run both, merge the scores — beats either alone and is the sane production default.</p>
+      <pre class="snippet"># stage 1: cheap, wide recall (lexical, and/or vector)
+candidates = bm25(question, k=20)
+
+# stage 2: narrow precision -- rerank the few, not the corpus
+best = rerank(question, candidates)[:4]
+
+prompt = f"Context:\n{best}\n\nQ: {question}"   # inject, then call the model</pre>
+      <div>
+        <div class="gotchas-label">Common mistakes</div>
+        <ul class="gotchas">
+          <li>Reaching for a vector DB first. It's the most expensive fix and rarely the first one you need.</li>
+          <li>Chunks too big → noisy &amp; costly; too small → context lost. Tune it against a labelled set, not by feel.</li>
+          <li>Different embedding model at index vs query time → garbage matches.</li>
+          <li>Retrieval quality caps answer quality — bad retrieval, bad answer, full stop. Most "hallucination" bugs are this.</li>
+          <li>Letting permissions leak: if a user can't read a document, retrieval must not surface it. Filter <b>before</b> ranking, not after.</li>
+        </ul>
+      </div>
+      <div class="links">
+        <a href="https://www.anthropic.com/news/contextual-retrieval" target="_blank" rel="noopener">Contextual Retrieval (hybrid + rerank) <span class="src">Anthropic</span></a>
+        <a href="https://docs.trychroma.com/" target="_blank" rel="noopener">Chroma — starter vector DB <span class="src">trychroma.com</span></a>
+        <a href="https://github.com/pgvector/pgvector" target="_blank" rel="noopener">pgvector — Postgres vectors <span class="src">GitHub</span></a>
+      </div>
+    </div>
+
+    <!-- 3.3b -->
+    <div class="card amber">
+      <div class="card-head"><span class="card-id">3.3b</span><div><h3>Retrieval Quality <span style="font-size:.7em;color:var(--good)">· new</span></h3><div class="role">Applied · where the real wins are</div></div></div>
+      <div class="chips"><span class="chip">recall@k</span><span class="chip">labelled queries</span><span class="chip">reranking</span><span class="chip">candidate pool</span><span class="chip">citations</span></div>
+      <div class="model"><b>Mental model</b>Grade the retriever <i>separately</i> from the agent. Otherwise you cannot tell "the model lied" apart from "the model never saw it."</div>
+      <p class="why">This is the module that pays for itself. Write <b>ten labelled queries</b> — question → the doc ids that should come back — and measure <code>recall@1</code> and <code>recall@3</code>. Suddenly "our RAG feels bad" becomes three separate, named problems with three different fixes: <i>not ranked first</i> (add a reranker), <i>not retrieved at all</i> (add vectors or fix chunking), <i>retrieved but ignored</i> (fix the prompt). Almost nobody does this, which is exactly why saying you do lands in an interview.</p>
+      <p class="why"><b>Then make the answer checkable.</b> Have the agent cite which chunk each claim came from. A grounded answer with citations is auditable by a non-expert; an ungrounded one has to be trusted.</p>
+      <div class="drill"><b>Drill</b>Run <code>step3b_retrieval.py</code>. It scores three retrievers against 12 labelled queries and prints the table. Read which queries each one fails and <i>why</i> — then add two queries of your own that break it.</div>
+      <div>
+        <div class="gotchas-label">Common mistakes</div>
+        <ul class="gotchas">
+          <li>Only measuring the final answer. That hides whether retrieval or generation is at fault.</li>
+          <li>Expecting a reranker to fix recall. It reorders the candidate pool — it cannot conjure a document the pool never contained.</li>
+          <li>A candidate pool too small to rerank. Retrieve ~20, rerank down to ~4.</li>
+          <li>Tuning on the same queries you evaluate on. Keep a few you never look at.</li>
+          <li>Never growing the set. Every real retrieval miss in production should become a labelled case.</li>
+        </ul>
+      </div>
+      <div class="links">
+        <a href="https://docs.claude.com/en/docs/build-with-claude/citations" target="_blank" rel="noopener">Citations — grounded, checkable answers <span class="src">docs.claude.com</span></a>
+        <a href="https://docs.claude.com/en/docs/test-and-evaluate/develop-tests" target="_blank" rel="noopener">Building an eval suite <span class="src">docs.claude.com</span></a>
+      </div>
+    </div>
+
+    <!-- 3.4 -->
+    <div class="card">
+      <div class="card-head"><span class="card-id">3.4</span><div><h3>Memory</h3><div class="role">Backbone</div></div></div>
+      <div class="chips"><span class="chip">short-term (history)</span><span class="chip">long-term (store)</span><span class="chip">summarization</span><span class="chip">retrieval memory</span></div>
+      <div class="model"><b>Mental model</b>Short-term memory is the message list you resend; long-term memory is just RAG (3.3) over your past interactions.</div>
+      <p class="why">Because the model is stateless (2.1) with a finite window (2.2), you engineer memory: keep recent turns verbatim, summarize or store older ones, and retrieve relevant past facts when a new turn needs them.</p>
+      <div>
+        <div class="gotchas-label">Common mistakes</div>
+        <ul class="gotchas">
+          <li>Unbounded history → context overflow and steadily rising cost.</li>
+          <li>Summarizing away detail you later need — keep the source retrievable.</li>
+          <li>Treating memory as magic — it's the same retrieve-and-inject mechanics as RAG.</li>
+        </ul>
+      </div>
+      <div class="links">
+        <a href="https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents" target="_blank" rel="noopener">Effective context engineering <span class="src">Anthropic</span></a>
+        <a href="https://www.anthropic.com/engineering/building-effective-agents" target="_blank" rel="noopener">Building Effective Agents <span class="src">Anthropic</span></a>
+      </div>
+    </div>
+
+    <!-- 3.5 -->
+    <div class="card amber">
+      <div class="card-head"><span class="card-id">3.5</span><div><h3>Context Management</h3><div class="role">Applied</div></div></div>
+      <div class="chips"><span class="chip">window budgeting</span><span class="chip">truncation</span><span class="chip">compaction / summarize</span><span class="chip">relevance filtering</span></div>
+      <a class="builds" href="02-llm-fundamentals-map.html">↩ builds on 2.2 · Tokens</a>
+      <div class="model"><b>Mental model</b>Context is a budget you actively manage every turn — not an infinite bucket you keep pouring into.</div>
+      <p class="why">Every token costs money and eats the window. Inject only what's relevant this turn, trim or summarize old turns and stale tool outputs, and watch the size of a growing system prompt. Good context management is often what separates a flaky agent from a reliable one.</p>
+      <div>
+        <div class="gotchas-label">Common mistakes</div>
+        <ul class="gotchas">
+          <li>Dumping whole documents instead of retrieved chunks (3.3).</li>
+          <li>Keeping every stale tool output in context forever.</li>
+          <li>Ignoring that a long system prompt is re-billed on every single call.</li>
+        </ul>
+      </div>
+      <div class="links">
+        <a href="https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents" target="_blank" rel="noopener">Effective context engineering <span class="src">Anthropic</span></a>
+        <a href="https://docs.claude.com/en/docs/build-with-claude/context-windows" target="_blank" rel="noopener">Context windows <span class="src">docs.claude.com</span></a>
+      </div>
+    </div>
+
+    <!-- 3.6 -->
+    <div class="card amber">
+      <div class="card-head"><span class="card-id">3.6</span><div><h3>Guardrails &amp; Recovery</h3><div class="role">Applied</div></div></div>
+      <div class="chips"><span class="chip">max iterations</span><span class="chip">tool-error feedback</span><span class="chip">output validation</span><span class="chip">human-in-the-loop</span></div>
+      <a class="builds" href="01-python-fluency-map.html">↩ builds on 1.5 · Retries</a>
+      <div class="model"><b>Mental model</b>Assume every tool can fail and the model can err — the loop must either recover or stop cleanly.</div>
+      <p class="why">Production agents need iteration caps, validation of tool args &amp; outputs (Pydantic, 1.3), errors fed back so the model retries (3.1), and human approval gates before anything destructive or irreversible.</p>
+      <div>
+        <div class="gotchas-label">Common mistakes</div>
+        <ul class="gotchas">
+          <li>Silent infinite loops with no step cap or cost ceiling.</li>
+          <li>Trusting tool output blindly instead of validating it.</li>
+          <li>No kill-switch / confirmation for destructive actions (deep dive in Step 6).</li>
+        </ul>
+      </div>
+      <div class="links">
+        <a href="https://www.anthropic.com/engineering/building-effective-agents" target="_blank" rel="noopener">Building Effective Agents <span class="src">Anthropic</span></a>
+        <a href="https://docs.claude.com/en/docs/build-with-claude/tool-use/overview" target="_blank" rel="noopener">Tool error handling <span class="src">docs.claude.com</span></a>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="section-label">The capstone — proof you've cleared Step 3</div>
+  <div class="callout">
+    <h3>A real agent — no mocks</h3>
+    <p class="why">Take your Step 2 capstone and turn it into an agent that actually does things.</p>
+    <pre>Build an agent that:
+  • runs an ASYNC tool-calling loop with a step cap  (3.1, 3.6, 1.2)
+  • has 2 real tools — e.g. a search tool + calculator (3.2)
+  • runs parallel tool calls CONCURRENTLY, returning
+    every result in ONE user message                  (3.2, 1.2)
+  • answers from a retrieval store you built yourself (3.3a)
+  • keeps recent turns + summarizes older ones         (3.4, 3.5)
+  • feeds tool errors back so it can recover           (3.6)
+
+Then ask it a multi-step question that needs
+a retrieval AND a tool call AND reasoning to answer.
+
+Then, separately, SCORE the retriever on its own:
+  • 10 labelled queries, recall@1 and recall@3       (3.3b)
+  • compare naive vs BM25 vs BM25-plus-reranking     (3.3b)</pre>
+    <p class="verdict">If it retrieves, calls a tool, sees the result, and reasons to a correct answer — <b>you've built a working agent.</b> If you can also say <i>how good its retrieval is, in a number</i>, you're ahead of most people who claim this skill. Steps 4–6 make it easier to build (frameworks), bigger (multi-agent), and safe to ship (production).</p>
+    <p class="why" style="margin-top:12px"><b>Why async, specifically?</b> Step 1 called async the non-negotiable core, and this is the file where that becomes true. A synchronous agent loop blocks a whole worker for every second the model is thinking — so one user at a time. Make the loop <code>async</code> here and Steps 5 and 6 get concurrent workers and a streaming endpoint for free; leave it synchronous and both need thread-pool workarounds.</p>
+  </div>
+
+  <footer>
+    <a class="nav-link prev-link" href="02-llm-fundamentals-map.html">← Step 2 · LLM Fundamentals</a>
+    <a class="nav-link next-link" href="04-frameworks-map.html">Step 4 · Frameworks →</a>
+  </footer>
+</div>

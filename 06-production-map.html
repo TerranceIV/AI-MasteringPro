@@ -1,0 +1,380 @@
+<title>Step 6 · Production &amp; Shipping</title>
+<style>
+  :root {
+    --bg:#ecedf4; --surface:#ffffff; --surface-2:#f1f3fa; --ink:#161a2b; --muted:#565d75; --faint:#828aa6; --line:#d6dae8;
+    --accent:#3f5bb0; --accent-soft:#dde2f5;      /* step 6 · indigo */
+    --amber:#9a6a1a; --amber-soft:#f0e9cf;
+    --good:#2f8f5b; --prev:#2f7cb0;
+    --shadow:0 1px 2px rgba(22,26,43,.06),0 8px 24px rgba(22,26,43,.07);
+    --mono:ui-monospace,"Cascadia Code","SF Mono",Menlo,Consolas,monospace;
+    --sans:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{ --bg:#0b0e18; --surface:#141826; --surface-2:#1a1f30; --ink:#e6e9f3; --muted:#98a0bb; --faint:#6f789a; --line:#262c40;
+      --accent:#8b9ff0; --accent-soft:#1a2140; --amber:#d8b24e; --amber-soft:#302913; --good:#4fb37e; --prev:#58a9dc;
+      --shadow:0 1px 2px rgba(0,0,0,.35),0 8px 24px rgba(0,0,0,.4); }
+  }
+  :root[data-theme="light"]{ --bg:#ecedf4; --surface:#ffffff; --surface-2:#f1f3fa; --ink:#161a2b; --muted:#565d75; --faint:#828aa6; --line:#d6dae8; --accent:#3f5bb0; --accent-soft:#dde2f5; --amber:#9a6a1a; --amber-soft:#f0e9cf; --good:#2f8f5b; --prev:#2f7cb0; --shadow:0 1px 2px rgba(22,26,43,.06),0 8px 24px rgba(22,26,43,.07); }
+  :root[data-theme="dark"]{ --bg:#0b0e18; --surface:#141826; --surface-2:#1a1f30; --ink:#e6e9f3; --muted:#98a0bb; --faint:#6f789a; --line:#262c40; --accent:#8b9ff0; --accent-soft:#1a2140; --amber:#d8b24e; --amber-soft:#302913; --good:#4fb37e; --prev:#58a9dc; --shadow:0 1px 2px rgba(0,0,0,.35),0 8px 24px rgba(0,0,0,.4); }
+
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink); font-family:var(--sans); line-height:1.6; -webkit-font-smoothing:antialiased; }
+  .wrap { max-width:1080px; margin:0 auto; padding:clamp(22px,5vw,56px) clamp(18px,4vw,40px); }
+  code { font-family:var(--mono); font-size:.87em; background:var(--surface-2); padding:1px 5px; border-radius:4px; }
+  .track { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:34px; }
+  .track a, .track span { font-family:var(--mono); font-size:12px; padding:7px 12px; border-radius:8px; border:1px solid var(--line); display:inline-flex; align-items:center; gap:8px; text-decoration:none; }
+  .track .s-n { font-weight:700; opacity:.55; }
+  .track .current { background:var(--ink); color:var(--bg); border-color:var(--ink); }
+  .track .current .s-n { opacity:.8; }
+  .track a.link { color:var(--accent); background:var(--surface); }
+  .track a.link:hover { border-color:var(--accent); }
+  .track a.link:focus-visible { outline:2px solid var(--accent); outline-offset:2px; }
+  .eyebrow { font-family:var(--mono); font-size:12px; letter-spacing:.12em; text-transform:uppercase; color:var(--accent); font-weight:600; display:flex; align-items:center; gap:10px; margin:0 0 14px; }
+  .eyebrow::before { content:""; width:28px; height:2px; background:var(--accent); display:inline-block; }
+  h1 { font-size:clamp(30px,6vw,52px); line-height:1.05; margin:0 0 14px; letter-spacing:-.02em; text-wrap:balance; font-weight:800; }
+  .lede { font-size:clamp(16px,2.2vw,19px); color:var(--muted); max-width:62ch; margin:0 0 22px; }
+  .meta-row { display:flex; flex-wrap:wrap; gap:10px; }
+  .pill { font-family:var(--mono); font-size:12px; padding:6px 12px; border-radius:999px; background:var(--surface); border:1px solid var(--line); color:var(--muted); display:inline-flex; align-items:center; gap:7px; }
+  .dot { width:8px; height:8px; border-radius:50%; display:inline-block; }
+  .section-label { font-family:var(--mono); font-size:12px; letter-spacing:.1em; text-transform:uppercase; color:var(--faint); margin:56px 0 20px; padding-bottom:10px; border-bottom:1px solid var(--line); font-weight:600; }
+  .map { display:flex; flex-direction:column; align-items:center; }
+  .hub { background:var(--ink); color:var(--bg); padding:16px 26px; border-radius:14px; font-family:var(--mono); font-weight:700; font-size:clamp(15px,2.4vw,18px); text-align:center; box-shadow:var(--shadow); letter-spacing:-.01em; }
+  .hub small { display:block; font-size:11px; font-weight:500; opacity:.7; letter-spacing:.08em; margin-top:3px; }
+  .connector { width:2px; height:26px; background:var(--line); }
+  .tier { width:100%; display:flex; flex-direction:column; align-items:center; }
+  .tier-tag { font-family:var(--mono); font-size:11px; letter-spacing:.1em; text-transform:uppercase; color:var(--muted); margin-bottom:12px; padding:3px 10px; border-radius:6px; background:var(--surface-2); border:1px solid var(--line); }
+  .backbone { display:flex; align-items:stretch; flex-wrap:wrap; justify-content:center; }
+  .arrow { display:flex; align-items:center; color:var(--accent); font-size:22px; padding:0 5px; font-weight:700; }
+  .node { background:var(--surface); border:1px solid var(--line); border-top:3px solid var(--accent); border-radius:12px; padding:13px 16px; min-width:150px; box-shadow:var(--shadow); text-align:left; }
+  .node .n-id { font-family:var(--mono); font-size:11px; color:var(--accent); font-weight:700; }
+  .node .n-name { font-weight:700; font-size:14px; margin:2px 0 3px; }
+  .node .n-sub { font-size:12px; color:var(--muted); line-height:1.4; }
+  .support-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:14px; width:100%; max-width:560px; }
+  .node.support { border-top-color:var(--amber); }
+  .node.support .n-id { color:var(--amber); }
+  .node.capstone { border-top-color:var(--good); text-align:center; min-width:300px; }
+  .node.capstone .n-id { color:var(--good); }
+  .node.finish { border-top-color:var(--good); text-align:center; min-width:240px; background:var(--accent-soft); }
+  .node.finish .n-id { color:var(--good); }
+  @media (max-width:640px){ .backbone{flex-direction:column;align-items:center} .arrow{transform:rotate(90deg);padding:4px 0} .support-grid{grid-template-columns:1fr} .node{width:100%;min-width:0} }
+  .cards { display:grid; grid-template-columns:repeat(2,1fr); gap:18px; }
+  @media (max-width:720px){ .cards{grid-template-columns:1fr} }
+  .card { background:var(--surface); border:1px solid var(--line); border-radius:14px; padding:22px; box-shadow:var(--shadow); display:flex; flex-direction:column; gap:12px; }
+  .card.span { grid-column:1 / -1; }
+  .card-head { display:flex; align-items:baseline; gap:10px; }
+  .card-id { font-family:var(--mono); font-weight:700; font-size:13px; color:var(--surface); background:var(--accent); padding:3px 8px; border-radius:6px; flex:none; }
+  .card.amber .card-id { background:var(--amber); }
+  .card h3 { margin:0; font-size:18px; letter-spacing:-.01em; }
+  .card .role { font-family:var(--mono); font-size:11px; color:var(--faint); text-transform:uppercase; letter-spacing:.08em; }
+  .chips { display:flex; flex-wrap:wrap; gap:6px; }
+  .chip { font-family:var(--mono); font-size:11.5px; padding:4px 9px; border-radius:6px; background:var(--surface-2); border:1px solid var(--line); color:var(--ink); }
+  .model { font-size:13.5px; color:var(--ink); background:var(--surface-2); border-radius:8px; padding:9px 12px; }
+  .model b { font-family:var(--mono); font-size:10.5px; text-transform:uppercase; letter-spacing:.08em; color:var(--accent); display:block; margin-bottom:2px; }
+  .card.amber .model b { color:var(--amber); }
+  .why { font-size:14px; color:var(--muted); margin:0; }
+  .why b { color:var(--ink); font-weight:600; }
+  .drill { font-size:13.5px; background:var(--accent-soft); border-radius:9px; padding:11px 13px; border-left:3px solid var(--accent); color:var(--ink); }
+  .drill b { font-family:var(--mono); font-size:11px; text-transform:uppercase; letter-spacing:.08em; display:block; margin-bottom:3px; opacity:.8; }
+  .builds { font-family:var(--mono); font-size:11px; color:var(--prev); background:transparent; border:1px dashed var(--prev); padding:4px 9px; border-radius:6px; width:fit-content; text-decoration:none; }
+  .builds:hover { background:var(--prev); color:var(--surface); }
+  .gotchas-label { font-family:var(--mono); font-size:10.5px; text-transform:uppercase; letter-spacing:.08em; color:var(--faint); margin-bottom:4px; }
+  .gotchas { font-size:13px; color:var(--muted); margin:0; padding:0; list-style:none; display:flex; flex-direction:column; gap:5px; }
+  .gotchas li { padding-left:20px; position:relative; }
+  .gotchas li::before { content:"!"; position:absolute; left:3px; top:0; font-family:var(--mono); font-weight:700; color:var(--amber); }
+  .links { display:flex; flex-direction:column; gap:2px; margin-top:2px; }
+  .links a { color:var(--accent); text-decoration:none; font-size:13.5px; font-weight:500; display:inline-flex; align-items:center; gap:7px; padding:3px 0; width:fit-content; border-bottom:1px solid transparent; transition:border-color .15s; }
+  .links a:hover { border-bottom-color:var(--accent); }
+  .links a:focus-visible { outline:2px solid var(--accent); outline-offset:3px; border-radius:3px; }
+  .links a .src { font-family:var(--mono); font-size:10.5px; color:var(--faint); flex:none; }
+  .callout { background:var(--surface); border:1px solid var(--line); border-radius:14px; padding:26px; box-shadow:var(--shadow); border-left:4px solid var(--good); }
+  .callout h3 { margin:0 0 8px; font-size:20px; }
+  .callout pre { background:var(--surface-2); border:1px solid var(--line); border-radius:10px; padding:16px; overflow-x:auto; font-family:var(--mono); font-size:12.5px; line-height:1.65; color:var(--ink); margin:14px 0 0; }
+  .callout .verdict { margin:14px 0 0; font-size:14px; color:var(--muted); }
+  .finish-band { background:linear-gradient(135deg,var(--accent-soft),var(--surface-2)); border:1px solid var(--line); border-radius:16px; padding:28px; box-shadow:var(--shadow); }
+  .finish-band h3 { margin:0 0 6px; font-size:22px; }
+  .finish-band ol { margin:12px 0 0; padding-left:20px; color:var(--muted); font-size:14.5px; display:flex; flex-direction:column; gap:6px; }
+  .finish-band b { color:var(--ink); }
+  footer { margin-top:56px; padding-top:22px; border-top:1px solid var(--line); display:flex; justify-content:space-between; align-items:center; gap:16px; flex-wrap:wrap; color:var(--faint); font-family:var(--mono); font-size:12px; }
+  .nav-link { font-weight:700; text-decoration:none; padding:9px 14px; border-radius:9px; border:1px solid; }
+  .prev-link { color:var(--prev); border-color:var(--prev); }
+  .prev-link:hover { background:var(--prev); color:var(--surface); }
+  .home-link { color:var(--accent); border-color:var(--accent); }
+  .home-link:hover { background:var(--accent); color:var(--surface); }
+</style>
+
+<div class="wrap">
+  <nav class="track">
+    <a class="link" href="01-python-fluency-map.html"><span class="s-n">01</span> Python Fluency</a>
+    <a class="link" href="02-llm-fundamentals-map.html"><span class="s-n">02</span> LLM Fundamentals</a>
+    <a class="link" href="03-agent-building-blocks-map.html"><span class="s-n">03</span> Agent Building Blocks</a>
+    <a class="link" href="04-frameworks-map.html"><span class="s-n">04</span> Frameworks</a>
+    <a class="link" href="05-multi-agent-mcp-map.html"><span class="s-n">05</span> Multi-Agent &amp; MCP</a>
+    <span class="current"><span class="s-n">06</span> Production</span>
+  </nav>
+
+  <p class="eyebrow">Step 6 of 6 · AI Agent / AI Engineer Track</p>
+  <h1>Production &amp; Shipping</h1>
+  <p class="lede">A demo that works once and a service you can trust are different animals. This step turns your Step 5 system into something observable, affordable, safe, and continuously evaluated — the difference between "I built an agent" and "I ship agents." This is the layer that makes you <b>employable</b>.</p>
+
+  <div class="meta-row">
+    <span class="pill"><span class="dot" style="background:var(--accent)"></span>Backbone · trust &amp; safety</span>
+    <span class="pill"><span class="dot" style="background:var(--amber)"></span>Applied · serve &amp; iterate</span>
+    <span class="pill"><span class="dot" style="background:var(--good)"></span>Capstone · ship it</span>
+    <span class="pill">⏱ Ongoing · deepens with every project</span>
+  </div>
+
+  <div style="margin:6px 0 2px;background:var(--surface);border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:12px;padding:14px 18px;box-shadow:var(--shadow);font-size:13.5px;color:var(--muted)">
+    <span style="font-family:var(--mono);font-size:10.5px;text-transform:uppercase;letter-spacing:.08em;color:var(--accent);font-weight:700;display:block;margin-bottom:5px">⇄ Coming from .NET?</span>
+    <span style="color:var(--ink)">Serving ≈ a Minimal API / controller. Async, retries (<b>Polly</b>), rate limiting, and <b>OpenTelemetry</b> all transfer directly. Guardrails ≈ middleware / action filters.</span>
+    <span style="display:block;margin-top:8px;font-size:12px;color:var(--faint)">Link 404s? Docs move — search the link's title text at its site.</span>
+  </div>
+  <div class="section-label">The map — how the pieces relate</div>
+  <div class="map">
+    <div class="hub">SHIP IT SAFELY<small>OBSERVABLE · AFFORDABLE · GUARDED · SECURE</small></div>
+    <div class="connector"></div>
+    <div class="tier">
+      <span class="tier-tag">Backbone — earn production trust</span>
+      <div class="backbone">
+        <div class="node"><div class="n-id">6.1</div><div class="n-name">Observability</div><div class="n-sub">trace every step</div></div>
+        <div class="arrow">→</div>
+        <div class="node"><div class="n-id">6.2</div><div class="n-name">Cost &amp; Latency</div><div class="n-sub">right-size &amp; cache</div></div>
+        <div class="arrow">→</div>
+        <div class="node"><div class="n-id">6.3</div><div class="n-name">Guardrails</div><div class="n-sub">validate in &amp; out</div></div>
+        <div class="arrow">→</div>
+        <div class="node"><div class="n-id">6.4</div><div class="n-name">Security</div><div class="n-sub">prompt injection</div></div>
+        <div class="arrow">→</div>
+        <div class="node"><div class="n-id">6.7</div><div class="n-name">Governance</div><div class="n-sub">redact · audit · approve</div></div>
+      </div>
+    </div>
+    <div class="connector"></div>
+    <div class="tier">
+      <span class="tier-tag">Applied — serve it &amp; keep it honest</span>
+      <div class="support-grid">
+        <div class="node support"><div class="n-id">6.5</div><div class="n-name">Serving &amp; Deployment</div><div class="n-sub">async API, container · 1.2 + 1.6</div></div>
+        <div class="node support"><div class="n-id">6.6</div><div class="n-name">Eval-Driven Iteration</div><div class="n-sub">CI gate · 5.4</div></div>
+      </div>
+    </div>
+    <div class="connector"></div>
+    <div class="node capstone"><div class="n-id">CAPSTONE</div><div class="n-name">Deploy the Step 5 system as a service</div><div class="n-sub">authenticated, traced, costed, guarded, auditable, eval-gated</div></div>
+    <div class="connector"></div>
+    <div class="node finish"><div class="n-id">★ FINISH</div><div class="n-name">Employable — build your portfolio</div></div>
+  </div>
+
+  <div class="section-label">Module detail — what, why, gotchas &amp; where to learn</div>
+  <div class="cards">
+
+    <!-- 6.1 -->
+    <div class="card span">
+      <div class="card-head"><span class="card-id">6.1</span><div><h3>Observability &amp; Tracing</h3><div class="role">Backbone · non-optional in prod</div></div></div>
+      <div class="chips"><span class="chip">traces / spans</span><span class="chip">token &amp; cost logging</span><span class="chip">LangSmith</span><span class="chip">Langfuse</span><span class="chip">Helicone</span><span class="chip">OpenTelemetry</span></div>
+      <div class="model"><b>Mental model</b>An agent without traces is undebuggable — capture every model call, tool call, and decision, with tokens, latency, and cost attached.</div>
+      <p class="why">Multi-step, non-deterministic systems fail in ways plain text logs can't explain. You need per-step inputs/outputs and a full trace of a run to see <i>why</i> the agent went sideways. Tools: LangSmith, Langfuse, Helicone, or OpenTelemetry-based stacks.</p>
+      <p class="why"><b>Build one by hand before you buy one.</b> A span is just: a request id, a start time, a counter per model call, token totals, and a computed dollar figure — emitted as one JSON line. Do that once and every vendor dashboard becomes legible, because you'll know exactly which field each chart is reading. <b>The number that surprises everyone:</b> one user question is <i>many</i> billable model calls, because the loop re-sends the whole history each turn. Cost per <i>question</i> is the metric that matters, and you cannot see it without this.</p>
+      <div class="drill"><b>Drill</b><code>step3_agent.py</code> takes an <code>on_usage</code> callback; <code>step6_service.py</code> turns it into a trace line. Run the service, ask one question, and read the JSON: <code>model_calls</code> will be greater than 1. Now ask a question needing two tools and watch the cost move.</div>
+      <div>
+        <div class="gotchas-label">Common mistakes</div>
+        <ul class="gotchas">
+          <li>Logging prompts with PII/secrets — mask them first (6.7), or your trace store becomes the leak.</li>
+          <li>No per-call cost attribution, so you can't find the expensive step.</li>
+          <li>Logging prose instead of structured JSON, so nothing can be aggregated.</li>
+          <li>Counting one request as one model call. In an agent loop it never is.</li>
+          <li>Sampling so aggressively you never capture the rare failure you're chasing.</li>
+        </ul>
+      </div>
+      <div class="links">
+        <a href="https://langfuse.com/docs" target="_blank" rel="noopener">Langfuse — open-source LLM observability <span class="src">langfuse.com</span></a>
+        <a href="https://docs.smith.langchain.com/" target="_blank" rel="noopener">LangSmith tracing <span class="src">langchain</span></a>
+        <a href="https://docs.helicone.ai/" target="_blank" rel="noopener">Helicone <span class="src">helicone.ai</span></a>
+      </div>
+    </div>
+
+    <!-- 6.2 -->
+    <div class="card">
+      <div class="card-head"><span class="card-id">6.2</span><div><h3>Cost &amp; Latency</h3><div class="role">Backbone</div></div></div>
+      <div class="chips"><span class="chip">model selection</span><span class="chip">prompt caching</span><span class="chip">batch API</span><span class="chip">streaming</span><span class="chip">parallel IO</span></div>
+      <a class="builds" href="02-llm-fundamentals-map.html">↩ builds on 2.2 + 1.2</a>
+      <div class="model"><b>Mental model</b>Right-size the model per step, cache the static prefix, batch what isn't latency-sensitive, stream what a user waits on.</div>
+      <p class="why">Use a small/fast model for easy steps and a big one only for hard reasoning; <b>prompt caching</b> slashes cost + latency on repeated context (2.2); the Batch API is cheaper for offline work; streaming (2.7) improves perceived speed; parallelize IO (1.2).</p>
+      <div>
+        <div class="gotchas-label">Common mistakes</div>
+        <ul class="gotchas">
+          <li>Using the biggest model for every step "to be safe" — burns budget.</li>
+          <li>Re-sending an uncached fixed system prompt on every call.</li>
+          <li>Serial tool/model IO that could have run concurrently.</li>
+        </ul>
+      </div>
+      <div class="links">
+        <a href="https://docs.claude.com/en/docs/build-with-claude/prompt-caching" target="_blank" rel="noopener">Prompt caching <span class="src">docs.claude.com</span></a>
+        <a href="https://docs.claude.com/en/docs/build-with-claude/batch-processing" target="_blank" rel="noopener">Batch processing <span class="src">docs.claude.com</span></a>
+      </div>
+    </div>
+
+    <!-- 6.3 -->
+    <div class="card">
+      <div class="card-head"><span class="card-id">6.3</span><div><h3>Guardrails &amp; Safety</h3><div class="role">Backbone</div></div></div>
+      <div class="chips"><span class="chip">input validation</span><span class="chip">output filtering</span><span class="chip">moderation</span><span class="chip">human-in-the-loop</span><span class="chip">least privilege</span></div>
+      <a class="builds" href="01-python-fluency-map.html">↩ builds on 1.3 · Validation</a>
+      <div class="model"><b>Mental model</b>Validate what goes in and what comes out — never treat model output as safe-to-act-on by default.</div>
+      <p class="why">Constrain and validate inputs, filter/moderate outputs, gate risky or irreversible actions behind human approval (3.6), and give each tool the least privilege it needs. The model is a capable but untrusted component in your system.</p>
+      <div>
+        <div class="gotchas-label">Common mistakes</div>
+        <ul class="gotchas">
+          <li>Acting on tool/model output with no validation step.</li>
+          <li>Handing an agent broad, unscoped tool permissions.</li>
+          <li>No moderation on anything user-facing.</li>
+        </ul>
+      </div>
+      <div class="links">
+        <a href="https://docs.claude.com/en/docs/test-and-evaluate/strengthen-guardrails/reduce-hallucinations" target="_blank" rel="noopener">Strengthening guardrails <span class="src">docs.claude.com</span></a>
+      </div>
+    </div>
+
+    <!-- 6.4 -->
+    <div class="card">
+      <div class="card-head"><span class="card-id">6.4</span><div><h3>Security</h3><div class="role">Backbone · the #1 agent threat</div></div></div>
+      <div class="chips"><span class="chip">prompt injection</span><span class="chip">data exfiltration</span><span class="chip">least privilege</span><span class="chip">sandboxing</span></div>
+      <div class="model"><b>Mental model</b>Treat all retrieved, tool-returned, and user content as untrusted — it can carry instructions that hijack the agent (prompt injection).</div>
+      <p class="why">The top agent risk is <b>prompt injection</b>: malicious text inside a web page, document, or tool result that redirects the agent — potentially exfiltrating data through its own tools. Defenses: least-privilege tools, sandboxing code execution, never mixing untrusted content with high-privilege actions, and confirming consequential actions.</p>
+      <div>
+        <div class="gotchas-label">Common mistakes</div>
+        <ul class="gotchas">
+          <li>Broad credentials + web/tool access = a ready-made exfiltration path.</li>
+          <li>Executing model-generated code unsandboxed.</li>
+          <li>Trusting RAG-retrieved content as if it were your own instructions.</li>
+        </ul>
+      </div>
+      <div class="links">
+        <a href="https://genai.owasp.org/llm-top-10/" target="_blank" rel="noopener">OWASP Top 10 for LLM Applications <span class="src">owasp.org</span></a>
+      </div>
+    </div>
+
+    <!-- 6.5 -->
+    <div class="card amber">
+      <div class="card-head"><span class="card-id">6.5</span><div><h3>Serving &amp; Deployment</h3><div class="role">Applied · the "it runs on my machine" gap</div></div></div>
+      <div class="chips"><span class="chip">FastAPI</span><span class="chip">async</span><span class="chip">API-key auth</span><span class="chip">SSE streaming</span><span class="chip">Docker</span><span class="chip">non-root</span><span class="chip">timeouts</span><span class="chip">job queue</span></div>
+      <a class="builds" href="01-python-fluency-map.html">↩ builds on 1.2 + 1.6</a>
+      <div class="model"><b>Mental model</b>An agent in production is an async, authenticated, containerised service — rate-limited, timed-out, observable.</div>
+      <p class="why">Wrap the agent in an async API (FastAPI), handle concurrency (1.2), respect upstream rate limits with retries (1.5), enforce timeouts on agent runs, and push long jobs onto a queue so requests don't hang.</p>
+      <p class="why"><b>Three things that separate a demo from a service, and all three are cheap:</b></p>
+      <ul class="gotchas" style="margin-bottom:12px">
+        <li><b>Auth.</b> An unauthenticated agent endpoint is a bill anyone on the internet can run up on your behalf — the LLM equivalent of an open mail relay. One header check fixes it.</li>
+        <li><b>Streaming.</b> An agent takes seconds, so your p95 latency <i>is</i> your user experience. SSE is a plain HTTP response that stays open with <code>data:</code> lines — no WebSocket machinery for one-way output.</li>
+        <li><b>A container.</b> "It runs on my machine" is not a deployment. A Dockerfile is 20 lines and makes the thing reproducible — and it's the step self-taught builders skip most often.</li>
+      </ul>
+      <div class="drill"><b>Drill</b>Run <code>step6_service.py</code>, then call it <i>without</i> the <code>x-api-key</code> header and read the 401. Then <code>docker build -t dorm-agent .</code> and hit the containerised version. Then curl <code>/ask/stream</code> with <code>-N</code> and watch deltas arrive.</div>
+      <div>
+        <div class="gotchas-label">Common mistakes</div>
+        <ul class="gotchas">
+          <li>Blocking the event loop with a sync call inside an async handler (1.2). This is why the Step 3 loop is async.</li>
+          <li>No timeout on an agent run → a stuck run ties up a worker forever.</li>
+          <li>No auth, because "it's just a demo." Demos get deployed.</li>
+          <li>Trying to return a 500 from a failure that happens mid-stream — the headers are already sent. Errors must be delivered <i>inside</i> the stream.</li>
+          <li>Shipping <code>--reload</code> in a container. It watches the filesystem and there's nothing to reload from.</li>
+          <li>Running the container as root. An agent executes model-chosen actions, so this is worse here than for a plain web app.</li>
+          <li>Holding an HTTP request open for a multi-minute agent run instead of returning a job id.</li>
+          <li>No backpressure — traffic spikes melt your rate limits.</li>
+        </ul>
+      </div>
+      <div class="links">
+        <a href="https://fastapi.tiangolo.com/" target="_blank" rel="noopener">FastAPI <span class="src">fastapi.tiangolo.com</span></a>
+        <a href="https://docs.docker.com/language/python/" target="_blank" rel="noopener">Containerising a Python app <span class="src">docs.docker.com</span></a>
+      </div>
+    </div>
+
+    <!-- 6.6 -->
+    <div class="card amber">
+      <div class="card-head"><span class="card-id">6.6</span><div><h3>Eval-Driven Iteration</h3><div class="role">Applied</div></div></div>
+      <div class="chips"><span class="chip">CI eval gate</span><span class="chip">regression suite</span><span class="chip">A/B prompts</span><span class="chip">drift monitoring</span></div>
+      <a class="builds" href="05-multi-agent-mcp-map.html">↩ builds on 5.4 · Evaluation</a>
+      <div class="model"><b>Mental model</b>Prompts are code — every change runs against the eval set before it merges.</div>
+      <p class="why">Wire the eval set from 5.4 into CI as a gate that blocks regressions, track pass-rate over time, A/B test prompt and model changes, and monitor production traces (6.1) for drift. This closes the loop: observe → eval → improve.</p>
+      <div>
+        <div class="gotchas-label">Common mistakes</div>
+        <ul class="gotchas">
+          <li>Shipping a prompt change with no regression run.</li>
+          <li>An eval set that never grows as new failures appear in prod.</li>
+          <li>Ignoring the prod feedback loop — real traces are your best new eval cases.</li>
+        </ul>
+      </div>
+      <div class="links">
+        <a href="https://www.promptfoo.dev/docs/" target="_blank" rel="noopener">promptfoo — CI evals <span class="src">promptfoo.dev</span></a>
+        <a href="https://docs.claude.com/en/docs/test-and-evaluate/develop-tests" target="_blank" rel="noopener">Building an eval suite <span class="src">docs.claude.com</span></a>
+      </div>
+    </div>
+
+    <!-- 6.7 -->
+    <div class="card span" style="border-left:4px solid var(--good)">
+      <div class="card-head"><span class="card-id">6.7</span><div><h3>Governance &amp; Auditability <span style="font-size:.7em;color:var(--good)">· new · your differentiator</span></h3><div class="role">Backbone ★★★ · the module almost nobody learns</div></div></div>
+      <div class="chips"><span class="chip">PII redaction</span><span class="chip">audit trail</span><span class="chip">hash chain</span><span class="chip">approval gates</span><span class="chip">retention policy</span><span class="chip">data residency</span><span class="chip">least privilege</span></div>
+      <div class="model"><b>Mental model</b>Security asks "can an attacker break this?" Governance asks "can you <i>prove</i> what it did?" You need both, and the second one is what gets a system approved for deployment.</div>
+      <p class="why"><b>Anyone can build an agent. Far fewer can build one that passes a data-protection review.</b> If you work anywhere near regulated data — government, healthcare, finance, education — this is the module that makes you hard to replace, and it is the one almost every self-taught agent builder skips entirely. The good news: it is not AI knowledge. It is ordinary backend discipline — input validation, least privilege, audit trails, retention — applied to a new kind of call. Instincts you already have transfer directly.</p>
+      <p class="why">Four mechanisms, in the order a request meets them:</p>
+      <ul class="gotchas" style="margin-bottom:12px">
+        <li><b>1 · Redact.</b> Strip personal data <i>before</i> the model call and substitute placeholders. The cheapest way to answer "what personal data leaves our boundary?" is to be able to say <i>none</i>. The mapping stays in your process and is never written down.</li>
+        <li><b>2 · Audit.</b> An append-only record of who asked what, which tools ran, what it cost, and what was decided. Make it <b>hash-chained</b> — each entry carries the hash of the one before — and edits or deletions become detectable. That is the difference between "we have logs" and "our logs are evidence."</li>
+        <li><b>3 · Approve.</b> Split tools by blast radius. Read tools run freely; <b>write tools return a proposal and stop</b>, pending a human. This single distinction eliminates the whole category of "the agent did something irreversible while nobody was watching."</li>
+        <li><b>4 · Retain.</b> Write down what you keep, for how long, and what you never store — then make the code match the document. Store <i>hashes</i> of prompts and answers rather than the text, and the log can be kept for years without becoming a liability.</li>
+      </ul>
+      <p class="why">Then there's <b>residency</b>: "which country did this inference run in?" should be answerable from configuration (see 2.8), not from faith. That question ends procurement conversations, so being ready for it is leverage.</p>
+      <div class="drill"><b>Drill</b>Run <code>uv run step6b_governance.py --offline</code> — no API key, no cost. It redacts a request, chains four audit entries, proposes a write, approves it, blocks the replay, and verifies the chain. <b>Then open <code>audit-log.jsonl</code>, change one character, and re-run.</b> It will name the exact line that was tampered with. That's about twenty lines of code buying you a property auditors care about a great deal.</div>
+      <div>
+        <div class="gotchas-label">Common mistakes</div>
+        <ul class="gotchas">
+          <li>A redactor you haven't tested. One that silently misses cases is <b>worse than none</b>, because it manufactures false confidence. Regexes don't catch names, addresses, or free-text disclosure.</li>
+          <li>Logging the full prompt "for debugging" — that's the PII you just carefully redacted, now permanently in your log store.</li>
+          <li>An audit log that's just application logs. If it's mutable and unordered, it isn't an audit trail.</li>
+          <li>Hashing unordered JSON. Without <code>sort_keys</code> the chain can't be recomputed, and a chain you can't verify proves nothing.</li>
+          <li>An approval gate that records the approval separately from performing the write — leaving an "approved but never applied" state nobody notices.</li>
+          <li>Reusable approval tokens. Single-use, or a replayed approval becomes a second write.</li>
+          <li>Writing a policy document the code doesn't implement. That's worse than no policy: you've documented a promise you're breaking.</li>
+        </ul>
+      </div>
+      <div class="links">
+        <a href="https://genai.owasp.org/llm-top-10/" target="_blank" rel="noopener">OWASP Top 10 for LLM Applications <span class="src">owasp.org</span></a>
+        <a href="https://www.pdpc.gov.sg/help-and-resources/2020/01/model-ai-governance-framework" target="_blank" rel="noopener">Model AI Governance Framework <span class="src">PDPC Singapore</span></a>
+        <a href="https://www.nist.gov/itl/ai-risk-management-framework" target="_blank" rel="noopener">AI Risk Management Framework <span class="src">NIST</span></a>
+        <a href="https://docs.claude.com/en/docs/build-with-claude/prompt-caching" target="_blank" rel="noopener">What gets cached (and for how long) <span class="src">docs.claude.com</span></a>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="section-label">The capstone — proof you've cleared Step 6</div>
+  <div class="callout">
+    <h3>Ship the Step 5 system as a real service</h3>
+    <pre>Deploy your multi-agent system so that it is:
+  • behind an async FastAPI endpoint              (6.5)
+  • authenticated — no anonymous calls            (6.4, 6.5)
+  • streaming, so the user isn't watching a
+    spinner for eight seconds                     (6.5)
+  • traced per request, with tokens AND dollars   (6.1)
+  • using prompt caching + right-sized models     (6.2)
+  • guarded on input AND output, least-privilege
+    tools, injection-aware                        (6.3, 6.4)
+  • redacting PII, writing a tamper-evident audit
+    trail, gating writes on human approval        (6.7)
+  • running in a container, as a non-root user    (6.5)
+  • gated by a CI eval that blocks regressions    (6.6)</pre>
+    <p class="verdict">That's an end-to-end, observable, safe, <b>auditable</b>, evaluated agent <b>service</b> — not a notebook demo. This is the portfolio piece that reads as "employable."</p>
+    <p class="why" style="margin-top:12px"><b>Every bullet above has running code in <code>samples/</code>.</b> That matters: an earlier version of this page promised five things the sample delivered two of. If you extend this capstone, extend the code with it — a spec your own repo doesn't meet is the most quietly corrosive thing in a learning project.</p>
+  </div>
+
+  <div class="section-label">You've finished the track — now get hired</div>
+  <div class="finish-band">
+    <h3>★ From here: build in public</h3>
+    <p class="why">Skills get you interviews only when they're visible. Turn this track into four shippable, talk-about-able projects:</p>
+    <ol>
+      <li><b>A grounded Q&amp;A bot</b> over a corpus you care about — retrieval, chunking, citations. Ship it with a <b>measured recall number</b> (3.3b); that single table is what makes it interesting rather than another chatbot.</li>
+      <li><b>A document extractor</b> that turns a real pile of PDFs or scans into structured records, with a confidence threshold routing the uncertain ones to review (2.9). <b>This is the one most likely to be immediately useful at your job</b> — and the least common in a portfolio.</li>
+      <li><b>A tool-calling agent</b> that hits a real API and completes a real task end-to-end (Steps 3–4).</li>
+      <li><b>A deployed, auditable agent service</b> — authenticated, traced with per-question cost, eval-gated in CI, PII-redacted, with a tamper-evident audit trail (Steps 5–6, 6.7). The flagship.</li>
+    </ol>
+    <p class="why" style="margin-top:14px;">Write up each one honestly: what it does, why you built it that way, <b>what broke</b>, and what you'd do next. The "what broke" section is the part experienced engineers actually read.</p>
+    <p class="why"><b>Two signals worth more than a fourth framework:</b> a <b>number</b> — a pass rate, a recall@k, a cost per question — because it proves you measure instead of guess; and <b>governance</b> (6.7), because "I can build an agent" is common and "I can build one that survives a data-protection review" is rare. On <b>MCP</b>, be precise rather than deep: knowing how to <i>consume</i> servers and being able to explain when a protocol boundary is worth its overhead is the whole signal. You don't need to have authored one.</p>
+  </div>
+
+  <footer>
+    <a class="nav-link prev-link" href="05-multi-agent-mcp-map.html">← Step 5 · Multi-Agent &amp; MCP</a>
+    <a class="nav-link home-link" href="01-python-fluency-map.html">↺ Back to Step 1 · start over</a>
+  </footer>
+</div>
